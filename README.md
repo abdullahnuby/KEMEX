@@ -61,8 +61,7 @@ supabase/migrations/005_audit_actor_policy.sql
 supabase/migrations/006_purchase_role_alignment.sql
 supabase/migrations/007_form_data_expansion.sql
 supabase/migrations/008_security_and_integrity.sql   # الصلاحيات + دورة الاعتماد + التدقيق + الترقيم
-supabase/seed.sql                                     # بيانات تجريبية (اختياري)
-supabase/seed_module_records.sql                      # بيانات تجريبية (اختياري)
+supabase/migrations/                                     # مخطط قاعدة البيانات وسياسات الأمان
 ```
 
 بعد إنشاء أول مستخدم من Authentication > Users، اجعله مدير نظام:

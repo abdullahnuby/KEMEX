@@ -173,26 +173,3 @@ export type AlertItem = {
   route: string
 }
 
-export type DemoDb = {
-  settings: {
-    vat: number
-    diesel: number
-    petrol: number
-    alertDays: number
-    alertKm: number
-    alertHours: number
-    co: string
-    grp: string
-  }
-  projects: Project[]
-  assets: Asset[]
-  contracts: Contract[]
-  drivers: Driver[]
-  operations: Operation[]
-  workOrders: WorkOrder[]
-  fuelOps: FuelOperation[]
-  customers: Customer[]
-  users: User[]
-  audit: Array<{ id: string; ts: string; user: string; action: string; entity: string; ref: string; details: string; source?: string }>
-  [key: string]: unknown
-}

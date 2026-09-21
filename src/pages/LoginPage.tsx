@@ -1,12 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { LockKeyhole, Truck, UserRound } from 'lucide-react'
-import { APP, DEMO_PASSWORD, ROLE_LABELS } from '../config/app'
-import { supabaseConfigured } from '../services/supabase'
+import { APP } from '../config/app'
 import type { User } from '../types/tfms'
 
-export function LoginPage({ users, onLogin }: { users: User[]; onLogin: (username: string, password: string) => Promise<void> }) {
-  const [username, setUsername] = useState(supabaseConfigured ? '' : 'admin')
-  const [password, setPassword] = useState(supabaseConfigured ? '' : DEMO_PASSWORD)
+export function LoginPage({ onLogin }: { onLogin: (username: string, password: string) => Promise<void> }) {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -26,8 +25,7 @@ export function LoginPage({ users, onLogin }: { users: User[]; onLogin: (usernam
         {error && <div className="form-error">{error}</div>}
         <button className="primary-button wide" disabled={busy}>{busy ? 'جارٍ الدخول...' : 'دخول إلى النظام'}</button>
       </form>
-      <div className="demo-login"><div className="demo-title">حسابات التجربة</div><div className="demo-grid">{users.slice(0,4).map((u) => <button key={u.username} onClick={() => {setUsername(u.username); setPassword(DEMO_PASSWORD)}}><strong>{u.username}</strong><span>{ROLE_LABELS[u.role]}</span></button>)}</div><small>كلمة المرور التجريبية: 1234</small></div>
-      <div className="login-note">عند ربط Supabase ينتقل الدخول تلقائيًا إلى Authentication الحقيقي.</div>
+      <div className="login-note">تسجيل الدخول يتم عبر Supabase Authentication. صلاحيات المستخدم يحددها ملفه في النظام.</div>
     </section>
   </div>
 }

@@ -1,5 +1,5 @@
-// اختبارات قاعدة البيانات: بتشغّل كل migrations + seeds على Postgres حقيقي (PGlite/WASM)
-// وتتأكد من الصلاحيات (RLS) ودورة الاعتماد والتدقيق والترقيم. بدون أي اتصال خارجي.
+// اختبارات قاعدة البيانات: تشغّل migrations على PGlite وتبني Fixtures صغيرة مؤقتة داخل الاختبار فقط.
+// بيانات Production لا تعتمد على seed files. بدون أي اتصال خارجي.
 //   npm run test:db
 import { test, before } from 'node:test'
 import assert from 'node:assert/strict'
@@ -33,18 +33,20 @@ before(async () => {
     grant usage on schema auth to authenticated; grant execute on function auth.uid() to authenticated;`)
   const files = fs.readdirSync(path.join(root, 'migrations')).filter(f => f.endsWith('.sql')).sort()
   for (const f of files) await db.exec(fs.readFileSync(path.join(root, 'migrations', f), 'utf8'))
-  await db.exec(fs.readFileSync(path.join(root, 'seed.sql'), 'utf8'))
-  await db.exec(fs.readFileSync(path.join(root, 'seed_module_records.sql'), 'utf8'))
   for (const [k, id] of Object.entries(U)) await db.exec(`insert into auth.users(id,email) values('${id}','${k.toLowerCase()}@x.com')`)
+  await db.exec(`
+    insert into projects(id,code,name) values('P0','PRJ-TEST','مشروع اختبار');
+    insert into assets(id,code,name,category,asset_type) values('A0','AST-TEST','أصل اختبار','مركبات','شاحنة');
+    insert into operations(id,asset_id,project_id,operation_date,status) values('OP-SEED','A0','P0',current_date,'مقدمة');
+    insert into tfms_module_records(module_name,record_id,payload) values('oilChanges','OC-SEED','{"asset":"A0"}');
+  `)
   for (const [k, id] of Object.entries(U)) await db.exec(`update profiles set role='${ROLE[k]}' where id='${id}'`)
 })
 
-test('seed.sql يُحمَّل كاملًا (بدون قيم "" في أعمدة التاريخ/المفاتيح)', async () => {
+test('قاعدة Production تبدأ بدون بيانات تشغيلية خارج Fixtures الاختبار', async () => {
   await as(null)
-  const c = Object.fromEntries((await rows(`select 'assets' t,count(*)::int n from assets union all select 'assignments',count(*)::int from assignments
-     union all select 'operations',count(*)::int from operations union all select 'work_orders',count(*)::int from work_orders
-     union all select 'fuel',count(*)::int from fuel_operations`)).map(r => [r.t, r.n]))
-  assert.deepEqual(c, { assets: 20, assignments: 7, operations: 208, work_orders: 9, fuel: 156 })
+  const c = Object.fromEntries((await rows(`select 'assets' t,count(*)::int n from assets union all select 'projects',count(*)::int from projects union all select 'operations',count(*)::int from operations`)).map(r => [r.t, r.n]))
+  assert.deepEqual(c, { assets: 1, projects: 1, operations: 1 })
 })
 
 test('mgmt: قراءة كل شيء وكتابة لا شيء', async () => {

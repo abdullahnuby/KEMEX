@@ -87,6 +87,8 @@ export default function App() {
   const [systemSettings,setSystemSettings]=useState({alertDays:30,alertKm:1500,alertHours:80,vat:14,diesel:12.5,petrol:15.25})
 
   useEffect(()=>{
+    // Remove the retired Demo database cache. KEMEX data now comes from Supabase only.
+    localStorage.removeItem('tfms-web-demo-v1')
     if(!repository.isRemote()){setSessionChecked(true);return}
     let active=true
     repository.getCurrentUser().then(u=>{if(!active)return;if(u){setUser(u);localStorage.setItem(SESSION_KEY,JSON.stringify(u))}else{setUser(null);localStorage.removeItem(SESSION_KEY)};setSessionChecked(true)}).catch(err=>{if(active){setUser(null);localStorage.removeItem(SESSION_KEY);setError(err instanceof Error?`تعذر التحقق من جلسة المستخدم: ${err.message}`:'تعذر التحقق من جلسة المستخدم');setSessionChecked(true)}})
@@ -140,16 +142,40 @@ export default function App() {
   async function logout(){repository.clearAuditActor();await repository.signOut();localStorage.removeItem(SESSION_KEY);setUser(null)}
   function navigate(next:string){location.hash='#/'+next;setRoute(next)}
 
-  async function saveProject(p:Project){await repository.saveProject(p);setProjects(prev=>prev.some(x=>x.id===p.id)?prev.map(x=>x.id===p.id?p:x):[...prev,p])}
+  function formatError(err:unknown){return err instanceof Error ? err.message : 'تعذر تنفيذ العملية. حاول مرة أخرى.'}
+
+  async function saveProject(p:Project){
+    try { await repository.saveProject(p); setError(''); setProjects(prev=>prev.some(x=>x.id===p.id)?prev.map(x=>x.id===p.id?p:x):[...prev,p]) }
+    catch(err){ const message=formatError(err); setError(`تعذر حفظ المشروع: ${message}`); throw err }
+  }
 
   async function saveAsset(a:Asset){
     const normalized=a.id.startsWith('NEW-')?{...a,id:`A-${Date.now()}`} : a
-    await repository.saveAsset(normalized); setAssets(prev=>prev.some(x=>x.id===normalized.id)?prev.map(x=>x.id===normalized.id?normalized:x):[...prev,normalized])
+    try {
+      await repository.saveAsset(normalized)
+      setError('')
+      setAssets(prev=>prev.some(x=>x.id===normalized.id)?prev.map(x=>x.id===normalized.id?normalized:x):[...prev,normalized])
+    } catch(err){ const message=formatError(err); setError(`تعذر حفظ الأصل: ${message}`); throw err }
   }
 
-  async function saveWorkOrder(w:WorkOrder){await repository.saveWorkOrder(w);setWorkOrders(prev=>prev.some(x=>x.id===w.id)?prev.map(x=>x.id===w.id?w:x):[w,...prev])}
-  async function saveFuelOperation(x:FuelOperation){await repository.saveFuelOperation(x);setFuelOps(prev=>prev.some(v=>v.id===x.id)?prev.map(v=>v.id===x.id?x:v):[x,...prev])}
-  async function saveModule(module:string, record:Record<string,unknown>){const saved=await repository.saveModuleRecord(module,record);setModuleData(prev=>({...prev,[module]:(prev[module]??[]).some(x=>x.id===saved.id)?(prev[module]??[]).map(x=>x.id===saved.id?saved:x):[saved,...(prev[module]??[])]}))}
+  async function saveWorkOrder(w:WorkOrder){
+    try { await repository.saveWorkOrder(w); setError(''); setWorkOrders(prev=>prev.some(x=>x.id===w.id)?prev.map(x=>x.id===w.id?w:x):[w,...prev]) }
+    catch(err){ const message=formatError(err); setError(`تعذر حفظ أمر الصيانة: ${message}`); throw err }
+  }
+
+  async function saveFuelOperation(x:FuelOperation){
+    try { await repository.saveFuelOperation(x); setError(''); setFuelOps(prev=>prev.some(v=>v.id===x.id)?prev.map(v=>v.id===x.id?x:v):[x,...prev]) }
+    catch(err){ const message=formatError(err); setError(`تعذر حفظ حركة الوقود: ${message}`); throw err }
+  }
+
+  async function saveModule(module:string, record:Record<string,unknown>){
+    try {
+      const saved=await repository.saveModuleRecord(module,record)
+      setError('')
+      setModuleData(prev=>({...prev,[module]:(prev[module]??[]).some(x=>x.id===saved.id)?(prev[module]??[]).map(x=>x.id===saved.id?saved:x):[saved,...(prev[module]??[])]}))
+      return saved
+    } catch(err){ const message=formatError(err); setError(`تعذر حفظ السجل: ${message}`); throw err }
+  }
   async function createMaintenanceFromPlan(workOrder:WorkOrder,_plan:Record<string,unknown>){await saveWorkOrder(workOrder);navigate('maintenance')}
   async function createPurchaseFromInventory(item:Record<string,unknown>){const records=moduleData.purchases??[];const next={id:`PR-${Date.now()}`,number:`PR-${100+records.length+1}`,date:new Date().toISOString().slice(0,10),req:user?.name??'',desc:String(item.name??''),qty:Number(item.min||1),unit:String(item.unit??''),est:Number(item.min||1)*Number(item.cost||0),proj:'',status:'قيد الاعتماد',po:'',supplier:'',notes:`طلب إعادة طلب للصنف ${String(item.code??'')}`} ;await saveModule('purchases',next);navigate('purchases')}
 
@@ -204,7 +230,7 @@ export default function App() {
   const alertCount=useMemo(()=>assets.filter(a=>(a.lic?daysTo(a.lic)<=30:false)||['تحت الصيانة','بانتظار الإصلاح','بانتظار الفحص'].includes(a.status)).length,[assets])
 
   if(!sessionChecked)return <div className="loading-page"><div className="spinner"/><strong>جارٍ التحقق من جلسة المستخدم...</strong></div>
-  if(!user)return <LoginPage users={repository.getDemoDb().users} onLogin={login}/>
+  if(!user)return <LoginPage onLogin={login}/>
   if(loading)return <div className="loading-page"><div className="spinner"/><strong>جارٍ تحميل KEMEX...</strong></div>
 
   let content

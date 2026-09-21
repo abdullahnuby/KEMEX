@@ -45,7 +45,6 @@ export const MODULES = [
   { key: 'settings', label: 'الإعدادات', icon: 'Settings2', group: 'التقارير والإدارة' },
 ] as const
 
-export const DEMO_PASSWORD = '1234'
 
 export type RoleKey = 'admin' | 'mgmt' | 'fleet' | 'pm' | 'eng' | 'maint' | 'acct'
 export const ROLE_MODULES: Record<RoleKey, readonly string[] | '*'> = {
