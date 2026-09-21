@@ -168,12 +168,11 @@ export default function App() {
     catch(err){ const message=formatError(err); setError(`تعذر حفظ حركة الوقود: ${message}`); throw err }
   }
 
-  async function saveModule(module:string, record:Record<string,unknown>){
+  async function saveModule(module:string, record:Record<string,unknown>):Promise<void>{
     try {
       const saved=await repository.saveModuleRecord(module,record)
       setError('')
       setModuleData(prev=>({...prev,[module]:(prev[module]??[]).some(x=>x.id===saved.id)?(prev[module]??[]).map(x=>x.id===saved.id?saved:x):[saved,...(prev[module]??[])]}))
-      return saved
     } catch(err){ const message=formatError(err); setError(`تعذر حفظ السجل: ${message}`); throw err }
   }
   async function createMaintenanceFromPlan(workOrder:WorkOrder,_plan:Record<string,unknown>){await saveWorkOrder(workOrder);navigate('maintenance')}
