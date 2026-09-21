@@ -368,3 +368,13 @@
 - [x] تحديث أسماء ملفات التصدير الجديدة إلى KEMEX.
 - [x] الإبقاء على مفاتيح `tfms_*` التقنية لحماية التوافق مع البيانات والـlegacy.
 - [ ] QA/Build النهائي مؤجل.
+
+## Sprint 08-11 — Responsive header and mobile logout (v0.24.1)
+- [x] Collapse desktop navigation at a safe width to prevent header collision.
+- [x] Allow brand and header layout to shrink without overlapping actions.
+- [x] Add account identity and role to the mobile navigation drawer.
+- [x] Add a visible mobile logout button wired to the existing logout handler.
+- [x] Preserve the notification bell action.
+- [x] Source integrity verification.
+- [ ] Full typecheck / production build (deferred; Node >=24 required).
+- [ ] Browser QA across desktop, tablet, and mobile breakpoints.

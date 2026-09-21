@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { LockKeyhole, Truck, UserRound } from 'lucide-react'
 import { APP, DEMO_PASSWORD, ROLE_LABELS } from '../config/app'
+import { supabaseConfigured } from '../services/supabase'
 import type { User } from '../types/tfms'
 
 export function LoginPage({ users, onLogin }: { users: User[]; onLogin: (username: string, password: string) => Promise<void> }) {
-  const [username, setUsername] = useState('admin')
-  const [password, setPassword] = useState(DEMO_PASSWORD)
+  const [username, setUsername] = useState(supabaseConfigured ? '' : 'admin')
+  const [password, setPassword] = useState(supabaseConfigured ? '' : DEMO_PASSWORD)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 

@@ -230,15 +230,15 @@ export default function App() {
   if(!assetDetailMatch && !assignmentCreateMatch) switch(route){
     case 'dashboard': content=<DashboardPage assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} onRoute={navigate}/>; break
     case 'alerts': content=<AlertsPage assets={assets} workOrders={workOrders} drivers={drivers as any} contracts={contracts as any} onRoute={navigate} alertDays={systemSettings.alertDays} alertKm={systemSettings.alertKm} alertHours={systemSettings.alertHours} plans={moduleData.plans??[]} oils={moduleData.oils??[]}/>; break
-    case 'assets': content=<AssetsPage assets={assets} projects={projects} onSave={saveAsset} onRoute={navigate}/>; break
+    case 'assets': content=<AssetsPage assets={assets} projects={projects} onSave={saveAsset} onRoute={navigate} canEdit={['admin','fleet','pm'].includes(user.role)}/>; break
     case 'asset': content=<ModulePlaceholderPage title={TITLES.asset??'بطاقة الأصل'} description="بطاقة الأصل" onRoute={navigate}/>; break
-    case 'maintenance': content=<MaintenancePage workOrders={workOrders} assets={assets} projects={projects} onSave={saveWorkOrder}/>; break
+    case 'maintenance': content=<MaintenancePage workOrders={workOrders} assets={assets} projects={projects} onSave={['admin','fleet','maint'].includes(user.role)?saveWorkOrder:undefined}/>; break
     case 'plans': content=<PlansPage records={moduleData.plans??[]} assets={assets} onSave={(record)=>saveModule('plans',record)} onCreateWorkOrder={createMaintenanceFromPlan}/>; break
     case 'oils': content=<OilsPage plans={moduleData.oils??[]} changes={moduleData.oilChanges??[]} assets={assets} workOrders={workOrders} moduleData={moduleData} userName={user.name} canEdit={['admin','fleet','maint'].includes(user.role)} onSavePlan={(record)=>saveModule('oils',record)} onSaveChange={(record)=>saveModule('oilChanges',record)}/>; break
     case 'tires': content=<TiresPage records={moduleData.tires??[]} operations={moduleData.tireOps??[]} assets={assets} canEdit={['admin','fleet','maint'].includes(user.role)} onSave={(record)=>saveModule('tires',record)} onSaveOperation={(record)=>saveModule('tireOps',record)}/>; break
     case 'inventory': content=<InventoryPage records={moduleData.inventory??[]} userName={user.name} assets={assets} projects={projects} workOrders={workOrders} onSave={(record)=>saveModule('inventory',record)} onSaveMovement={(record)=>saveModule('movements',record)} onCreatePurchase={createPurchaseFromInventory}/>; break
-    case 'fuel': content=<FuelPage fuelOps={fuelOps} assets={assets} projects={projects} onSave={saveFuelOperation} defaultPrices={{diesel:systemSettings.diesel,petrol:systemSettings.petrol}}/>; break
-    case 'projects': content=<ProjectsPage projects={projects} assets={assets} onSave={['admin','mgmt','fleet','pm','acct'].includes(user.role)?saveProject:undefined}/>; break
+    case 'fuel': content=<FuelPage fuelOps={fuelOps} assets={assets} projects={projects} onSave={['admin','fleet'].includes(user.role)?saveFuelOperation:undefined} defaultPrices={{diesel:systemSettings.diesel,petrol:systemSettings.petrol}}/>; break
+    case 'projects': content=<ProjectsPage projects={projects} assets={assets} onSave={['admin','fleet','pm','acct'].includes(user.role)?saveProject:undefined}/>; break
     case 'purchases': content=<PurchasesPage records={moduleData.purchases??[]} user={user} projects={projects} canEdit={['admin','fleet','maint'].includes(user.role)} onSave={(record)=>saveModule('purchases',record)}/>; break
     case 'costs': content=<CostsPage assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} moduleData={moduleData}/>; break
     case 'charging': content=<ChargingPage assets={assets} projects={projects} moduleData={moduleData} workOrders={workOrders} fuelOps={fuelOps}/>; break

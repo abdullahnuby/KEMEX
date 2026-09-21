@@ -4,10 +4,12 @@ import type { Asset, Project } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { StatusBadge } from '../components/StatusBadge'
 
-export function AssetsPage({assets, projects, onSave, onRoute}: {assets:Asset[]; projects:Project[]; onSave:(asset:Asset)=>void; onRoute:(r:string)=>void}) {
+export function AssetsPage({assets, projects, onSave, onRoute, canEdit=true}: {assets:Asset[]; projects:Project[]; onSave:(asset:Asset)=>void; onRoute:(r:string)=>void; canEdit?:boolean}) {
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('all')
-  const [editing, setEditing] = useState<Asset|null>(null)
+  const [editing, setEditingState] = useState<Asset|null>(null)
+  // الصلاحية مفروضة في القاعدة (RLS)؛ ده بس بيمنع فتح النموذج لمن لا يملكها
+  const setEditing = (a:Asset|null) => { if (a && !canEdit) { window.alert('ليس لديك صلاحية تعديل الأصول'); return } setEditingState(a) }
   const [viewing, setViewing] = useState<Asset|null>(null)
   const rows = useMemo(()=>assets.filter(a=>{
     const q=query.trim().toLowerCase()

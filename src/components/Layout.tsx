@@ -77,6 +77,10 @@ export function Layout({ user, route, onRoute, onLogout, children, alertCount }:
         </div>
 
         {mobileOpen&&<div className="mobile-nav-panel">
+          <div className="mobile-account-row">
+            <div className="mobile-account-identity"><div className="avatar">{user.name?.slice(0,1)??'م'}</div><div><strong>{user.name}</strong><small>{ROLE_LABELS[user.role as Role]}</small></div></div>
+            <button className="mobile-logout-button" onClick={()=>{setMobileOpen(false);onLogout()}}><LogOut size={16}/> تسجيل الخروج</button>
+          </div>
           <div className="mobile-nav-search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="بحث في أقسام النظام..."/></div>
           {navGroups.map(group=><MobileGroup key={group.group} group={group} route={route} alertCount={alertCount} onNavigate={navigate}/>) }
         </div>}

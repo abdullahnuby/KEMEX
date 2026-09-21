@@ -1,10 +1,12 @@
 # KEMEX Web
 
+> **v0.24.1** — الصلاحيات ودورة الاعتماد والتدقيق والترقيم بقت مفروضة داخل قاعدة البيانات (migration 008) ومغطاة باختبارات `npm run test:db`. التفاصيل: [docs/REVIEW-v0.24.1.md](./docs/REVIEW-v0.24.1.md).
+
 منصة ويب عربية RTL باسم KEMEX لإدارة النقل والأسطول والمعدات والصيانة والوقود والتكاليف.
 
 ## الحالة
 
-**v0.23.1 — Sprint 08 branding + UI hardening**
+**v0.24.1 — Security & integrity hardening**
 
 تم نقل هيكل النظام من النسخة HTML إلى React + TypeScript، مع طبقة Repository تدعم Demo Local Storage أو Supabase/PostgreSQL.
 
@@ -48,14 +50,28 @@ VITE_SUPABASE_URL=...
 VITE_SUPABASE_PUBLISHABLE_KEY=...
 ```
 
-نفّذ ملفات SQL بالترتيب:
+نفّذ ملفات SQL بالترتيب في Supabase SQL Editor (الترتيب مهم):
 
 ```text
 supabase/migrations/001_initial_schema.sql
 supabase/migrations/002_hardening_and_indexes.sql
-supabase/seed.sql
-supabase/seed_module_records.sql
+supabase/migrations/003_workflow_documents_notifications.sql
+supabase/migrations/004_workflow_api_grants.sql
+supabase/migrations/005_audit_actor_policy.sql
+supabase/migrations/006_purchase_role_alignment.sql
+supabase/migrations/007_form_data_expansion.sql
+supabase/migrations/008_security_and_integrity.sql   # الصلاحيات + دورة الاعتماد + التدقيق + الترقيم
+supabase/seed.sql                                     # بيانات تجريبية (اختياري)
+supabase/seed_module_records.sql                      # بيانات تجريبية (اختياري)
 ```
+
+بعد إنشاء أول مستخدم من Authentication > Users، اجعله مدير نظام:
+
+```sql
+update public.profiles set role = 'admin' where email = 'you@company.com';
+```
+
+كل مستخدم جديد بيتسجّل بدور `eng` (أقل صلاحية) لحد ما الأدمن يغيّر دوره من صفحة المستخدمين.
 
 الجداول في `public` محمية بـRLS، والـmigration تحتوي على GRANTs صريحة لدور `authenticated` حتى لا يعتمد النظام على التعرض التلقائي للـData API.
 
@@ -63,6 +79,7 @@ supabase/seed_module_records.sql
 
 ```bash
 npm run typecheck
+npm run test:db   # migrations + seeds + RLS على Postgres حقيقي (PGlite)
 npm run build
 ```
 

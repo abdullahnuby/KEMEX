@@ -4,6 +4,26 @@ import { supabase, supabaseConfigured } from './supabase'
 import type { Asset, DemoDb, Project, User, WorkOrder, FuelOperation, Role } from '../types/tfms'
 
 const demoDb = seed as DemoDb
+
+/** وضع التجربة (localStorage + كلمات مرور ثابتة) متاح في التطوير أو بمتغير صريح فقط.
+ *  لو النشر خرج بدون متغيرات Supabase بالغلط، نرفض بدل ما نفتح نظامًا بحسابات admin/1234. */
+export const DEMO_ALLOWED = import.meta.env.DEV || import.meta.env.VITE_ALLOW_DEMO === 'true'
+
+/** PostgREST بيقطع أي استعلام عند max-rows (افتراضيًا 1000) بدون أي تحذير،
+ *  فأي جدول يكبر عن كده (التشغيل اليومي مثلًا) كان هيتقرأ ناقص والتكاليف تطلع غلط. نقرأ على صفحات. */
+async function pageAll<T>(
+  build: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>,
+  size = 1000,
+): Promise<T[]> {
+  const out: T[] = []
+  for (let from = 0; ; from += size) {
+    const { data, error } = await build(from, from + size - 1)
+    if (error) throw error
+    const rows = data ?? []
+    out.push(...rows)
+    if (rows.length < size) return out
+  }
+}
 const CORE_MODULES = new Set(['assets','projects','maintenance','fuel','drivers','contracts'])
 
 type AnyRecord = Record<string, unknown>
@@ -98,9 +118,7 @@ export class TfmsRepository {
   private async recordAudit(action:string,entity:string,reference:string,details:string,source='web'){
     const id=`AUD-${Date.now()}-${Math.random().toString(36).slice(2,7)}`
     if (supabase) {
-      const { data } = await supabase.auth.getUser()
-      const { error }=await supabase.from('audit_log').insert({id,occurred_at:new Date().toISOString(),user_id:data.user?.id??null,username:data.user?.email??'',action,entity,reference,details,source})
-      if(error) throw error
+      // التدقيق بيتكتب من الخادم عبر مشغّلات القاعدة (migration 008): مينفعش يتزوّر ولا يفشل جزئيًا بعد نجاح الحفظ.
       return
     }
     const user=this.auditActor ?? this.local.users[0]
@@ -126,6 +144,7 @@ export class TfmsRepository {
       }
       return { id: profile.id, username: profile.email ?? username, name: profile.full_name, role: profile.role, active: profile.active }
     }
+    if (!DEMO_ALLOWED) throw new Error('النظام غير مهيأ: متغيرات Supabase غير موجودة في بيئة التشغيل. تواصل مع مسؤول النظام.')
     const user = this.local.users.find((x) => x.username === username && x.pass === password && x.active !== false)
     if (!user) throw new Error('بيانات الدخول غير صحيحة')
     return user
@@ -158,9 +177,8 @@ export class TfmsRepository {
 
   async listAssets(): Promise<Asset[]> {
     if (supabase) {
-      const { data, error } = await supabase.from('assets').select('*').order('code')
-      if (error) throw error
-      return (data ?? []).map((x) => ({
+      const data = await pageAll((f, t) => supabase!.from('assets').select('*').order('code').order('id').range(f, t))
+      return data.map((x) => ({
         id: x.id, code: x.code, name: x.name, cat: x.category, type: x.asset_type, own: x.ownership,
         status: x.status, cond: x.technical_condition, mfr: x.manufacturer, model: x.model,
         year: x.manufacture_year, fuel: x.fuel_type, mt: x.meter_type, meter: Number(x.meter),
@@ -200,9 +218,8 @@ export class TfmsRepository {
 
   async listWorkOrders(): Promise<WorkOrder[]> {
     if (supabase) {
-      const { data, error } = await supabase.from('work_orders').select('*').order('opened', { ascending: false })
-      if (error) throw error
-      return (data ?? []).map((x) => ({ ...x, asset: x.asset_id, proj: x.project_id, type:x.work_type, desc:x.description, prio:x.priority, techs:x.technicians, laborCost:Number(x.labor_cost||0), partsCost:Number(x.parts_cost||0), vendorCost:Number(x.vendor_cost||0), downHrs:x.downtime_hours, planId:x.plan_id, estimatedCost:(x.metadata as Record<string,unknown>|null)?.estimated_cost==null?undefined:Number((x.metadata as Record<string,unknown>).estimated_cost), cause:String((x.metadata as Record<string,unknown>|null)?.cause??''), materials:String((x.metadata as Record<string,unknown>|null)?.materials??''), warranty:String((x.metadata as Record<string,unknown>|null)?.warranty??''), approvalNotes:String((x.metadata as Record<string,unknown>|null)?.approval_notes??'') }))
+      const data = await pageAll((f, t) => supabase!.from('work_orders').select('*').order('opened', { ascending: false }).order('id').range(f, t))
+      return data.map((x) => ({ ...x, asset: x.asset_id, proj: x.project_id, type:x.work_type, desc:x.description, prio:x.priority, techs:x.technicians, laborCost:Number(x.labor_cost||0), partsCost:Number(x.parts_cost||0), vendorCost:Number(x.vendor_cost||0), downHrs:x.downtime_hours, planId:x.plan_id, estimatedCost:(x.metadata as Record<string,unknown>|null)?.estimated_cost==null?undefined:Number((x.metadata as Record<string,unknown>).estimated_cost), cause:String((x.metadata as Record<string,unknown>|null)?.cause??''), materials:String((x.metadata as Record<string,unknown>|null)?.materials??''), warranty:String((x.metadata as Record<string,unknown>|null)?.warranty??''), approvalNotes:String((x.metadata as Record<string,unknown>|null)?.approval_notes??'') }))
     }
     return this.local.workOrders
   }
@@ -217,9 +234,8 @@ export class TfmsRepository {
 
   async listFuel(): Promise<FuelOperation[]> {
     if (supabase) {
-      const { data, error } = await supabase.from('fuel_operations').select('*').order('operation_date', { ascending: false })
-      if (error) throw error
-      return (data ?? []).map((x) => ({ ...x, type:x.operation_type, assetId: x.asset_id, tank: x.tank_id, proj: x.project_id, date:x.operation_date, sup:x.supplier, inv:x.invoice_no }))
+      const data = await pageAll((f, t) => supabase!.from('fuel_operations').select('*').order('operation_date', { ascending: false }).order('id').range(f, t))
+      return data.map((x) => ({ ...x, type:x.operation_type, assetId: x.asset_id, tank: x.tank_id, proj: x.project_id, date:x.operation_date, sup:x.supplier, inv:x.invoice_no }))
     }
     return this.local.fuelOps
   }
@@ -243,9 +259,8 @@ export class TfmsRepository {
       return (data??[]).map(x=>({id:x.id,number:x.number,lessor:x.lessor,phone:x.phone??'',assets:Array.isArray(x.assets)?x.assets.join(', '):valueJson(x.assets),start:x.start_date??'',end:x.end_date??'',rate:x.rate??'',unit:x.unit??'',minimum:x.minimum??'',fuelT:x.fuel_terms??'',operT:x.operation_terms??'',maintT:x.maintenance_terms??'',status:x.status,notes:x.notes??''}))
     }
     if(supabase && !CORE_MODULES.has(module)){
-      const {data,error}=await supabase.from('tfms_module_records').select('record_id,payload').eq('module_name',module).order('updated_at',{ascending:false})
-      if(error)throw error
-      return (data??[]).map(x=>({...(x.payload as AnyRecord),id:x.record_id}))
+      const data=await pageAll((f,t)=>supabase!.from('tfms_module_records').select('record_id,payload').eq('module_name',module).order('updated_at',{ascending:false}).order('record_id').range(f,t))
+      return data.map(x=>({...(x.payload as AnyRecord),id:x.record_id}))
     }
     const localKey:Record<string,string>={inventory:'items',movements:'moves',purchases:'purchaseReqs',oils:'oilPlans'}
     const value=this.local[localKey[module]??module]
@@ -265,19 +280,11 @@ export class TfmsRepository {
       const {error}=await supabase.from('contracts').upsert(payload); if(error)throw error; await this.recordAudit('حفظ عقد','contracts',id,String(record.number??'')); return {...record,id}
     }
     if(supabase && !CORE_MODULES.has(module)){
-      const {data:previousRow,error:readError}=await supabase.from('tfms_module_records').select('payload').eq('module_name',module).eq('record_id',id).maybeSingle()
-      if(readError)throw readError
-      const previousStatus=String((previousRow?.payload as AnyRecord|undefined)?.status??'')
-      const nextStatus=String(record.status??'')
-      const {error}=await supabase.from('tfms_module_records').upsert({module_name:module,record_id:id,payload:{...record,id}})
+      // onConflict ضروري: بدونه supabase-js بيفترض المفتاح الأساسي (id) فيفشل كل تعديل لسجل موجود بـ duplicate key.
+      // الحارس والترقيم وسجل الاعتماد والتدقيق كلها بتحصل في القاعدة (008) — بنرجّع النسخة المخزّنة عشان الرقم اللي حدّده الخادم يظهر.
+      const {data:saved,error}=await supabase.from('tfms_module_records').upsert({module_name:module,record_id:id,payload:{...record,id}},{onConflict:'module_name,record_id'}).select('record_id,payload').single()
       if(error)throw error
-      if(nextStatus && nextStatus!==previousStatus){
-        const {data:userData}=await supabase.auth.getUser()
-        const {error:eventError}=await supabase.from('approval_events').insert({id:`APR-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,module_name:module,record_id:id,from_status:previousStatus||null,to_status:nextStatus,acted_by:userData.user?.id??null,metadata:{source:'module-record-form'}})
-        if(eventError)throw eventError
-      }
-      await this.recordAudit('حفظ سجل',module,id,JSON.stringify(record).slice(0,500))
-      return {...record,id}
+      return {...(saved.payload as AnyRecord),id:saved.record_id}
     }
     const localKey:Record<string,string>={inventory:'items',movements:'moves',purchases:'purchaseReqs',oils:'oilPlans'}
     const storageKey=localKey[module]??module
