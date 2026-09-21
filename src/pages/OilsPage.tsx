@@ -230,8 +230,8 @@ export function OilsPage({ plans, changes, assets, workOrders = [], moduleData =
 function Input({name,label,value,type='text',required=false}:{name:string;label:string;value:string;type?:string;required?:boolean}) {
   return <label className="field"><span>{label}{required&&' *'}</span><input name={name} type={type} defaultValue={value} required={required} min={type==='number'?0:undefined} step={type==='number'?'any':undefined}/></label>
 }
-function Select({name,label,value,options,required=false}:{name:string;label:string;value:string;options:{v:string;l:string}[];required?:boolean}) {
-  return <label className="field"><span>{label}{required&&' *'}</span><select name={name} defaultValue={value} required={required}><option value="">— اختر —</option>{options.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}</select></label>
+function Select({name,label,value,options,required=false}:{name:string;label:string;value:string;options:Array<string|{v:string;l:string}>;required?:boolean}) {
+  return <label className="field"><span>{label}{required&&' *'}</span><select name={name} defaultValue={value} required={required}><option value="">— اختر —</option>{options.map(o => typeof o==='string'?<option key={o} value={o}>{o}</option>:<option key={o.v} value={o.v}>{o.l}</option>)}</select></label>
 }
 function FormBlock({title,hint,children}:{title:string;hint:string;children:ReactNode}){return <section className="form-section"><div className="form-section-head"><strong>{title}</strong><span>{hint}</span></div><div className="form-grid">{children}</div></section>}
 function Metric({icon:Icon,label,value}:{icon:LucideIcon;label:string;value:number}) {

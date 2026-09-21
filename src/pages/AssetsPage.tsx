@@ -30,7 +30,7 @@ export function AssetsPage({assets, projects, onSave, onRoute}: {assets:Asset[];
 
 function Field({name,label,defaultValue,type='text'}:{name:string;label:string;defaultValue:string;type?:string}){return <label className="field"><span>{label}</span><input name={name} type={type} defaultValue={defaultValue} min={type==='number'?0:undefined} step={type==='number'?'any':undefined}/></label>}
 function FormBlock({title,children}:{title:string;children:ReactNode}){return <section className="form-section"><div className="form-section-head"><strong>{title}</strong><span>أكمل البيانات المرتبطة بالقسم</span></div><div className="form-grid">{children}</div></section>}
-function Select({name,label,value,options}:{name:string;label:string;value:string;options:string[]}){return <label className="field"><span>{label}</span><select name={name} defaultValue={value}>{options.map(o=><option key={o}>{o}</option>)}</select></label>}
-function Detail({label,value}:{label:string;value:string}){return <div className="detail-item"><span>{label}</span><strong>{value}</strong></div>}
+function Select({name,label,value,options}:{name:string;label:string;value:string;options:Array<string|{v:string;l:string}>}){return <label className="field"><span>{label}</span><select name={name} defaultValue={value}>{options.map(o=>typeof o==='string'?<option key={o} value={o}>{o}</option>:<option key={o.v} value={o.v}>{o.l}</option>)}</select></label>}
+function Detail({label,value}:{label:string;value:ReactNode}){return <div className="detail-item"><span>{label}</span><strong>{value}</strong></div>}
 const fmt=(n:number)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:0}).format(n)
 const fmtDate=(v?:string)=>v?new Intl.DateTimeFormat('ar-EG',{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(v)):'—'

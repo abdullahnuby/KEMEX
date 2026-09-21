@@ -88,7 +88,7 @@ export function TiresPage({ records, operations, assets, canEdit, onSave, onSave
       if (['تركيب','تدوير','فك'].includes(kind) && !asset) throw new Error('اختيار الأصل مطلوب لهذه العملية.')
       if (['تركيب','تدوير'].includes(kind) && !position) throw new Error('موضع التركيب مطلوب.')
 
-      const next = {...tire, asset, position, install:String(tire.install ?? ''), status:String(tire.status ?? 'مخزن'), reason:String(tire.reason ?? '')}
+      const next: TireRecord = {...tire, asset, position, install:String(tire.install ?? ''), status:String(tire.status ?? 'مخزن'), reason:String(tire.reason ?? '')}
       if (kind === 'تركيب') { next.status='بالخدمة'; next.install=date; next.meterAt=assets.find(a=>a.id===asset)?.meter ?? Number(tire.meterAt || 0) }
       if (kind === 'فحص') { next.status='بالخدمة' }
       if (kind === 'إصلاح') { next.status='مخزن'; next.reason=notes || 'تم الإصلاح وإعادته للمخزون' }

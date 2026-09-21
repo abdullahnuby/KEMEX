@@ -180,7 +180,7 @@ export default function App() {
       const reqId=String(record.req??'')
       if(reqId){
         const req=(moduleData.requests??[]).find(x=>String(x.id??'')===reqId)
-        if(req)await saveModule('requests',{...req,status:'مكتمل',apprs:[...(Array.isArray(req.apprs)?req.apprs:[]),{by:user.name,act:'إغلاق بعد إنهاء التخصيص'}]})
+        if(req)await saveModule('requests',{...req,status:'مكتمل',apprs:[...(Array.isArray(req.apprs)?req.apprs:[]),{by:user?.name??'النظام',act:'إغلاق بعد إنهاء التخصيص'}]})
       }
     }
 

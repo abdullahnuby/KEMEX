@@ -11,9 +11,9 @@ for (const [key, count] of Object.entries(expected)) {
 }
 if (!legacy.includes('نظام إدارة النقل والأسطول والمعدات')) throw new Error('Legacy source is not the expected TFMS HTML')
 const pkg = JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'))
-if (pkg.version !== '0.23.0') throw new Error(`package version expected 0.23.0, got ${pkg.version}`)
+if (pkg.version !== '0.23.1') throw new Error(`package version expected 0.23.1, got ${pkg.version}`)
 const appSource = fs.readFileSync(path.join(root,'src/config/app.ts'),'utf8')
-if (!appSource.includes("version: '0.23.0'")) throw new Error('App version is not 0.23.0')
+if (!appSource.includes("version: '0.23.1'")) throw new Error('App version is not 0.23.1')
 if (!fs.existsSync(path.join(root,'supabase/migrations/006_purchase_role_alignment.sql'))) throw new Error('Missing Sprint 06-03 migration')
 for (const file of ['src/pages/PlansPage.tsx','src/pages/InventoryPage.tsx','src/pages/MaintenancePage.tsx','src/pages/OilsPage.tsx','src/pages/TiresPage.tsx','src/pages/PurchasesPage.tsx']) {
   if (!fs.existsSync(path.join(root,file))) throw new Error(`Missing Sprint 06-02 file: ${file}`)

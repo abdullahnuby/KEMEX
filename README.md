@@ -4,7 +4,7 @@
 
 ## الحالة
 
-**v0.23.0 — Sprint 08 branding + UI hardening**
+**v0.23.1 — Sprint 08 branding + UI hardening**
 
 تم نقل هيكل النظام من النسخة HTML إلى React + TypeScript، مع طبقة Repository تدعم Demo Local Storage أو Supabase/PostgreSQL.
 

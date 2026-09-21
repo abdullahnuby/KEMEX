@@ -3,7 +3,7 @@ export const APP = {
   arabicName: 'إدارة النقل والأسطول والمعدات',
   subtitle: 'النقل • الأسطول • المعدات • الصيانة • الوقود • التكاليف',
   company: 'شركة المجموعة للنقل والمعدات',
-  version: '0.23.0',
+  version: '0.23.1',
 }
 
 export const ROLE_LABELS: Record<string, string> = {

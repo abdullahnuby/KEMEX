@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { ClipboardPenLine, Download, Search, ShieldCheck } from 'lucide-react'
 import type { Asset, Driver, Project, WorkOrder } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
+import { displayReference } from '../utils/referenceLabels'
 
 type Props={records:Record<string,unknown>[];assets?:Asset[];projects?:Project[];drivers?:Driver[];workOrders?:WorkOrder[];moduleData?:Record<string,Record<string,unknown>[]>}
 export function AuditPage({records,assets=[],projects=[],drivers=[],workOrders=[],moduleData={}}:Props){

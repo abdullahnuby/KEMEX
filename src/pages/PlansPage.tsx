@@ -1,4 +1,4 @@
-import { CalendarClock, Gauge, Plus, Wrench, X } from 'lucide-react'
+import { CalendarClock, Gauge, Pencil, Plus, Wrench, X } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import type { Asset, WorkOrder } from '../types/tfms'

@@ -55,7 +55,7 @@ export function Layout({ user, route, onRoute, onLogout, children, alertCount }:
         </div>
 
         <nav className="desktop-nav" aria-label="التنقل الرئيسي">
-          {primary.map(item=>{const Icon=ICONS[item.icon]; const active=route===item.key||(route.startsWith('asset/')&&item.key==='assets'); return <button key={item.key} className={`nav-direct ${active?'active':''}`} onClick={()=>navigate(item.key)}>{Icon&&<Icon size={15}/>}<span>{item.label}</span>{item.key==='alerts'&&alertCount>0&&<em>{alertCount>9?'9+':alertCount}</em>}</button>})}
+          {primary.map(item=>{const Icon=ICONS[item.icon]; const active=route===item.key||(route.startsWith('asset/')&&item.key==='assets'); return <button key={item.key} className={`nav-direct ${active?'active':''}`} onClick={()=>navigate(item.key)}>{Icon&&<Icon size={15}/>}<span>{item.label}</span></button>})}
           {dropdowns.map(group=>{
             const active=activeGroup===group.group
             const isOpen=openGroup===group.group

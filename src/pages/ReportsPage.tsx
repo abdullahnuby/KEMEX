@@ -144,7 +144,7 @@ function build(kind:ReportKey,assets:Asset[],projects:Project[],workOrders:WorkO
     return {title:'الوقود: الاستهلاك والتكلفة',subtitle:'الكميات والتكلفة والاستخدام والاستهلاك الفعلي والمعياري',columns:['الأصل','كمية لتر','تكلفة الوقود','الاستخدام','الاستهلاك الفعلي','المعياري'],rows}
   }
   if(kind==='invn'){
-    const rows=inventory.map(i=>{const qty=Number(i.qty??0),min=Number(i.min??0),cost=Number(i.cost??0);return [{kind:'ref',field:'item',label:String(i.name??'—'),code:String(i.code??'')},String(i.cat??''),String(i.unit??''),fmt(qty),fmt(min),qty<min?'إعادة طلب':'طبيعي',fmt(cost),fmt(qty*cost)]})
+    const rows=inventory.map(i=>{const qty=Number(i.qty??0),min=Number(i.min??0),cost=Number(i.cost??0);return [{kind:'ref' as const,field:'item' as const,label:String(i.name??'—'),code:String(i.code??'')},String(i.cat??''),String(i.unit??''),fmt(qty),fmt(min),qty<min?'إعادة طلب':'طبيعي',fmt(cost),fmt(qty*cost)]})
     return {title:'المخزون وقطع الغيار',subtitle:'الرصيد والحد الأدنى وقيمة الرصيد',columns:['الصنف','التصنيف','الوحدة','الرصيد','الحد الأدنى','الحالة','تكلفة الوحدة','قيمة الرصيد'],rows}
   }
   const rows:ReportCell[][]=[]
