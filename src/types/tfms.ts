@@ -6,6 +6,7 @@ export type User = {
   name: string
   role: Role
   active?: boolean
+  mustChangePassword?: boolean
   pass?: string
 }
 
@@ -14,6 +15,7 @@ export type Project = {
   code: string
   name: string
   client: string
+  clientId?: string
   mgr: string
   site: string
   cc: string
@@ -34,6 +36,7 @@ export type Asset = {
   name: string
   cat: string
   type: string
+  assetTypeId?: string
   own: string
   status: string
   cond: string
@@ -67,6 +70,12 @@ export type Driver = {
   licNo?: string
   licExp?: string
   cur?: string
+  status?: string
+  employeeNo?: string
+  shift?: string
+  joinDate?: string
+  licType?: string
+  medicalExp?: string
 }
 
 export type WorkOrder = {
@@ -110,6 +119,7 @@ export type FuelOperation = {
   notes?: string
   sup?: string
   inv?: string
+  tripId?: string
 }
 
 export type Contract = {
@@ -162,6 +172,149 @@ export type Customer = {
   creditLimit?: number
   salesRep?: string
   status?: string
+}
+
+
+export type AssetDocumentStatus = 'سارية' | 'منتهية' | 'ملغاة' | 'معلقة'
+
+export type AssetDocument = {
+  id: string
+  assetId: string
+  documentType: 'license' | 'insurance' | 'registration' | 'inspection' | 'contract' | 'other'
+  documentNumber?: string
+  issueDate?: string
+  expiryDate?: string
+  status: AssetDocumentStatus
+  fileName?: string
+  storagePath?: string
+  issuer?: string
+  notes?: string
+}
+
+export type AssetFinancialSummary = {
+  id: string
+  code: string
+  name: string
+  acquisitionCost: number
+  residualValue: number
+  usefulLifeYears: number
+  purchaseDate?: string
+  annualDepreciation: number
+  accumulatedDepreciation: number
+  netBookValue: number
+}
+
+export type AssetCostSummary = {
+  assetId: string
+  assetCode: string
+  assetName: string
+  fuelCost30d: number
+  maintenanceCost30d: number
+  tireCost30d: number
+  totalCost30d: number
+}
+
+export type AssetCostEntry = {
+  id: string
+  costDate: string
+  category: 'fuel' | 'maintenance' | 'tires' | 'purchase' | 'depreciation' | 'other'
+  assetId?: string
+  projectId?: string
+  amount: number
+  quantity?: number
+  unitCost?: number
+  description?: string
+  vendor?: string
+  referenceType?: string
+  referenceId?: string
+  status: 'مسودة' | 'مسجلة' | 'معتمدة' | 'ملغاة'
+  metadata?: Record<string, unknown>
+}
+
+
+export type Warehouse = {
+  id: string
+  code: string
+  name: string
+  location?: string
+  managerName?: string
+  active: boolean
+}
+
+export type InventoryItem = {
+  id: string
+  code: string
+  name: string
+  category: 'قطع غيار' | 'زيوت' | 'إطارات' | 'مواد' | 'أدوات' | 'أخرى'
+  brand?: string
+  unit: string
+  barcode?: string
+  warehouseId?: string
+  location?: string
+  minimumQty: number
+  maximumQty: number
+  reorderPoint: number
+  leadTimeDays: number
+  averageCost: number
+  lastPurchaseCost: number
+  currentQty: number
+  openingQty: number
+  active: boolean
+  notes?: string
+}
+
+export type StockMovementType = 'استلام' | 'صرف' | 'مرتجع' | 'تسوية زيادة' | 'تسوية نقص'
+
+export type StockMovement = {
+  id: string
+  movementNo: string
+  itemId: string
+  movementType: StockMovementType
+  quantity: number
+  movementDate: string
+  unitCost: number
+  warehouseId?: string
+  assetId?: string
+  workOrderId?: string
+  projectId?: string
+  referenceType?: string
+  referenceId?: string
+  notes?: string
+  createdBy?: string
+}
+
+export type MaintenanceTechnician = {
+  id: string
+  code: string
+  name: string
+  specialty?: string
+  phone?: string
+  employmentType?: string
+  active: boolean
+  notes?: string
+}
+
+export type MaintenancePart = {
+  id: string
+  workOrderId: string
+  itemId: string
+  plannedQty: number
+  issuedQty: number
+  returnedQty: number
+  unitCost: number
+  notes?: string
+}
+
+export type AuditEntry = {
+  id: string
+  occurredAt: string
+  userId?: string
+  username: string
+  action: string
+  entity: string
+  reference?: string
+  details?: string
+  source?: string
 }
 
 export type AlertItem = {

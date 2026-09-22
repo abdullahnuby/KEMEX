@@ -28,7 +28,10 @@ if (!layoutSource.includes('site-navbar')) throw new Error('Navbar was not imple
 if (layoutSource.includes('<aside className="sidebar"')) throw new Error('Legacy sidebar is still mounted')
 if (!fs.existsSync(path.join(root,'src/utils/referenceLabels.ts'))) throw new Error('Missing reference label resolver')
 if (!fs.existsSync(path.join(root,'src/components/ReferenceValue.tsx'))) throw new Error('Missing ReferenceValue component')
-if (!appSource.includes("key: 'contracts'")) throw new Error('Contracts module is missing from navigation')
+const modulesSource = fs.readFileSync(path.join(root,'src/config/modules.ts'),'utf8')
+if (!modulesSource.includes('contracts:{')) throw new Error('Contracts module is missing from module configuration')
+if (!appSourceFile.includes("case 'users'")) throw new Error('Administration workspace route is missing')
+if (!fs.existsSync(path.join(root,'src/pages/WorkspacesPage.tsx'))) throw new Error('Workspace consolidation page is missing')
 console.log('KEMEX source integrity: OK')
 console.log('Production data source: Supabase only')
 

@@ -1,7 +1,9 @@
-import { Ban, CheckCircle2, ClipboardCheck, Pencil, Plus, Search, ShoppingCart, X, type LucideIcon } from 'lucide-react'
+import { Ban, CheckCircle2, ClipboardCheck, Pencil, Plus, ShoppingCart, X, type LucideIcon } from 'lucide-react'
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
-import type { Project, User } from '../types/tfms'
+import type { InventoryItem, Project, StockMovement, User, Warehouse } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
+import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
+import { useCurrency } from '../features/settings'
 
 type RecordType = Record<string, unknown>
 
@@ -9,8 +11,11 @@ type Props = {
   records: RecordType[]
   user: User
   projects: Project[]
+  inventoryItems?: InventoryItem[]
+  warehouses?: Warehouse[]
   canEdit: boolean
   onSave: (record: RecordType) => Promise<void> | void
+  onReceive?: (input:{purchase:RecordType; inventoryItemId:string; warehouseId:string; quantity:number; unitCost:number; notes:string}) => Promise<StockMovement>
 }
 
 const APPROVER_ROLES = ['admin', 'fleet', 'maint']
@@ -24,17 +29,15 @@ function dateText(value:string) {
   return Number.isNaN(d.getTime())?value:new Intl.DateTimeFormat('ar-EG',{day:'2-digit',month:'2-digit',year:'numeric'}).format(d)
 }
 
-export function PurchasesPage({records,user,projects,canEdit,onSave}:Props) {
+export function PurchasesPage({records,user,projects,inventoryItems=[],warehouses=[],canEdit,onSave,onReceive}:Props) {
   const [q,setQ]=useState('')
-  const [editing,setEditing]=useState<RecordType|null>(null)
+  const {formatMoney}=useCurrency(); const [editing,setEditing]=useState<RecordType|null>(null)
   const [po,setPo]=useState<RecordType|null>(null)
   const [error,setError]=useState('')
   const [busy,setBusy]=useState(false)
+  const [receiving,setReceiving]=useState<RecordType|null>(null)
 
-  const rows=useMemo(()=>records.filter(r=>{
-    const text=Object.values(r).map(v=>String(v??'')).join(' ').toLowerCase()
-    return !q.trim()||text.includes(q.trim().toLowerCase())
-  }),[records,q])
+  const rows=useMemo(()=>records,[records])
 
   const pending=records.filter(r=>String(r.status)==='قيد الاعتماد').length
   const approved=records.filter(r=>String(r.status)==='معتمد').length
@@ -43,7 +46,7 @@ export function PurchasesPage({records,user,projects,canEdit,onSave}:Props) {
 
   function openNew() {
     setError('')
-    setEditing({id:`PR-${Date.now()}`,number:`PR-${100+records.length+1}`,date:new Date().toISOString().slice(0,10),req:user.name,desc:'',qty:1,unit:'قطعة',est:0,proj:'',status:'قيد الاعتماد',po:'',supplier:'',notes:''})
+    setEditing({id:`PR-${Date.now()}`,number:`PR-${100+records.length+1}`,date:new Date().toISOString().slice(0,10),req:user.name,desc:'',qty:1,unit:'قطعة',est:0,proj:'',status:'قيد الاعتماد',po:'',supplier:'',notes:'',inventoryItemId:'',warehouseId:'',receivedQty:0,receiptStatus:'غير مستلم'})
   }
 
   async function saveNew(e:FormEvent<HTMLFormElement>) {
@@ -90,37 +93,77 @@ export function PurchasesPage({records,user,projects,canEdit,onSave}:Props) {
     }catch(err){setError(err instanceof Error?err.message:'تعذر إصدار أمر الشراء.')}finally{setBusy(false)}
   }
 
+
+  async function receive(e:FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (!receiving || !onReceive || busy) return
+    setBusy(true); setError('')
+    try {
+      const fd=new FormData(e.currentTarget)
+      const inventoryItemId=String(fd.get('inventoryItemId')||'').trim()
+      const warehouseId=String(fd.get('warehouseId')||'').trim()
+      const quantity=Number(fd.get('quantity')||0)
+      const rawUnitCost=String(fd.get('unitCost')||'').trim()
+      const unitCost=rawUnitCost==='' ? Number(receiving.est||0)/Math.max(1,Number(receiving.qty||1)) : Number(rawUnitCost)
+      const notes=String(fd.get('notes')||'').trim()
+      if(!inventoryItemId) throw new Error('اختر الصنف المخزني الذي سيُستلم.')
+      if(!warehouseId) throw new Error('اختر المخزن المستلم.')
+      if(!Number.isFinite(quantity)||quantity<=0) throw new Error('كمية الاستلام يجب أن تكون أكبر من صفر.')
+      const orderedQty=Number(receiving.qty||0)
+      const receivedBefore=Number(receiving.receivedQty||0)
+      if(orderedQty>0 && quantity>Math.max(0,orderedQty-receivedBefore)) throw new Error(`الكمية المتبقية للاستلام ${Math.max(0,orderedQty-receivedBefore)} فقط.`)
+      const movement=await onReceive({purchase:receiving,inventoryItemId,warehouseId,quantity,unitCost:Number.isFinite(unitCost)&&unitCost>=0?unitCost:0,notes})
+      const newReceived=receivedBefore+quantity
+      const receiptStatus=orderedQty>0&&newReceived>=orderedQty?'مستلم بالكامل':'مستلم جزئي'
+      await onSave({...receiving,inventoryItemId,warehouseId,receivedQty:newReceived,receiptStatus,receiptNo:movement.movementNo,lastReceiptDate:new Date().toISOString().slice(0,10),apprs:[...(Array.isArray(receiving.apprs)?receiving.apprs:[]),{by:user.name,act:`استلام مخزني ${movement.movementNo}`,qty:quantity}]})
+      setReceiving(null)
+    } catch(err) { setError(err instanceof Error?err.message:'تعذر تسجيل الاستلام المخزني.') }
+    finally { setBusy(false) }
+  }
+
   const canApprove=APPROVER_ROLES.includes(user.role)
 
-  return <div>
-    <div className="page-head"><div><h1>المشتريات وطلبات الشراء</h1><p>الموقع يطلب ولا يشتري مباشرة: طلب ← مراجعة ← اعتماد ← إصدار أمر شراء.</p></div>{canEdit&&<button type="button" className="primary-button" onClick={openNew}><Plus size={16}/> طلب شراء</button>}</div>
+  return <div className="space-y-6">
+    <PageHeader title="المشتريات وطلبات الشراء" description="الموقع يطلب ولا يشتري مباشرة: طلب ← مراجعة ← اعتماد ← إصدار أمر شراء." action={canEdit&&<Button icon={<Plus size={16}/>} onClick={openNew}>طلب شراء</Button>} />
     {error&&<div className="global-error" role="alert">{error}</div>}
     <div className="metric-grid compact">
       <Metric icon={ClipboardCheck} label="قيد الاعتماد" value={pending}/>
       <Metric icon={CheckCircle2} label="معتمدة" value={approved}/>
       <Metric icon={ShoppingCart} label="أوامر شراء" value={orders}/>
-      <Metric icon={ShoppingCart} label="القيمة غير المرفوضة" value={`${fmt(total)} ج.م`}/>
+      <Metric icon={ShoppingCart} label="القيمة غير المرفوضة" value={formatMoney(total)}/>
     </div>
-    <section className="panel">
-      <div className="toolbar"><div className="search-field"><Search size={16}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="بحث في طلبات الشراء..."/></div><span className="toolbar-count">{rows.length} من {records.length} طلب</span></div>
-      <div className="table-wrap"><table><thead><tr><th>رقم الطلب</th><th>التاريخ</th><th>مقدم الطلب</th><th>الوصف</th><th>الكمية</th><th>التقديري</th><th>المشروع</th><th>الحالة</th><th>المورد</th><th>أمر الشراء</th>{(canEdit||canApprove)&&<th>إجراءات</th>}</tr></thead>
-      <tbody>{rows.map(r=><tr key={String(r.id)}>
-        <td><strong>{String(r.number??r.id??'—')}</strong></td><td>{dateText(String(r.date??''))}</td><td>{String(r.req??'—')}</td><td>{String(r.desc??'—')}</td><td>{fmt(Number(r.qty||0))} {String(r.unit??'')}</td><td>{fmt(Number(r.est||0))} ج.م</td><td><ReferenceValue field="proj" value={r.proj} lookups={{projects}}/></td>
-        <td><span className={`badge ${String(r.status)==='مرفوض'?'red':String(r.status)==='أمر شراء'?'green':String(r.status)==='معتمد'?'green':'amber'}`}>{String(r.status??'—')}</span></td><td>{String(r.supplier??'—')}</td><td>{String(r.po??'—')}</td>
-        {(canEdit||canApprove)&&<td><div className="row-actions">
-          {canApprove&&String(r.status)==='قيد الاعتماد'&&<><button type="button" className="workflow-button primary" disabled={busy} onClick={()=>action(r,'معتمد','approve')}><CheckCircle2 size={13}/> اعتماد</button><button type="button" className="workflow-button danger" disabled={busy} onClick={()=>action(r,'مرفوض','reject')}><Ban size={13}/> رفض</button></>}
-          {canApprove&&String(r.status)==='معتمد'&&<button type="button" className="workflow-button primary" disabled={busy} onClick={()=>openPo(r)}><ShoppingCart size={13}/> إصدار أمر شراء</button>}
-          {canEdit&&['قيد الاعتماد','مسودة'].includes(String(r.status))&&<button type="button" className="icon-button" title="تعديل طلب الشراء" onClick={()=>setEditing({...r})} aria-label="تعديل طلب الشراء"><Pencil size={14}/></button>}
-        </div></td>}
-      </tr>)}</tbody></table>{!rows.length&&<div className="empty">لا توجد طلبات مطابقة.</div>}</div>
-    </section>
+    <DataTable
+      rows={rows}
+      columns={[
+        { id:'number', header:'رقم الطلب', render:r=><strong>{String(r.number??r.id??'—')}</strong>, sortValue:r=>String(r.number??r.id??'') },
+        { id:'date', header:'التاريخ', render:r=>dateText(String(r.date??'')), sortValue:r=>String(r.date??'') },
+        { id:'req', header:'مقدم الطلب', render:r=>String(r.req??'—'), sortValue:r=>String(r.req??'') },
+        { id:'desc', header:'الوصف', render:r=>String(r.desc??'—') },
+        { id:'qty', header:'الكمية', render:r=>`${fmt(Number(r.qty||0))} ${String(r.unit??'')}`, sortValue:r=>Number(r.qty||0) },
+        { id:'est', header:'التقديري', render:r=>formatMoney(Number(r.est||0)), sortValue:r=>Number(r.est||0) },
+        { id:'proj', header:'المشروع', render:r=><ReferenceValue field="proj" value={r.proj} lookups={{projects}} /> },
+        { id:'status', header:'الحالة', render:r=>{const status=String(r.status??'');return <StatusBadge tone={status==='مرفوض'?'red':status==='أمر شراء'||status==='معتمد'?'emerald':'amber'}>{status||'—'}</StatusBadge>}, sortValue:r=>String(r.status??'') },
+                { id:'supplier', header:'المورد', render:r=>String(r.supplier??'—') },
+        { id:'po', header:'أمر الشراء', render:r=>String(r.po??'—') },
+        { id:'received', header:'الاستلام', render:r=>`${fmt(Number(r.receivedQty||0))} / ${fmt(Number(r.qty||0))} ${String(r.unit??'')}` },
+        { id:'receiptStatus', header:'حالة الاستلام', render:r=>String(r.receiptStatus??'غير مستلم') },
+
+        ...((canEdit||canApprove)?[{ id:'actions', header:'إجراءات', render:(r:RecordType)=><div className="flex flex-wrap gap-2">{canApprove&&String(r.status)==='قيد الاعتماد'&&<><Button size="sm" icon={<CheckCircle2 size={13}/>} disabled={busy} onClick={()=>void action(r,'معتمد','approve')}>اعتماد</Button><Button variant="danger" size="sm" icon={<Ban size={13}/>} disabled={busy} onClick={()=>void action(r,'مرفوض','reject')}>رفض</Button></>}{canApprove&&String(r.status)==='معتمد'&&<Button size="sm" icon={<ShoppingCart size={13}/>} disabled={busy} onClick={()=>openPo(r)}>إصدار أمر شراء</Button>}{onReceive&&String(r.status)==='أمر شراء'&&Number(r.receivedQty||0)<Number(r.qty||0)&&<Button size="sm" variant="secondary" disabled={busy} onClick={()=>{setReceiving({...r});setError('')}}>استلام</Button>}{canEdit&&['قيد الاعتماد','مسودة'].includes(String(r.status))&&<Button variant="ghost" size="sm" icon={<Pencil size={14}/>} onClick={()=>setEditing({...r})}>تعديل</Button>}</div>}]:[]),
+      ]}
+      rowKey={r=>String(r.id)}
+      searchable
+      search={q}
+      onSearchChange={setQ}
+      searchableText={r=>Object.values(r).map(v=>String(v??'')).join(' ')}
+      emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد طلبات مطابقة.</div>}
+    />
 
     {editing&&<div className="modal-backdrop" onMouseDown={()=>!busy&&setEditing(null)}><form className="modal-card wide form-modal-premium" onSubmit={saveNew} onMouseDown={e=>e.stopPropagation()}><div className="modal-head"><div><h2>طلب شراء جديد</h2><p>يبدأ الطلب بحالة «قيد الاعتماد».</p></div><button type="button" className="icon-button" onClick={()=>setEditing(null)} aria-label="إغلاق"><X size={18}/></button></div>
-      <div className="form-sections"><FormBlock title="بيانات الطلب" hint="الصنف والكمية ووحدة القياس"><Input name="desc" label="وصف المادة أو الصنف" value={String(editing.desc??'')} required/><Select name="category" label="التصنيف" value={String(editing.category??'قطع غيار')} options={['قطع غيار','زيوت','إطارات','مواد','معدات','خدمات']} required/><Input name="qty" label="الكمية" type="number" value={String(editing.qty??1)} required/><Select name="unit" label="الوحدة" value={String(editing.unit??'قطعة')} options={['قطعة','طقم','لتر','عبوة','متر','ساعة']} required/></FormBlock><FormBlock title="التوجيه والاحتياج" hint="مكان الاستخدام وموعد الاحتياج"><label className="field"><span>المشروع</span><select name="proj" defaultValue={String(editing.proj??'')}><option value="">المقر / بدون مشروع</option>{projects.map(p=><option key={p.id} value={p.id}>{p.name} — {p.code}</option>)}</select></label><Input name="warehouse" label="المخزن المطلوب" value={String(editing.warehouse??'')}/><Input name="requiredDate" label="تاريخ الاحتياج" type="date" value={String(editing.requiredDate??'')}/><Input name="reason" label="سبب الطلب" value={String(editing.reason??'')} /></FormBlock><FormBlock title="الميزانية والمقارنة" hint="بيانات تساعد في المراجعة قبل الاعتماد"><Input name="est" label="التكلفة التقديرية ج.م" type="number" value={String(editing.est??0)} required/><Input name="budget" label="البند / الميزانية" value={String(editing.budget??'')} /><Input name="quotationCount" label="عدد عروض الأسعار" type="number" value={String(editing.quotationCount??0)}/><Input name="paymentTerms" label="شروط الدفع" value={String(editing.paymentTerms??'')} /></FormBlock><label className="field field-full"><span>ملاحظات الطلب</span><textarea name="notes" defaultValue={String(editing.notes??'')} rows={4} placeholder="المواصفة المطلوبة، بدائل مقبولة، عاجل/تشغيلي، أو أي مرفقات مرجعية..."/></label></div>
+      <div className="form-sections"><FormBlock title="بيانات الطلب" hint="الصنف والكمية ووحدة القياس"><Input name="desc" label="وصف المادة أو الصنف" value={String(editing.desc??'')} required/><Select name="category" label="التصنيف" value={String(editing.category??'قطع غيار')} options={['قطع غيار','زيوت','إطارات','مواد','معدات','خدمات']} required/><Input name="qty" label="الكمية" type="number" value={String(editing.qty??1)} required/><Select name="unit" label="الوحدة" value={String(editing.unit??'قطعة')} options={['قطعة','طقم','لتر','عبوة','متر','ساعة']} required/></FormBlock><FormBlock title="التوجيه والاحتياج" hint="مكان الاستخدام وموعد الاحتياج"><label className="field"><span>المشروع</span><select name="proj" defaultValue={String(editing.proj??'')}><option value="">المقر / بدون مشروع</option>{projects.map(p=><option key={p.id} value={p.id}>{p.name} — {p.code}</option>)}</select></label><Input name="warehouse" label="المخزن المطلوب" value={String(editing.warehouse??'')}/><Input name="requiredDate" label="تاريخ الاحتياج" type="date" value={String(editing.requiredDate??'')}/><Input name="reason" label="سبب الطلب" value={String(editing.reason??'')} /></FormBlock><FormBlock title="الميزانية والمقارنة" hint="بيانات تساعد في المراجعة قبل الاعتماد"><Input name="est" label="التكلفة التقديرية" type="number" value={String(editing.est??0)} required/><Input name="budget" label="البند / الميزانية" value={String(editing.budget??'')} /><Input name="quotationCount" label="عدد عروض الأسعار" type="number" value={String(editing.quotationCount??0)}/><Input name="paymentTerms" label="شروط الدفع" value={String(editing.paymentTerms??'')} /></FormBlock><label className="field field-full"><span>ملاحظات الطلب</span><textarea name="notes" defaultValue={String(editing.notes??'')} rows={4} placeholder="المواصفة المطلوبة، بدائل مقبولة، عاجل/تشغيلي، أو أي مرفقات مرجعية..."/></label></div>
       <div className="modal-actions"><button type="button" className="secondary-button" onClick={()=>setEditing(null)}>إلغاء</button><button className="primary-button" disabled={busy}>{busy?'جارٍ الحفظ...':'حفظ الطلب'}</button></div>
     </form></div>}
 
-    {po&&<div className="modal-backdrop" onMouseDown={()=>!busy&&setPo(null)}><form className="modal-card wide form-modal-premium" onSubmit={issuePo} onMouseDown={e=>e.stopPropagation()}><div className="modal-head"><div><h2>إصدار أمر شراء</h2><p>{String(po.number??po.id??'')} — يجب تحديد المورد قبل الإصدار.</p></div><button type="button" className="icon-button" onClick={()=>setPo(null)} aria-label="إغلاق"><X size={18}/></button></div>
+    {receiving&&onReceive&&<div className="modal-backdrop" onMouseDown={()=>!busy&&setReceiving(null)}><form className="modal-card wide form-modal-premium" onSubmit={receive} onMouseDown={e=>e.stopPropagation()}><div className="modal-head"><div><h2>استلام إلى المخزون</h2><p>{String(receiving.po??receiving.number??receiving.id)} · تسجيل الاستلام ينشئ حركة «استلام» مرتبطة بطلب الشراء.</p></div><button type="button" className="icon-button" onClick={()=>!busy&&setReceiving(null)} aria-label="إغلاق"><X size={18}/></button></div><div className="form-sections"><FormBlock title="الصنف والمخزن" hint="اربط الاستلام بالبطاقة المخزنية الفعلية"><label className="field"><span>الصنف المخزني *</span><select name="inventoryItemId" defaultValue={String(receiving.inventoryItemId??'')} required><option value="">— اختر الصنف —</option>{inventoryItems.map(item=><option key={item.id} value={item.id}>{item.name} — {item.code} · الرصيد {fmt(item.currentQty)}</option>)}</select></label><label className="field"><span>المخزن المستلم *</span><select name="warehouseId" defaultValue={String(receiving.warehouseId??'')} required><option value="">— اختر المخزن —</option>{warehouses.filter(w=>w.active!==false).map(w=><option key={w.id} value={w.id}>{w.name} — {w.code}</option>)}</select></label><Input name="quantity" label={`الكمية المستلمة (المتبقي ${fmt(Math.max(0,Number(receiving.qty||0)-Number(receiving.receivedQty||0)))} ${String(receiving.unit??'')})`} type="number" value={String(Math.max(0,Number(receiving.qty||0)-Number(receiving.receivedQty||0)))} required/><Input name="unitCost" label="تكلفة الوحدة الفعلية" type="number" value={String(Number(receiving.est||0)/Math.max(1,Number(receiving.qty||1)))} /></FormBlock><label className="field field-full"><span>ملاحظات الاستلام</span><textarea name="notes" rows={4} placeholder="رقم إذن الاستلام، الفحص، النواقص أو أي ملاحظات..." /></label></div><div className="modal-actions"><button type="button" className="secondary-button" onClick={()=>setReceiving(null)} disabled={busy}>إلغاء</button><button className="primary-button" disabled={busy}>{busy?'جارٍ تسجيل الاستلام...':'تسجيل الاستلام'}</button></div></form></div>}\n\n    {po&&<div className="modal-backdrop" onMouseDown={()=>!busy&&setPo(null)}><form className="modal-card wide form-modal-premium" onSubmit={issuePo} onMouseDown={e=>e.stopPropagation()}><div className="modal-head"><div><h2>إصدار أمر شراء</h2><p>{String(po.number??po.id??'')} — يجب تحديد المورد قبل الإصدار.</p></div><button type="button" className="icon-button" onClick={()=>setPo(null)} aria-label="إغلاق"><X size={18}/></button></div>
       <div className="form-sections"><FormBlock title="المورد وأمر الشراء" hint="البيانات الأساسية لإصدار الأمر"><Input name="supplier" label="المورد" value={String(po.supplier??'')} required/><Input name="date" label="تاريخ أمر الشراء" type="date" value={new Date().toISOString().slice(0,10)} required/><Input name="paymentTerms" label="شروط الدفع" value={String(po.paymentTerms??'')} /><Input name="deliveryDate" label="تاريخ التوريد المتوقع" type="date" value={String(po.deliveryDate??'')} /></FormBlock><FormBlock title="القيمة والتسليم" hint="تفاصيل التنفيذ مع المورد"><Input name="quotationRef" label="مرجع عرض السعر" value={String(po.quotationRef??'')} /><Input name="deliveryLocation" label="مكان التسليم" value={String(po.deliveryLocation??'')} /><Input name="shipping" label="الشحن / النقل" type="number" value={String(po.shipping??0)} /><Input name="tax" label="الضريبة" type="number" value={String(po.tax??0)} /></FormBlock><label className="field field-full"><span>ملاحظات الأمر</span><textarea name="notes" defaultValue={String(po.notes??'')} rows={4} placeholder="شروط التوريد، الضمان، المستندات المطلوبة وملاحظات الاستلام..."/></label></div>
       <div className="modal-actions"><button type="button" className="secondary-button" onClick={()=>setPo(null)}>إلغاء</button><button className="primary-button" disabled={busy}>{busy?'جارٍ الإصدار...':'إصدار أمر الشراء'}</button></div>
     </form></div>}

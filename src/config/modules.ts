@@ -82,7 +82,7 @@ export const GENERIC_MODULES = Object.keys(MODULE_CONFIG)
 export const MODULE_ROLES: Record<string,string[]> = {
   requests:['admin','fleet','pm','eng'], assignments:['admin','fleet'], operations:['admin','fleet','pm','eng'], trips:['admin','fleet'],
   drivers:['admin','fleet'], contracts:['admin','fleet'], plans:['admin','maint'], oils:['admin','maint'], tires:['admin','maint'],
-  inventory:['admin','maint'], movements:['admin','maint'], purchases:['admin','maint','fleet'], costs:[], charging:['admin','acct','fleet'],
+  inventory:['admin','maint','fleet'], movements:['admin','maint'], purchases:['admin','maint','fleet'], projects:['admin','fleet','pm','acct'], fuel:['admin','fleet'], costs:[], charging:['admin','acct','fleet'],
   invoices:['admin','acct'], customers:['admin','acct'], audit:[],
 }
 export function canWriteModule(module:string,role:string){return (MODULE_ROLES[module]??[]).includes(role)}

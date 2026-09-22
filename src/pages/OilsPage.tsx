@@ -1,7 +1,9 @@
-import { CalendarClock, CheckCircle2, Droplets, Plus, Search, X, type LucideIcon } from 'lucide-react'
+import { CalendarClock, CheckCircle2, Droplets, Plus, X, type LucideIcon } from 'lucide-react'
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import type { Asset, WorkOrder } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
+import { useCurrency } from '../features/settings'
+import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
 
 export type OilRecord = Record<string, unknown>
 
@@ -61,16 +63,13 @@ function dueFor(plan: OilRecord, assets: Asset[]): Due {
 }
 
 export function OilsPage({ plans, changes, assets, workOrders = [], moduleData = {}, userName, canEdit, onSavePlan, onSaveChange }: Props) {
+  const {formatMoney}=useCurrency()
   const [query, setQuery] = useState('')
   const [editing, setEditing] = useState<OilRecord | null>(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
-  const rows = useMemo(() => plans.filter(p => {
-    const asset = assets.find(a => a.id === String(p.asset ?? ''))
-    const text = [asset?.code, asset?.name, p.item, p.type].join(' ').toLowerCase()
-    return !query.trim() || text.includes(query.trim().toLowerCase())
-  }), [plans, assets, query])
+  const rows = useMemo(() => plans, [plans])
 
   const dueCount = rows.filter(p => dueFor(p, assets).tone === 'red').length
   const monthChanges = changes.filter(c => String(c.date ?? '').slice(0, 7) === new Date().toISOString().slice(0, 7)).length
@@ -141,14 +140,12 @@ export function OilsPage({ plans, changes, assets, workOrders = [], moduleData =
     }
   }
 
-  return <div>
-    <div className="page-head">
-      <div>
-        <h1>الزيوت والفلاتر</h1>
-        <p>خطط التغيير حسب الكيلومتر أو ساعات التشغيل أو الأيام، مع سجل تنفيذ مرتبط بالأصل وأمر العمل.</p>
-      </div>
-      {canEdit && <button type="button" className="primary-button" onClick={openNew}><Plus size={16}/> تسجيل تغيير</button>}
-    </div>
+  return <div className="space-y-6">
+    <PageHeader
+      title="الزيوت والفلاتر"
+      description="خطط التغيير حسب الكيلومتر أو ساعات التشغيل أو الأيام، مع سجل تنفيذ مرتبط بالأصل وأمر العمل."
+      action={canEdit && <Button icon={<Plus size={16}/>} onClick={openNew}>تسجيل تغيير</Button>}
+    />
 
     {error && <div className="global-error" role="alert">{error}</div>}
 
@@ -158,51 +155,44 @@ export function OilsPage({ plans, changes, assets, workOrders = [], moduleData =
       <Metric icon={CheckCircle2} label="تغييرات هذا الشهر" value={monthChanges}/>
     </div>
 
-    <section className="panel">
-      <div className="panel-head">
-        <div><h2>خطط التغيير</h2><p>العداد الحالي للأصل يُقارن بآخر عداد مسجل في الخطة.</p></div>
-        <div className="search-field"><Search size={16}/><input value={query} onChange={e => setQuery(e.target.value)} placeholder="بحث في خطط الزيوت والفلاتر..."/></div>
-      </div>
-      <div className="table-wrap"><table>
-        <thead><tr><th>الأصل</th><th>المادة/الخطة</th><th>الكمية</th><th>قاعدة التغيير</th><th>آخر تنفيذ</th><th>العداد</th><th>الاستحقاق</th></tr></thead>
-        <tbody>
-          {rows.map(plan => {
-            const asset = assets.find(a => a.id === String(plan.asset ?? ''))
-            const due = dueFor(plan, assets)
-            const rules = [
-              Number(plan.everyKm || 0) > 0 ? `${fmt(Number(plan.everyKm))} كم` : '',
-              Number(plan.everyHours || 0) > 0 ? `${fmt(Number(plan.everyHours))} ساعة` : '',
-              Number(plan.everyDays || 0) > 0 ? `${fmt(Number(plan.everyDays))} يوم` : '',
-            ].filter(Boolean).join(' أو ') || '—'
-            return <tr key={String(plan.id)}>
-              <td><ReferenceValue field="asset" value={plan.asset} lookups={{assets}}/></td>
-              <td><ReferenceValue field="item" value={plan.item} lookups={{assets,workOrders,records:moduleData}}/></td>
-              <td>{fmt(Number(plan.qty || 0))} {String(plan.unit ?? '')}</td>
-              <td>{rules}</td>
-              <td>{dateText(String(plan.lastDate ?? ''))}</td>
-              <td>{fmt(Number(plan.lastMeter || 0))}</td>
-              <td><span className={`badge ${due.tone}`}>{due.label}</span></td>
-            </tr>
-          })}
-        </tbody>
-      </table>{!rows.length && <div className="empty">لا توجد خطط مطابقة.</div>}</div>
+    <section className="space-y-4"><div><h2 className="text-lg font-bold text-slate-900">خطط التغيير</h2><p className="text-sm font-medium text-gray-500">العداد الحالي للأصل يُقارن بآخر عداد مسجل في الخطة.</p></div>
+      <DataTable
+        rows={rows}
+        columns={[
+          { id:'asset', header:'الأصل', render:plan=><ReferenceValue field="asset" value={plan.asset} lookups={{assets}} /> },
+          { id:'item', header:'المادة/الخطة', render:plan=><ReferenceValue field="item" value={plan.item} lookups={{assets,workOrders,records:moduleData}} /> },
+          { id:'qty', header:'الكمية', render:plan=>`${fmt(Number(plan.qty||0))} ${String(plan.unit??'')}`, sortValue:plan=>Number(plan.qty||0) },
+          { id:'rule', header:'قاعدة التغيير', render:plan=>[Number(plan.everyKm||0)>0?`${fmt(Number(plan.everyKm))} كم`:'',Number(plan.everyHours||0)>0?`${fmt(Number(plan.everyHours))} ساعة`:'',Number(plan.everyDays||0)>0?`${fmt(Number(plan.everyDays))} يوم`:''].filter(Boolean).join(' أو ')||'—' },
+          { id:'lastDate', header:'آخر تنفيذ', render:plan=>dateText(String(plan.lastDate??'')), sortValue:plan=>String(plan.lastDate??'') },
+          { id:'lastMeter', header:'العداد', render:plan=>fmt(Number(plan.lastMeter||0)), sortValue:plan=>Number(plan.lastMeter||0) },
+          { id:'due', header:'الاستحقاق', render:plan=>{const due=dueFor(plan,assets);return <StatusBadge tone={due.tone==='green'?'emerald':due.tone==='red'?'red':'amber'}>{due.label}</StatusBadge>}, sortValue:plan=>{const due=dueFor(plan,assets);return due.tone==='red'?2:due.tone==='amber'?1:0} },
+        ]}
+        rowKey={plan=>String(plan.id)}
+        searchable
+        search={query}
+        onSearchChange={setQuery}
+        searchableText={plan=>[plan.asset,plan.item,plan.type,plan.lastDate].map(v=>String(v??'')).join(' ')}
+        emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد خطط مطابقة.</div>}
+      />
     </section>
 
-    <section className="panel">
-      <div className="panel-head"><div><h2>سجل عمليات التغيير</h2><p>كل عملية تسجل المادة والتاريخ والعداد والتكلفة والمنفذ.</p></div></div>
-      <div className="table-wrap"><table>
-        <thead><tr><th>التاريخ</th><th>الأصل</th><th>الزيت/الفلتر</th><th>العداد</th><th>الكمية</th><th>التكلفة</th><th>المنفذ</th><th>أمر العمل</th></tr></thead>
-        <tbody>{changes.slice(0, 100).map(change => {
-          const asset = assets.find(a => a.id === String(change.asset ?? ''))
-          const total = Number(change.matCost || 0) + Number(change.labCost || 0)
-          return <tr key={String(change.id)}>
-            <td>{dateText(String(change.date ?? ''))}</td><td><ReferenceValue field="asset" value={change.asset} lookups={{assets}}/></td>
-            <td>{String(change.oilType ?? '—')}</td><td>{fmt(Number(change.meter || 0))}</td>
-            <td>{fmt(Number(change.qty || 0))} لتر</td><td>{fmt(total)} ج.م</td>
-            <td>{String(change.by ?? '—')}</td><td><ReferenceValue field="wo" value={change.wo} lookups={{assets, workOrders, records:{}}}/></td>
-          </tr>
-        })}</tbody>
-      </table>{!changes.length && <div className="empty">لا توجد عمليات تغيير مسجلة.</div>}</div>
+    <section className="space-y-4"><div><h2 className="text-lg font-bold text-slate-900">سجل عمليات التغيير</h2><p className="text-sm font-medium text-gray-500">كل عملية تسجل المادة والتاريخ والعداد والتكلفة والمنفذ.</p></div>
+      <DataTable
+        rows={changes.slice(0,100)}
+        columns={[
+          { id:'date', header:'التاريخ', render:change=>dateText(String(change.date??'')), sortValue:change=>String(change.date??'') },
+          { id:'asset', header:'الأصل', render:change=><ReferenceValue field="asset" value={change.asset} lookups={{assets}} /> },
+          { id:'oilType', header:'الزيت/الفلتر', render:change=>String(change.oilType??'—'), sortValue:change=>String(change.oilType??'') },
+          { id:'meter', header:'العداد', render:change=>fmt(Number(change.meter||0)), sortValue:change=>Number(change.meter||0) },
+          { id:'qty', header:'الكمية', render:change=>`${fmt(Number(change.qty||0))} لتر`, sortValue:change=>Number(change.qty||0) },
+          { id:'cost', header:'التكلفة', render:change=>formatMoney(Number(change.matCost||0)+Number(change.labCost||0)), sortValue:change=>Number(change.matCost||0)+Number(change.labCost||0) },
+          { id:'by', header:'المنفذ', render:change=>String(change.by??'—'), sortValue:change=>String(change.by??'') },
+          { id:'wo', header:'أمر العمل', render:change=><ReferenceValue field="wo" value={change.wo} lookups={{assets,workOrders,records:{}}} /> },
+        ]}
+        rowKey={change=>String(change.id)}
+        searchableText={change=>Object.values(change).map(value=>String(value??'')).join(' ')}
+        emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد عمليات تغيير مسجلة.</div>}
+      />
     </section>
 
     {editing && <div className="modal-backdrop" onMouseDown={() => !busy && setEditing(null)}>
@@ -215,8 +205,8 @@ export function OilsPage({ plans, changes, assets, workOrders = [], moduleData =
           <Input name="date" label="التاريخ" type="date" value={String(editing.date ?? '')} required/>
           <Input name="meter" label="قراءة العداد/الساعات" type="number" value={String(editing.meter ?? 0)} required/>
           <Input name="qty" label="الكمية لتر" type="number" value={String(editing.qty ?? 0)}/>
-          <Input name="matCost" label="تكلفة المواد ج.م" type="number" value={String(editing.matCost ?? 0)}/>
-          <Input name="labCost" label="تكلفة العمالة ج.م" type="number" value={String(editing.labCost ?? 0)}/>
+          <Input name="matCost" label="تكلفة المواد" type="number" value={String(editing.matCost ?? 0)}/>
+          <Input name="labCost" label="تكلفة العمالة" type="number" value={String(editing.labCost ?? 0)}/>
           <Input name="by" label="الفني/المنفذ" value={String(editing.by ?? userName)}/>
           <Select name="wo" label="أمر العمل المرتبط" value={String(editing.wo ?? '')} options={[{v:'',l:'بدون أمر عمل'}, ...workOrders.map(w=>({v:w.id,l:`${w.desc || w.type || 'أمر عمل'} — ${w.id}`}))]}/>
           <label className="field"><span>ملاحظات</span><textarea name="notes" defaultValue={String(editing.notes ?? '')} rows={3}/></label>

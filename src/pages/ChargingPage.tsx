@@ -4,26 +4,100 @@ import type { Asset, FuelOperation, Project, WorkOrder } from '../types/tfms'
 import { calculateAssetCost } from './CostsPage'
 import { sameReference } from '../utils/referenceLabels'
 import { ReferenceValue } from '../components/ReferenceValue'
+import { useCurrency } from '../features/settings'
+import { PageHeader, Card, CardGrid, StatCard, DataTable, EmptyState, Button } from '../components/ui'
+import type { DataTableColumn } from '../components/ui/DataTable'
 
-type Props={assets:Asset[];projects:Project[];moduleData:Record<string,Record<string,unknown>[]>;workOrders:WorkOrder[];fuelOps:FuelOperation[]}
-type Rate={asset?:string;type?:string;cat?:string;unit:string;rate:number;min?:number}
-const RATES:Rate[]=[
- {asset:'A15',unit:'ساعة',rate:120,min:300},{asset:'A16',unit:'ساعة',rate:200,min:400},{type:'حفار',unit:'ساعة',rate:350,min:160},{type:'لودر',unit:'ساعة',rate:250,min:160},{type:'بلدوزر',unit:'ساعة',rate:280,min:160},{type:'أوناش',unit:'ساعة',rate:300,min:150},{type:'معدات رصف',unit:'ساعة',rate:220,min:140},{type:'قلابية',unit:'يوم',rate:4500,min:22},{type:'شاحنة نقل',unit:'يوم',rate:3500,min:22},{type:'أتوبيس عمال',unit:'يوم',rate:1800,min:25},{type:'أتوبيس',unit:'يوم',rate:2800,min:22},{type:'سيارة خدمة',unit:'كم',rate:2.5},{type:'سيارة موقع',unit:'كم',rate:2.2},{type:'كمبروسر هواء',unit:'ساعة',rate:60,min:120},{type:'مضخة مياه',unit:'ساعة',rate:40,min:100}
-]
-export function ChargingPage({assets,projects,moduleData,workOrders,fuelOps}:Props){
+type Props={assets:Asset[];projects:Project[];moduleData:Record<string,Record<string,unknown>[]>;workOrders:WorkOrder[];fuelOps:FuelOperation[];chargingRates:Rate[];assetTypes:AssetTypeRef[]}
+type Rate={id:string;assetTypeId?:string;assetId?:string;projectId?:string;unit:string;rate:number;minimum?:number;active:boolean}
+type AssetTypeRef={id:string;code:string;name:string;defaultMeterType:string;standardConsumption?:number;billingUnit?:string;billingRate?:number;billingMinimum?:number;active:boolean}
+export function ChargingPage({assets,projects,moduleData,workOrders,fuelOps,chargingRates,assetTypes}:Props){
+ const {formatMoney}=useCurrency()
  const current=new Date().toISOString().slice(0,7);const [month,setMonth]=useState(current);const [project,setProject]=useState('')
- const rows=useMemo(()=>assets.flatMap(a=>{const selected=projects.find(p=>sameReference(project,p));if(selected&&!sameReference(a.proj,selected))return [];const rate=rateFor(a);if(!rate)return [];const [from,to]=monthRange(month);const ops=(moduleData.operations??[]).filter(x=>(String(x.assetId??'')===a.id||String(x.assetId??'')===a.code)&&String(x.status??'')==='معتمد'&&String(x.date??'')>=from&&String(x.date??'')<=to);const qty=rate.unit==='ساعة'?ops.reduce((s,x)=>s+Number(x.hours||0),0):rate.unit==='كم'?ops.reduce((s,x)=>s+Number(x.km||0),0):ops.length;const billed=rate.unit==='كم'?qty:Math.max(qty,(rate.min||0)*daysInMonth(month)/30.4);const amount=billed*rate.rate;const cost=calculateAssetCost(a,from,to,workOrders,fuelOps,moduleData).total;return [{a,rate,qty,billed,amount,cost,net:amount-cost}] }),[assets,projects,moduleData,month,project,workOrders,fuelOps])
+ const rows=useMemo(()=>assets.flatMap(a=>{const selected=projects.find(p=>sameReference(project,p));if(selected&&!sameReference(a.proj,selected))return [];const rate=rateFor(a,chargingRates,assetTypes,project);if(!rate)return [];const [from,to]=monthRange(month);const ops=(moduleData.operations??[]).filter(x=>(String(x.assetId??'')===a.id||String(x.assetId??'')===a.code)&&String(x.status??'')==='معتمد'&&String(x.date??'')>=from&&String(x.date??'')<=to);const qty=rate.unit==='ساعة'?ops.reduce((s,x)=>s+Number(x.hours||0),0):rate.unit==='كم'?ops.reduce((s,x)=>s+Number(x.km||0),0):ops.length;const billed=rate.unit==='كم'?qty:Math.max(qty,(rate.minimum||0)*daysInMonth(month)/30.4);const amount=billed*rate.rate;const cost=calculateAssetCost(a,from,to,workOrders,fuelOps,moduleData).total;return [{a,rate,qty,billed,amount,cost,net:amount-cost}] }),[assets,projects,moduleData,month,project,workOrders,fuelOps,chargingRates,assetTypes])
  const total=rows.reduce((s,x)=>s+x.amount,0);const qty=rows.reduce((s,x)=>s+x.qty,0);const net=rows.reduce((s,x)=>s+x.net,0)
  function exportCsv(){const headers=['الأصل','المشروع','الوحدة','السعر','الاستخدام الفعلي','الكمية المفوترة','قيمة التحميل','الفارق عن التكلفة'];const esc=(v:unknown)=>`"${String(v??'').replace(/"/g,'""')}"`;const csv='\ufeff'+[headers.map(esc).join(','),...rows.map(x=>[x.a.name,projects.find(p=>sameReference(x.a.proj,p))?.name??'المقر',x.rate?.unit??'—',x.rate?.rate??0,x.qty,x.billed,x.amount,x.net].map(esc).join(','))].join('\r\n');const b=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`KEMEX-charging-${month}.csv`;a.click();URL.revokeObjectURL(a.href)}
- return <div><div className="page-head"><div><h1>التحميل الداخلي على المشروعات</h1><p>الأسعار والحد الأدنى للفوترة — يفصل الاستخدام الفعلي عن أساس الاحتساب.</p></div><div className="page-actions"><button className="secondary-button" onClick={exportCsv}><Download size={16}/> تصدير CSV</button></div></div>
- <section className="panel"><div className="form-grid report-filter-grid"><label className="field"><span>شهر الفوترة</span><input type="month" value={month} onChange={e=>setMonth(e.target.value)}/></label><label className="field"><span>المشروع</span><select value={project} onChange={e=>setProject(e.target.value)}><option value="">كل المشروعات</option>{projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label></div></section>
- <div className="metric-grid compact"><Metric icon={CircleDollarSign} label="إجمالي التحميل" value={`${fmt(total)} ج.م`}/><Metric icon={Gauge} label="الأصول المحملة" value={rows.length}/><Metric icon={ChartColumn} label="الاستخدام الفعلي" value={fmt(qty)}/><Metric icon={Scale} label="صافي الفرق عن التكلفة" value={`${fmt(net)} ج.م`}/></div>
- <section className="panel"><div className="section-title"><div className="section-title-icon"><ChartColumn size={16}/></div><div><strong>تفاصيل التحميل</strong><small>التحميل يحسب من البيانات التشغيلية المعتمدة.</small></div></div><div className="table-wrap"><table><thead><tr><th>الأصل</th><th>المشروع</th><th>الوحدة</th><th>السعر</th><th>الاستخدام الفعلي</th><th>المفوتر بحد أدنى</th><th>قيمة التحميل</th><th>الفارق عن التكلفة</th></tr></thead><tbody>{rows.map(x=><tr key={x.a.id}><td><ReferenceValue field="asset" value={x.a.id} lookups={{assets}}/></td><td><ReferenceValue field="proj" value={x.a.proj} lookups={{projects}}/></td><td>{x.rate?.unit??'—'}</td><td>{fmt(x.rate?.rate??0)}</td><td>{fmt(x.qty)}</td><td>{fmt(x.billed)}</td><td><strong>{fmt(x.amount)}</strong></td><td><strong>{fmt(x.net)}</strong></td></tr>)}</tbody></table>{!rows.length&&<div className="empty">لا توجد أصول لها تعريفة تحميل مطابقة.</div>}</div></section>
- <section className="panel"><div className="section-title"><div className="section-title-icon"><Scale size={16}/></div><div><strong>تعريفة التحميل الداخلي المرجعية</strong><small>القيم التالية من المرجع الأصلي ويمكن تطوير إدارتها لاحقًا.</small></div></div><div className="table-wrap"><table><thead><tr><th>النطاق</th><th>الوحدة</th><th>السعر</th><th>الحد الأدنى</th></tr></thead><tbody>{RATES.map((r,i)=><tr key={i}><td>{r.asset?<ReferenceValue field="asset" value={r.asset} lookups={{assets}}/>:r.type?`نوع: ${r.type}`:`فئة: ${r.cat}`}</td><td>{r.unit}</td><td>{fmt(r.rate)}</td><td>{r.min?`${fmt(r.min)} ${r.unit}`:'—'}</td></tr>)}</tbody></table></div></section>
- </div>
+ type ChargeRow = { a: Asset; rate?: Rate; qty: number; billed: number; amount: number; cost: number; net: number }
+ const detailColumns: DataTableColumn<ChargeRow>[] = [
+   { key: 'asset', header: 'الأصل', accessor: (x) => x.a.name, render: (x) => <ReferenceValue field="asset" value={x.a.id} lookups={{ assets }} /> },
+   { key: 'proj', header: 'المشروع', accessor: (x) => projects.find((p) => sameReference(x.a.proj, p))?.name ?? '', render: (x) => <ReferenceValue field="proj" value={x.a.proj} lookups={{ projects }} /> },
+   { key: 'unit', header: 'الوحدة', accessor: (x) => x.rate?.unit ?? '', render: (x) => x.rate?.unit ?? '—', hideOnMobile: true },
+   { key: 'rate', header: 'السعر', accessor: (x) => x.rate?.rate ?? 0, render: (x) => fmt(x.rate?.rate ?? 0), hideOnMobile: true },
+   { key: 'qty', header: 'الاستخدام الفعلي', sortable: true, render: (x) => fmt(x.qty) },
+   { key: 'billed', header: 'المفوتر بحد أدنى', render: (x) => fmt(x.billed), hideOnMobile: true },
+   { key: 'amount', header: 'قيمة التحميل', sortable: true, render: (x) => <strong className="font-semibold text-gray-900">{fmt(x.amount)}</strong> },
+   { key: 'net', header: 'الفارق عن التكلفة', sortable: true, render: (x) => <strong className="font-semibold text-gray-900">{fmt(x.net)}</strong> },
+ ]
+ const rateColumns: DataTableColumn<Rate>[] = [
+   { key: 'target', header: 'الأصل / النوع', render: (r) => (r.assetId ? <ReferenceValue field="asset" value={r.assetId} lookups={{ assets }} /> : r.assetTypeId ? (assetTypes.find((t) => t.id === r.assetTypeId)?.name ?? 'نوع أصل') : r.projectId ? (projects.find((p) => p.id === r.projectId)?.name ?? 'مشروع') : 'عام') },
+   { key: 'unit', header: 'الوحدة' },
+   { key: 'rate', header: 'السعر', render: (r) => formatMoney(r.rate) },
+   { key: 'minimum', header: 'الحد الأدنى', render: (r) => (r.minimum == null ? '—' : fmt(r.minimum)) },
+ ]
+
+ return (
+   <div className="space-y-6">
+     <PageHeader
+       title="التحميل الداخلي على المشروعات"
+       description="الأسعار والحد الأدنى للفوترة — يفصل الاستخدام الفعلي عن أساس الاحتساب."
+       action={
+         <Button variant="secondary" icon={<Download size={16} />} onClick={exportCsv}>
+           تصدير CSV
+         </Button>
+       }
+     />
+
+     <Card>
+       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+         <label className="block">
+           <span className="text-xs font-medium text-gray-500 mb-1.5 block">شهر الفوترة</span>
+           <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition" />
+         </label>
+         <label className="block">
+           <span className="text-xs font-medium text-gray-500 mb-1.5 block">المشروع</span>
+           <select value={project} onChange={(e) => setProject(e.target.value)} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition">
+             <option value="">كل المشروعات</option>
+             {projects.map((p) => (
+               <option key={p.id} value={p.id}>{p.name}</option>
+             ))}
+           </select>
+         </label>
+       </div>
+     </Card>
+
+     <CardGrid cols={4}>
+       <StatCard icon={<CircleDollarSign size={18} />} label="إجمالي التحميل" value={formatMoney(total)} />
+       <StatCard icon={<Gauge size={18} />} label="الأصول المحملة" value={rows.length} />
+       <StatCard icon={<ChartColumn size={18} />} label="الاستخدام الفعلي" value={fmt(qty)} />
+       <StatCard icon={<Scale size={18} />} label="صافي الفرق عن التكلفة" value={formatMoney(net)} />
+     </CardGrid>
+
+     <Card title="تفاصيل التحميل" description="التحميل يحسب من البيانات التشغيلية المعتمدة.">
+       <DataTable columns={detailColumns} rows={rows} rowKey={(x) => x.a.id} emptyState="لا توجد أصول لها تعريفة تحميل مطابقة." />
+     </Card>
+
+     <Card title="تعريفات التحميل الداخلية" description="لا يعرض النظام أي تعريفة افتراضية؛ يتم احتساب التحميل فقط من التعريفات الفعلية المسجلة.">
+       {chargingRates.length ? (
+         <DataTable columns={rateColumns} rows={chargingRates} rowKey={(r) => r.id} />
+       ) : (
+         <EmptyState title="لا توجد تعريفات تحميل" description="أضف تعريفات فعلية مرتبطة بنوع أصل أو أصل أو مشروع من إدارة التعريفات قبل تشغيل التحميل الداخلي." />
+       )}
+     </Card>
+   </div>
+ )
 }
-function rateFor(a:Asset){return RATES.find(r=>r.asset===a.id||r.asset===a.code)||RATES.find(r=>r.type===a.type)||RATES.find(r=>r.cat===a.cat)}
+function rateFor(a:Asset,rates:Rate[],assetTypes:AssetTypeRef[],projectId:string){
+  const direct=rates.find(r=>r.active && (r.assetId===a.id || r.assetId===a.code) && (!r.projectId || r.projectId===projectId))
+  if(direct)return direct
+  const projectRate=rates.find(r=>r.active && r.projectId===projectId && !r.assetId && !r.assetTypeId)
+  if(projectRate)return projectRate
+  const typeId=a.assetTypeId
+  const typeRate=rates.find(r=>r.active && r.assetTypeId===typeId && (!r.projectId || r.projectId===projectId))
+  if(typeRate)return typeRate
+  const type=assetTypes.find(t=>t.id===typeId)
+  if(type?.billingRate != null && type.billingUnit) return {id:`type-${type.id}`,assetTypeId:type.id,unit:type.billingUnit,rate:type.billingRate,minimum:type.billingMinimum,active:true}
+  return undefined
+}
 function monthRange(month:string){const [y,m]=month.split('-').map(Number);const last=new Date(y,m,0).getDate();return [`${month}-01`,`${month}-${String(last).padStart(2,'0')}`]}
 function daysInMonth(month:string){const [y,m]=month.split('-').map(Number);return new Date(y,m,0).getDate()}
 function fmt(n:number){return new Intl.NumberFormat('ar-EG',{maximumFractionDigits:1}).format(Number(n||0))}
-function Metric({icon:Icon,label,value}:{icon:typeof ChartColumn;label:string;value:string|number}){return <div className="metric-card"><div className="metric-icon"><Icon size={18}/></div><div className="metric-body"><span>{label}</span><strong>{value}</strong></div></div>}

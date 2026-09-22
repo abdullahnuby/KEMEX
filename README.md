@@ -1,14 +1,27 @@
+## v0.29.0 — Maintenance, Inventory & Atomic Stock
+
+- أوامر الصيانة مرتبطة بفنيين فعليين من قاعدة البيانات.
+- المخزون يعتمد على أرصدة وحركات فعلية بدون بيانات تجريبية.
+- إنشاء الصنف والرصيد الافتتاحي يتم عبر RPC، والحركات عبر Posting ذري مع قفل الصف.
+- رصيد المخزون والتكلفة المتوسطة محميان من تعديل العميل المباشر.
+- العملة الافتراضية EGP ويمكن تغييرها من الإعدادات.
+- مزامنة تكلفة أوامر الصيانة وصرف قطع الغيار مع دفتر التكاليف من قاعدة البيانات.
+
+## KEMEX v0.29.0
+
+Sprint 3 upgrades the Assets & Fleet detail workflow with independent React Query data for documents, costs, depreciation, and audit history.
+
 # KEMEX Web
 
-> **v0.24.1** — الصلاحيات ودورة الاعتماد والتدقيق والترقيم بقت مفروضة داخل قاعدة البيانات (migration 008) ومغطاة باختبارات `npm run test:db`. التفاصيل: [docs/REVIEW-v0.24.1.md](./docs/REVIEW-v0.24.1.md).
+> **v0.26.0** — Architecture Foundation: Repository Contract، Supabase/LocalStorage adapters، TanStack React Query، Auth/Theme providers، وكاش موحد للبيانات بدون أي بيانات وهمية.
 
 منصة ويب عربية RTL باسم KEMEX لإدارة النقل والأسطول والمعدات والصيانة والوقود والتكاليف.
 
 ## الحالة
 
-**v0.24.1 — Security & integrity hardening**
+**v0.25.0 — Enterprise Foundation & Design System**
 
-تم نقل هيكل النظام من النسخة HTML إلى React + TypeScript، مع طبقة Repository تدعم Demo Local Storage أو Supabase/PostgreSQL.
+تم نقل هيكل النظام من النسخة HTML إلى React + TypeScript، ومصدر بيانات الإنتاج هو Supabase/PostgreSQL. التخزين المحلي الفارغ متاح كـadapter تطويري فقط دون أي seed أو سجلات وهمية. Production الافتراضي يستخدم Supabase.
 
 ### الوحدات الحالية
 
@@ -61,7 +74,8 @@ supabase/migrations/005_audit_actor_policy.sql
 supabase/migrations/006_purchase_role_alignment.sql
 supabase/migrations/007_form_data_expansion.sql
 supabase/migrations/008_security_and_integrity.sql   # الصلاحيات + دورة الاعتماد + التدقيق + الترقيم
-supabase/migrations/                                     # مخطط قاعدة البيانات وسياسات الأمان
+supabase/migrations/009_fix_audit_change_trigger.sql  # إصلاح Trigger التدقيق للجداول الأساسية
+supabase/migrations/010_enterprise_foundation.sql     # مخطط المؤسسة المرجعي والتكاليف والمستندات
 ```
 
 بعد إنشاء أول مستخدم من Authentication > Users، اجعله مدير نظام:
@@ -87,7 +101,7 @@ npm run build
 ## ملاحظات
 
 - `legacy/TFMS_Fixed.html` محفوظ كمرجع للمنطق والتصميم الأصلي.
-- بيانات Demo لا تمثل بيانات تشغيل حقيقية.
+- لا توجد سجلات Demo أو Seed تشغيلية في النسخة الحالية.
 - إدارة كلمة المرور والمستخدمين الفعلية تعتمد على Supabase Auth؛ صفحة المستخدمين تدير ملف المستخدم والدور والحالة.
 
 ## v0.5.0 — Status transition history
@@ -133,3 +147,25 @@ npm run build
 - توسيع Reference Resolver ليغطي مفاتيح الأصول والمشروعات والمعدات والمركبات بصيغ أكثر.
 - تحسين قوائم اختيار الأصول والمشروعات لتقديم الاسم قبل الكود.
 - اختبارات المتصفح وProduction build واختبارات Supabase/RLS ما زالت مرحلة QA اللاحقة.
+
+## Data Adapter
+
+Production: `VITE_DATA_MODE=supabase` (default).
+
+Development-only local adapter: `VITE_DATA_MODE=local` مع `VITE_LOCAL_ADMIN_EMAIL`. لا يتم إنشاء أي بيانات تجريبية تلقائيًا.
+
+## Architecture
+
+- Repository contract: `src/core/repository/types.ts`
+- Supabase adapter: `src/services/repository.ts`
+- LocalStorage adapter: `src/services/localRepository.ts`
+- Adapter factory: `src/services/repositoryFactory.ts`
+- React Query cache: `src/features/app/hooks/useKemexBootstrap.ts`
+- Authentication boundary: `src/features/auth/AuthContext.tsx`
+- Theme boundary: `src/app/providers/ThemeContext.tsx`
+
+## v0.28.0 — Projects, Drivers, Clients & EGP Currency
+- العملة الافتراضية: الجنيه المصري EGP.
+- تغيير العملة من الإعدادات فقط.
+- المشروعات والعملاء ومراكز التكلفة أصبحت مرتبطة بسجلات قاعدة البيانات.
+- لا توجد تعريفات تحميل افتراضية أو بيانات وهمية؛ التحميل يعتمد على تعريفات فعلية في قاعدة البيانات.

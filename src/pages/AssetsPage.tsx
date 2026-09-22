@@ -1,23 +1,29 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
-import { Eye, Pencil, Plus, Search, Truck, X } from 'lucide-react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { Eye, Pencil, Plus, Truck, X } from 'lucide-react'
 import type { Asset, Project } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
-import { StatusBadge } from '../components/StatusBadge'
+import { Button, DataTable, EmptyState, IconButton, PageHeader, StatusBadge, useToast } from '../components/ui'
 
-export function AssetsPage({assets, projects, onSave, onRoute, canEdit=true}: {assets:Asset[]; projects:Project[]; onSave:(asset:Asset)=>Promise<void>; onRoute:(r:string)=>void; canEdit?:boolean}) {
-  const [query, setQuery] = useState('')
-  const [status, setStatus] = useState('all')
+export function AssetsPage({assets, projects, onSave, onRoute, canEdit=true, focusAssetId}: {assets:Asset[]; projects:Project[]; onSave:(asset:Asset)=>Promise<void>; onRoute:(r:string)=>void; canEdit?:boolean; focusAssetId?:string}) {
   const [editing, setEditingState] = useState<Asset|null>(null)
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
+  const { show } = useToast()
   // الصلاحية مفروضة في القاعدة (RLS)؛ ده بس بيمنع فتح النموذج لمن لا يملكها
   const setEditing = (a:Asset|null) => { if (a && !canEdit) { window.alert('ليس لديك صلاحية تعديل الأصول'); return } setFormError(''); setEditingState(a) }
-  const [viewing, setViewing] = useState<Asset|null>(null)
-  const rows = useMemo(()=>assets.filter(a=>{
-    const q=query.trim().toLowerCase()
-    const matches=!q || [a.code,a.name,a.type,a.cat,a.plate||''].join(' ').toLowerCase().includes(q)
-    return matches && (status==='all'||a.status===status)
-  }),[assets,query,status])
+  useEffect(() => { if (focusAssetId) { const target = assets.find(item => item.id === focusAssetId); if (target) setEditing(target) } }, [assets, focusAssetId])
+
+  const assetColumns = [
+    { id:'asset', header:'الأصل', searchable:true, sortValue:(a:Asset)=>a.name, render:(a:Asset)=><div className="table-main"><span className="asset-chip"><Truck size={15}/></span><div><strong>{a.name}</strong><small><span className="reference-code">{a.code}</span>{a.mfr || a.model ? ` · ${a.mfr ?? ''} ${a.model ?? ''}`.trim() : ''}</small></div></div> },
+    { id:'category', header:'الفئة', sortValue:(a:Asset)=>a.cat, render:(a:Asset)=>a.cat },
+    { id:'type', header:'النوع', sortValue:(a:Asset)=>a.type, render:(a:Asset)=>a.type },
+    { id:'ownership', header:'الملكية', sortValue:(a:Asset)=>a.own, render:(a:Asset)=>a.own },
+    { id:'project', header:'المشروع', sortValue:(a:Asset)=>a.proj, render:(a:Asset)=><ReferenceValue field="proj" value={a.proj} lookups={{projects}}/> },
+    { id:'meter', header:'العداد', sortValue:(a:Asset)=>a.meter, render:(a:Asset)=>`${fmt(a.meter)} ${a.mt}` },
+    { id:'status', header:'حالة التشغيل', sortValue:(a:Asset)=>a.status, render:(a:Asset)=><StatusBadge>{a.status}</StatusBadge> },
+    { id:'condition', header:'الحالة الفنية', sortValue:(a:Asset)=>a.cond, render:(a:Asset)=><StatusBadge>{a.cond}</StatusBadge> },
+    { id:'actions', header:'إجراءات', mobileVisible:true, render:(a:Asset)=><div className="row-actions"><button className="icon-button" title="عرض" onClick={()=>onRoute(`asset/${a.id}`)}><Eye size={16}/></button>{canEdit&&<button className="icon-button" title="تعديل" onClick={()=>setEditing(a)}><Pencil size={15}/></button>}</div> },
+  ]
 
   async function submit(e:FormEvent<HTMLFormElement>){
     e.preventDefault()
@@ -48,6 +54,7 @@ export function AssetsPage({assets, projects, onSave, onRoute, canEdit=true}: {a
       if(!asset.cat) throw new Error('فئة الأصل مطلوبة.')
       if(!asset.type) throw new Error('نوع / استخدام الأصل مطلوب.')
       await onSave(asset)
+      show({ message: `تم حفظ الأصل ${asset.name} بنجاح.`, tone: 'success' })
       setEditing(null)
     } catch(err) {
       setFormError(err instanceof Error ? err.message : 'تعذر حفظ الأصل. حاول مرة أخرى.')
@@ -56,13 +63,23 @@ export function AssetsPage({assets, projects, onSave, onRoute, canEdit=true}: {a
     }
   }
 
-  return <div>
-    <div className="page-head"><div><h1>الأصول والأسطول والمعدات</h1><p>سجل مركزي للأصول مع الحالة والتخصيص والعداد.</p></div><button className="primary-button" onClick={()=>setEditing({id:`NEW-${Date.now()}`,code:'',name:'',cat:'',type:'',own:'مملوك',status:'متاح',cond:'سليم',mfr:'',model:'',year:new Date().getFullYear(),fuel:'ديزل',mt:'كم',meter:0,std:0,capex:0,life:5,resid:0,proj:'',drv:'',cust:'',plate:'',buy:'',lic:'',ins:'',contract:'',notes:''})}><Plus size={16}/> إضافة أصل</button></div>
-    <section className="panel">
-      <div className="toolbar"><div className="search-field"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="بحث بالكود أو الاسم أو النوع..."/></div><select value={status} onChange={e=>setStatus(e.target.value)}><option value="all">كل الحالات</option><option>متاح</option><option>يعمل</option><option>متوقف مؤقتًا</option><option>تحت الصيانة</option></select><span className="toolbar-count">{rows.length} أصل</span></div>
-      <div className="table-wrap"><table><thead><tr><th>الأصل</th><th>الفئة</th><th>الملكية</th><th>المشروع</th><th>العداد</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>{rows.map(a=><tr key={a.id}><td><div className="table-main"><span className="asset-chip"><Truck size={15}/></span><div><strong>{a.name}</strong><small><span className="reference-code">{a.code}</span>{a.mfr || a.model ? ` · ${a.mfr ?? ''} ${a.model ?? ''}`.trim() : ''}</small></div></div></td><td>{a.cat}</td><td>{a.own}</td><td><ReferenceValue field="proj" value={a.proj} lookups={{projects}}/></td><td>{fmt(a.meter)} {a.mt}</td><td><StatusBadge>{a.status}</StatusBadge></td><td><div className="row-actions"><button className="icon-button" title="عرض" onClick={()=>onRoute(`asset/${a.id}`)}><Eye size={16}/></button><button className="icon-button" title="تعديل" onClick={()=>setEditing(a)}><Pencil size={15}/></button></div></td></tr>)}</tbody></table>{!rows.length&&<div className="empty">لا توجد أصول مطابقة.</div>}</div>
-    </section>
-    {viewing && <div className="modal-backdrop" onMouseDown={()=>setViewing(null)}><div className="modal-card wide" onMouseDown={e=>e.stopPropagation()}><div className="modal-head"><div><h2>بطاقة الأصل</h2><p className="modal-reference"><strong>{viewing.name}</strong><span className="entity-code">{viewing.code}</span></p></div><button className="icon-button" onClick={()=>setViewing(null)}><X size={18}/></button></div><div className="detail-grid"><Detail label="الفئة" value={viewing.cat}/><Detail label="النوع" value={viewing.type}/><Detail label="الملكية" value={viewing.own}/><Detail label="حالة التشغيل" value={viewing.status}/><Detail label="الحالة الفنية" value={viewing.cond}/><Detail label="العداد" value={`${fmt(viewing.meter)} ${viewing.mt}`}/><Detail label="المشروع" value={<ReferenceValue field="proj" value={viewing.proj} lookups={{projects}} compact/>}/><Detail label="رقم اللوحة" value={viewing.plate||'—'}/><Detail label="الرخصة" value={fmtDate(viewing.lic)}/><Detail label="التأمين" value={fmtDate(viewing.ins)}/></div><div className="modal-actions"><button className="secondary-button" onClick={()=>{setViewing(null);onRoute('maintenance')}}>فتح الصيانة</button><button className="primary-button" onClick={()=>{setViewing(null);setEditing(viewing)}}>تعديل الأصل</button></div></div></div>}
+  return <div className="space-y-6">
+    <PageHeader
+      title="الأصول والأسطول والمعدات"
+      description="سجل مركزي للأصول مع الحالة والتخصيص والعداد."
+      action={<Button onClick={()=>setEditing({id:`NEW-${Date.now()}`,code:'',name:'',cat:'',type:'',own:'مملوك',status:'متاح',cond:'سليم',mfr:'',model:'',year:new Date().getFullYear(),fuel:'ديزل',mt:'كم',meter:0,std:0,capex:0,life:5,resid:0,proj:'',drv:'',cust:'',plate:'',buy:'',lic:'',ins:'',contract:'',notes:''})}><Plus size={16}/> إضافة أصل</Button>}
+    />
+    <DataTable
+      rows={assets}
+      columns={assetColumns}
+      rowKey={row=>row.id}
+      searchPlaceholder="بحث بالكود أو الاسم أو النوع أو اللوحة..."
+      searchableText={row=>[row.code,row.name,row.type,row.cat,row.plate||'',row.mfr||'',row.model||''].join(' ')}
+      filters={[{ id:'status', label:'حالة التشغيل', options:[{value:'متاح',label:'متاح'},{value:'يعمل',label:'يعمل'},{value:'مخصص لمشروع',label:'مخصص لمشروع'},{value:'متوقف مؤقتًا',label:'متوقف مؤقتًا'},{value:'تحت الصيانة',label:'تحت الصيانة'},{value:'خارج الخدمة',label:'خارج الخدمة'}], getValue:row=>row.status }, { id:'condition', label:'الحالة الفنية', options:[{value:'سليم',label:'سليم'},{value:'يحتاج صيانة',label:'يحتاج صيانة'},{value:'تالف',label:'تالف'}], getValue:row=>row.cond }]}
+      initialSort={{columnId:'asset',direction:'asc'}}
+      pageSize={15}
+      emptyState={<EmptyState title="لا توجد أصول" description="لا توجد سجلات أصول فعلية مطابقة للبحث أو الفلاتر الحالية." action={canEdit ? <Button variant="secondary" onClick={()=>setEditing({id:`NEW-${Date.now()}`,code:'',name:'',cat:'',type:'',own:'مملوك',status:'متاح',cond:'سليم',mfr:'',model:'',year:new Date().getFullYear(),fuel:'',mt:'كم',meter:0,std:0,capex:0,life:0,resid:0,proj:'',drv:'',cust:'',plate:'',buy:'',lic:'',ins:'',contract:'',notes:''})}>إضافة أصل</Button> : undefined}/>}
+    />
     {editing && <div className="modal-backdrop" onMouseDown={()=>setEditing(null)}><form className="modal-card wide" onSubmit={submit} onMouseDown={e=>e.stopPropagation()}><div className="modal-head"><div><h2>{editing.code?'تعديل أصل':'إضافة أصل'}</h2><p>البيانات الأساسية</p></div><button type="button" className="icon-button" onClick={()=>setEditing(null)}><X size={18}/></button></div><div className="form-sections form-sections-core"><FormBlock title="الهوية والتصنيف"><Field name="code" label="كود الأصل" defaultValue={editing.code} required/><Field name="name" label="اسم الأصل" defaultValue={editing.name} required/><Field name="cat" label="الفئة" defaultValue={editing.cat} required/><Field name="type" label="النوع / الاستخدام" defaultValue={editing.type} required/></FormBlock><FormBlock title="المواصفات"><Field name="mfr" label="الشركة المصنعة" defaultValue={editing.mfr??''}/><Field name="model" label="الموديل" defaultValue={editing.model??''}/><Field name="year" label="سنة الصنع" type="number" defaultValue={String(editing.year??'')}/><Select name="fuel" label="نوع الوقود" value={editing.fuel??''} options={['ديزل','بنزين','غاز','كهرباء','هجين','غير محدد']}/><Select name="mt" label="نوع العداد" value={editing.mt} options={['كم','ساعة','عداد مركب']}/><Field name="meter" label="قراءة العداد الحالية" type="number" defaultValue={String(editing.meter??0)}/></FormBlock><FormBlock title="الملكية والحالة"><Select name="own" label="الملكية" value={editing.own} options={['مملوك','مستأجر']}/><Select name="status" label="حالة التشغيل" value={editing.status} options={['متاح','يعمل','مخصص لمشروع','متوقف مؤقتًا','تحت الصيانة','خارج الخدمة']}/><Select name="cond" label="الحالة الفنية" value={editing.cond} options={['سليم','يحتاج صيانة','تالف']}/><Field name="plate" label="رقم اللوحة / التسجيل" defaultValue={editing.plate??''}/></FormBlock><FormBlock title="القيمة والتكلفة"><Field name="std" label="الاستهلاك المعياري" type="number" defaultValue={String(editing.std??0)}/><Field name="capex" label="تكلفة الاقتناء" type="number" defaultValue={String(editing.capex??0)}/><Field name="life" label="العمر الإنتاجي (سنة)" type="number" defaultValue={String(editing.life??0)}/><Field name="resid" label="القيمة المتبقية" type="number" defaultValue={String(editing.resid??0)}/></FormBlock><FormBlock title="التشغيل والارتباط"><Select name="proj" label="المشروع الحالي" value={editing.proj??''} options={[{v:'',l:'المقر / بدون مشروع'},...projects.map(p=>({v:p.id,l:`${p.name} — ${p.code}`}))]}/><Field name="drv" label="السائق / المشغل" defaultValue={editing.drv??''}/><Field name="cust" label="العميل / المستخدم" defaultValue={editing.cust??''}/><Field name="contract" label="مرجع العقد" defaultValue={editing.contract??''}/></FormBlock><FormBlock title="التواريخ والمستندات"><Field name="buy" label="تاريخ الشراء" type="date" defaultValue={editing.buy??''}/><Field name="lic" label="انتهاء الترخيص" type="date" defaultValue={editing.lic??''}/><Field name="ins" label="انتهاء التأمين" type="date" defaultValue={editing.ins??''}/></FormBlock><label className="field field-full"><span>ملاحظات الأصل</span><textarea name="notes" defaultValue={editing.notes??''} rows={4} placeholder="الحالة، التجهيزات، الملاحظات الفنية أو أي بيانات إضافية مهمة..."/></label></div><div className="modal-actions"><div>{formError&&<div className="form-error" role="alert">{formError}</div>}</div><div className="head-actions"><button type="button" className="secondary-button" onClick={()=>setEditing(null)} disabled={saving}>إلغاء</button><button type="submit" className="primary-button" disabled={saving}>{saving?'جارٍ الحفظ...':'حفظ'}</button></div></div></form></div>}
   </div>
 }

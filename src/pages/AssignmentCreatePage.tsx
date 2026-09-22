@@ -2,6 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { ArrowRight, ClipboardCheck, Truck } from 'lucide-react'
 import type { Asset, Project } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
+import { PageHeader } from '../shared/ui'
 
 type RecordLike=Record<string,unknown>
 
@@ -65,7 +66,7 @@ export function AssignmentCreatePage({request,assets,projects,onSaveAssignment,o
   }
 
   return <div>
-    <div className="page-head"><div><h1>تخصيص أصل</h1><p>{request?<>للطلب {String(request.number??request.id)} — <ReferenceValue field="proj" value={request.proj} lookups={{projects}}/></>:'الطلب غير متاح'}</p></div><button className="secondary-button" type="button" onClick={onBack}><ArrowRight size={16}/> العودة لطلبات المعدات</button></div>
+    <PageHeader title="تخصيص أصل" description={request?<>للطلب {String(request.number??request.id)} — <ReferenceValue field="proj" value={request.proj} lookups={{projects}}/></>:'الطلب غير متاح'} action={<button className="secondary-button" type="button" onClick={onBack}><ArrowRight size={16}/> العودة لطلبات المعدات</button>} />
     {!request?<section className="panel placeholder-panel"><div className="placeholder-icon"><ClipboardCheck size={28}/></div><h2>تعذر تحميل الطلب</h2><p>الطلب المطلوب غير موجود في البيانات الحالية.</p><button className="primary-button" type="button" onClick={onBack}>العودة</button></section>:
     <section className="panel assignment-form-panel"><div className="section-title"><div className="section-title-icon"><Truck size={17}/></div><div><strong>تسجيل التسليم</strong><small>اختر أصلًا متاحًا وحدد بداية ومدة التخصيص كما في مسار النظام المرجعي.</small></div></div>
       {error&&<div className="global-error" role="alert">{error}</div>}

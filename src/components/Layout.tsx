@@ -1,22 +1,16 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { BarChart3, Bell, ChevronDown, Database, FileCog, LayoutDashboard, LogOut, Menu, Search, Settings2, ShieldCheck, Truck, WalletCards, Wrench, X, type LucideIcon } from 'lucide-react'
-import { APP, MODULES, ROLE_LABELS, canViewModule } from '../config/app'
+import { BarChart3, Bell, ChevronDown, LayoutDashboard, LogOut, Menu, Search, Truck, X, type LucideIcon } from 'lucide-react'
+import { APP, NAVIGATION_GROUPS, REPORT_NAV_ITEMS, ROLE_LABELS, canViewModule, type NavigationGroup, type NavigationItem } from '../config/app'
 import type { Role, User } from '../types/tfms'
 
 const ICONS: Record<string, LucideIcon> = {}
 export function registerModuleIcons(icons: Record<string, LucideIcon>) { Object.assign(ICONS, icons) }
 
-const GROUP_ICONS: Record<string, LucideIcon> = {
-  'البيانات الأساسية': Database,
-  'التشغيل': Wrench,
-  'الصيانة والمواد': FileCog,
-  'المالية': WalletCards,
-  'التقارير والإدارة': BarChart3,
-  'المستخدمون والإعدادات': ShieldCheck,
-  'الرئيسية': LayoutDashboard,
-}
+const GROUP_ICONS: Record<string, LucideIcon> = {}
 
-type NavGroup = { group:string; items:readonly typeof MODULES[number][] }
+function iconFor(name: string, fallback?: LucideIcon) {
+  return ICONS[name] ?? fallback
+}
 
 export function Layout({ user, route, onRoute, onLogout, children, alertCount }: {
   user: User; route: string; onRoute: (route:string)=>void; onLogout:()=>void; children:ReactNode; alertCount:number
@@ -26,12 +20,20 @@ export function Layout({ user, route, onRoute, onLogout, children, alertCount }:
   const [query,setQuery]=useState('')
   const navRef=useRef<HTMLDivElement>(null)
 
-  const groups=useMemo<NavGroup[]>(()=>{
-    const filtered=MODULES.filter(m=>canViewModule(user.role,m.key)).filter(m=>{
-      const q=query.trim().toLowerCase(); return !q || m.label.includes(query.trim()) || m.key.toLowerCase().includes(q)
-    })
-    return Array.from(new Set(filtered.map(m=>m.group))).map(group=>({group,items:filtered.filter(m=>m.group===group)}))
-  },[user.role,query])
+  const routeModule = resolveRouteModule(route)
+  const currentGroup = useMemo(() => findGroupForRoute(route), [route])
+  const q = query.trim().toLocaleLowerCase('ar-EG')
+
+  const groups = useMemo(() => {
+    const canSee = (item: NavigationItem) => canViewModule(user.role, permissionKeyForNavItem(item))
+    const base = NAVIGATION_GROUPS.map(group => ({
+      ...group,
+      items: group.group === 'التقارير'
+        ? REPORT_NAV_ITEMS.filter(item => canViewModule(user.role, 'reports') && (!q || item.label.includes(query.trim()) || item.hint.includes(query.trim())))
+        : group.items.filter(item => canSee(item) && (!q || item.label.includes(query.trim()) || item.hint.includes(query.trim()) || item.key.includes(q))),
+    })).filter(group => group.items.length)
+    return base
+  }, [user.role, q, query])
 
   useEffect(()=>{
     const close=(event:MouseEvent)=>{if(navRef.current&&!navRef.current.contains(event.target as Node))setOpenGroup(null)}
@@ -39,31 +41,36 @@ export function Layout({ user, route, onRoute, onLogout, children, alertCount }:
     return()=>window.removeEventListener('mousedown',close)
   },[])
 
-  const activeGroup=MODULES.find(m=>m.key===route)?.group
   const navigate=(next:string)=>{setOpenGroup(null);setMobileOpen(false);onRoute(next)}
-  const primary=(groups.find(g=>g.group==='الرئيسية')?.items??[]).filter(item=>item.key!=='alerts')
-  const navGroups=groups.map(g=>g.group==='الرئيسية'?{...g,items:g.items.filter(item=>item.key!=='alerts')}:g).filter(g=>g.items.length)
-  const dropdowns=navGroups.filter(g=>g.group!=='الرئيسية')
+  const homeIcon = iconFor('LayoutDashboard', LayoutDashboard)
 
   return <div className="app-shell">
     {mobileOpen&&<button className="mobile-nav-scrim" onClick={()=>setMobileOpen(false)} aria-label="إغلاق القائمة"/>}
     <main className="main-shell">
       <header className="site-navbar" ref={navRef}>
-        <div className="navbar-brand" onClick={()=>navigate('dashboard')} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter')navigate('dashboard')}}>
-          <div className="brand-mark"><Truck size={21} strokeWidth={2.2}/></div>
-          <div><strong>{APP.name}</strong><span>{APP.arabicName}</span></div>
+        <div className="navbar-brand navbar-context" onClick={()=>navigate('dashboard')} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter')navigate('dashboard')}} aria-label="العودة إلى لوحة المعلومات">
+          <div className="brand-mark"><Truck size={18} strokeWidth={2.3}/></div>
+          <div className="navbar-context-copy"><strong>{APP.name}</strong><span>إدارة النقل والأسطول والمعدات</span></div>
         </div>
 
         <nav className="desktop-nav" aria-label="التنقل الرئيسي">
-          {primary.map(item=>{const Icon=ICONS[item.icon]; const active=route===item.key||(route.startsWith('asset/')&&item.key==='assets'); return <button key={item.key} className={`nav-direct ${active?'active':''}`} onClick={()=>navigate(item.key)}>{Icon&&<Icon size={15}/>}<span>{item.label}</span></button>})}
-          {dropdowns.map(group=>{
-            const active=activeGroup===group.group
+          <button className={`nav-direct ${routeModule==='dashboard'?'active':''}`} onClick={()=>navigate('dashboard')}>
+            {homeIcon&&<homeIcon size={15}/>}<span>الرئيسية</span>
+          </button>
+
+          {groups.map(group=>{
+            const GroupIcon = iconFor(group.icon)
+            const active=currentGroup===group.group
             const isOpen=openGroup===group.group
-            const GroupIcon=GROUP_ICONS[group.group]
+            const isReports=group.group==='التقارير'
             return <div className="nav-dropdown" key={group.group}>
-              <button className={`nav-group-trigger ${active?'active':''}`} aria-expanded={isOpen} onClick={()=>setOpenGroup(isOpen?null:group.group)}>{GroupIcon&&<GroupIcon size={15}/>}<span>{group.group}</span><ChevronDown size={14} className={isOpen?'rotate':''}/></button>
-              {isOpen&&<div className="nav-menu-panel">
-                {group.items.map(item=>{const Icon=ICONS[item.icon];const itemActive=route===item.key||(route.startsWith('asset/')&&item.key==='assets');return <button key={item.key} className={`nav-menu-item ${itemActive?'active':''}`} onClick={()=>navigate(item.key)}><span className="nav-menu-icon">{Icon&&<Icon size={16}/>}</span><span><strong>{item.label}</strong><small>{navHint(item.key)}</small></span>{item.key==='alerts'&&alertCount>0&&<em>{alertCount}</em>}</button>})}
+              <button className={`nav-group-trigger ${active?'active':''}`} aria-expanded={isOpen} onClick={()=>setOpenGroup(isOpen?null:group.group)}>
+                {GroupIcon&&<GroupIcon size={15}/>}<span>{group.group}</span><ChevronDown size={14} className={isOpen?'rotate':''}/>
+              </button>
+              {isOpen&&<div className={`nav-menu-panel ${isReports?'nav-reports-panel':'nav-domain-panel'}`}>
+                {isReports
+                  ? renderReportMenu(group.items as readonly typeof REPORT_NAV_ITEMS[number][], route, navigate)
+                  : renderDomainMenu(group.items, routeModule, navigate)}
               </div>}
             </div>
           })}
@@ -82,7 +89,8 @@ export function Layout({ user, route, onRoute, onLogout, children, alertCount }:
             <button className="mobile-logout-button" onClick={()=>{setMobileOpen(false);onLogout()}}><LogOut size={16}/> تسجيل الخروج</button>
           </div>
           <div className="mobile-nav-search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="بحث في أقسام النظام..."/></div>
-          {navGroups.map(group=><MobileGroup key={group.group} group={group} route={route} alertCount={alertCount} onNavigate={navigate}/>) }
+          <button className={`mobile-group-title ${routeModule==='dashboard'?'open':''}`} onClick={()=>navigate('dashboard')}><span>الرئيسية</span><LayoutDashboard size={15}/></button>
+          {groups.map(group=><MobileGroup key={group.group} group={group} route={route} onNavigate={navigate}/>)}
         </div>}
       </header>
       <div className="page-body">{children}</div>
@@ -90,21 +98,93 @@ export function Layout({ user, route, onRoute, onLogout, children, alertCount }:
   </div>
 }
 
-function MobileGroup({group,route,alertCount,onNavigate}:{group:NavGroup;route:string;alertCount:number;onNavigate:(route:string)=>void}){
-  const [open,setOpen]=useState(group.group==='الرئيسية')
+function renderDomainMenu(items:readonly NavigationItem[], routeModule:string, navigate:(route:string)=>void) {
+  return <div className="nav-menu-section">
+    <div className="nav-menu-section-title">الوحدات</div>
+    <div className="nav-menu-section-grid">
+      {items.map(item=>{
+        const Icon=iconFor(item.icon)
+        const active=routeModule===item.key || (item.key==='trips' && routeModule==='trips')
+        return <button key={item.key} className={`nav-menu-item ${active?'active':''}`} onClick={()=>navigate(item.route)}>
+          <span className="nav-menu-icon">{Icon&&<Icon size={16}/>}</span>
+          <span><strong>{item.label}</strong><small>{item.hint}</small></span>
+        </button>
+      })}
+    </div>
+  </div>
+}
+
+function renderReportMenu(items:readonly typeof REPORT_NAV_ITEMS[number][], route:string, navigate:(route:string)=>void) {
+  const sections = Array.from(new Set(items.map(x=>x.section)))
+  return <>
+    {sections.map(section=><div className="nav-menu-section" key={section}>
+      <div className="nav-menu-section-title">{section}</div>
+      <div className="nav-menu-section-grid">
+        {items.filter(x=>x.section===section).map(item=>{
+          const Icon=iconFor(item.icon, BarChart3)
+          const active=route===item.route || (item.key==='true-cost'&&route==='true-cost')
+          return <button key={item.key} className={`nav-menu-item ${active?'active':''}`} onClick={()=>navigate(item.route)}>
+            <span className="nav-menu-icon">{Icon&&<Icon size={16}/>}</span>
+            <span><strong>{item.label}</strong><small>{item.hint}</small></span>
+          </button>
+        })}
+      </div>
+    </div>)}
+  </>
+}
+
+function MobileGroup({group,route,onNavigate}:{group:NavigationGroup;route:string;onNavigate:(route:string)=>void}){
+  const routeModule = resolveRouteModule(route)
+  const [open,setOpen]=useState(false)
+  const isReports=group.group==='التقارير'
   return <section className="mobile-nav-group">
-    <button className={`mobile-group-title ${open?'open':''}`} onClick={()=>setOpen(v=>!v)}><span>{group.group}</span><ChevronDown size={15} className={open?'rotate':''}/></button>
-    {open&&<div className="mobile-group-items">{group.items.map(item=>{const Icon=ICONS[item.icon];const active=route===item.key||(route.startsWith('asset/')&&item.key==='assets');return <button key={item.key} className={`mobile-nav-item ${active?'active':''}`} onClick={()=>onNavigate(item.key)}>{Icon&&<Icon size={16}/>}<span>{item.label}</span>{item.key==='alerts'&&alertCount>0&&<em>{alertCount}</em>}</button>})}</div>}
+    <button className={`mobile-group-title ${open?'open':''}`} onClick={()=>setOpen(v=>!v)}>
+      <span>{group.group}</span><ChevronDown size={15} className={open?'rotate':''}/>
+    </button>
+    {open&&<div className="mobile-group-items">
+      {isReports
+        ? renderMobileReports(group.items as readonly typeof REPORT_NAV_ITEMS[number][], route, onNavigate)
+        : <div className="mobile-nav-section"><div className="mobile-nav-section-title">الوحدات</div>{group.items.map(item=>{const Icon=iconFor(item.icon);const active=routeModule===item.key;return <button key={item.key} className={`mobile-nav-item ${active?'active':''}`} onClick={()=>onNavigate(item.route)}>{Icon&&<Icon size={16}/>}<span>{item.label}</span></button>})}</div>}
+    </div>}
   </section>
 }
 
-function navHint(key:string){
-  const hints:Record<string,string>={
-    projects:'المشروعات والمواقع والتكليفات',assets:'الأصول والمركبات والمعدات',drivers:'السائقون والمشغلون والتراخيص',customers:'العملاء والخدمات الخارجية',
-    plans:'برامج واستحقاقات الصيانة الوقائية',maintenance:'أوامر العمل والتنفيذ والتكلفة',oils:'الزيوت والفلاتر ودورات التغيير',tires:'الإطارات والتركيب والحركة',fuel:'حركات الوقود والاستهلاك',inventory:'الأصناف والأرصدة والحد الأدنى',movements:'دخول وصرف وتسويات المخزون',purchases:'طلبات الشراء وأوامر الشراء',
-    requests:'احتياجات المعدات ومراجعة الطلبات',assignments:'تسليم واستلام وتخصيص الأصول',operations:'التشغيل اليومي والعدادات',trips:'رحلات النقل والمسافات',contracts:'عقود الإيجار وشروطها',
-    costs:'التكلفة المباشرة والإهلاك التقديري',charging:'تحميل استخدام الأصول على المشروعات',invoices:'الفواتير والمستحقات ودورة الاعتماد',
-    reports:'تقارير تشغيلية ومالية قابلة للتصفية',users:'المستخدمون والأدوار والصلاحيات',audit:'سجل العمليات الحساسة',settings:'بيانات المؤسسة والأسعار والتنبيهات',
+function renderMobileReports(items:readonly typeof REPORT_NAV_ITEMS[number][], route:string, navigate:(route:string)=>void){
+  return Array.from(new Set(items.map(x=>x.section))).map(section=><div className="mobile-nav-section" key={section}>
+    <div className="mobile-nav-section-title">{section}</div>
+    {items.filter(x=>x.section===section).map(item=>{const active=route===item.route || (item.key==='true-cost'&&route==='true-cost');return <button key={item.key} className={`mobile-nav-item ${active?'active':''}`} onClick={()=>navigate(item.route)}><BarChart3 size={16}/><span>{item.label}</span></button>})}
+  </div>)
+}
+
+function permissionKeyForNavItem(item:NavigationItem){
+  if(item.key==='trips-dispatch') return 'trips'
+  return item.key
+}
+
+function findGroupForRoute(route:string){
+  if(route==='dashboard') return 'الرئيسية'
+  if(route==='alerts') return null
+  if(route.startsWith('reports/') || route==='true-cost' || route==='reports/true-cost') return 'التقارير'
+  for(const group of NAVIGATION_GROUPS){
+    if(group.items.some(item=>item.route===route || item.key===route)) return group.group
   }
-  return hints[key]??'إدارة هذه الوحدة داخل KEMEX'
+  if(route.startsWith('asset/') || route.startsWith('assets/edit/')) return 'الأسطول'
+  if(route.startsWith('project/')) return 'التشغيل'
+  if(route.startsWith('breakdowns/')) return 'الصيانة'
+  if(route.startsWith('trips/')) return 'النقل'
+  if(route==='movements') return 'المخازن'
+  if(route==='assignments/new') return 'التشغيل'
+  return null
+}
+
+function resolveRouteModule(route:string){
+  if(route==='dashboard') return 'dashboard'
+  if(route.startsWith('asset/') || route.startsWith('assets/edit/')) return 'assets'
+  if(route.startsWith('project/')) return 'projects'
+  if(route.startsWith('breakdowns/')) return 'breakdowns'
+  if(route.startsWith('trips/')) return 'trips'
+  if(route.startsWith('assignments/new/')) return 'assignments'
+  if(route.startsWith('reports/') || route==='true-cost' || route==='reports/true-cost') return 'reports'
+  if(route==='movements') return 'inventory'
+  return route
 }

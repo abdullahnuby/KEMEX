@@ -1,0 +1,310 @@
+/* KEMEX v0.45 — Unified enterprise modal system.
+   The modal layer must sit above the sticky navbar and behave as a single,
+   self-contained surface. Content scrolls inside the body; header/footer stay visible. */
+:root{
+  --modal-surface:#ffffff;
+  --modal-border:#dbe5ee;
+  --modal-muted:#64748b;
+  --modal-ink:#0f172a;
+  --modal-soft:#f8fafc;
+  --modal-accent:#087e86;
+}
+
+.modal-backdrop,
+.ds-modal-backdrop{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:1000 !important;
+  isolation:isolate;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:20px !important;
+  overflow:auto !important;
+  background:rgba(15,23,42,.52) !important;
+  backdrop-filter:blur(6px) saturate(.92) !important;
+  -webkit-backdrop-filter:blur(6px) saturate(.92) !important;
+  overscroll-behavior:contain;
+}
+
+.modal-backdrop > .modal-card,
+.modal-backdrop > form.modal-card,
+.ds-modal-backdrop > .ds-confirm-modal{
+  position:relative !important;
+  z-index:1 !important;
+  width:min(980px,100%) !important;
+  max-width:980px !important;
+  max-height:calc(100dvh - 40px) !important;
+  min-height:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+  flex:0 1 auto !important;
+  margin:0 !important;
+  border:1px solid var(--modal-border) !important;
+  border-radius:18px !important;
+  background:var(--modal-surface) !important;
+  box-shadow:0 28px 90px rgba(15,23,42,.28),0 8px 28px rgba(15,23,42,.10) !important;
+}
+
+.modal-backdrop > .modal-card::before,
+.modal-backdrop > form.modal-card::before{
+  content:"";
+  position:absolute;
+  inset-inline:0;
+  top:0;
+  height:3px;
+  background:linear-gradient(90deg,#0a7680,#17a794);
+  pointer-events:none;
+}
+
+.modal-backdrop .modal-head,
+.ds-modal-backdrop .ds-confirm-modal > header{
+  position:relative !important;
+  flex:0 0 auto !important;
+  display:flex !important;
+  align-items:flex-start !important;
+  justify-content:space-between !important;
+  gap:16px !important;
+  padding:20px 22px 17px !important;
+  border-bottom:1px solid #e5ebf1 !important;
+  background:#fff !important;
+}
+
+.modal-backdrop .modal-head > div:first-child{
+  min-width:0;
+  flex:1 1 auto;
+}
+
+.modal-backdrop .modal-head h2,
+.ds-modal-backdrop .ds-confirm-modal h2{
+  margin:0 !important;
+  color:var(--modal-ink) !important;
+  font-size:17px !important;
+  line-height:1.5 !important;
+  font-weight:900 !important;
+  letter-spacing:-.01em;
+}
+
+.modal-backdrop .modal-head h2 svg{
+  color:var(--modal-accent) !important;
+  flex:0 0 auto;
+}
+
+.modal-backdrop .modal-head p{
+  margin:5px 0 0 !important;
+  color:var(--modal-muted) !important;
+  font-size:11px !important;
+  line-height:1.7 !important;
+  max-width:72ch;
+}
+
+.modal-backdrop .icon-button,
+.modal-backdrop .ui-icon-button{
+  flex:0 0 auto !important;
+  width:38px !important;
+  min-width:38px !important;
+  height:38px !important;
+  border-radius:10px !important;
+}
+
+.modal-backdrop .form-error{
+  flex:0 0 auto;
+  margin:12px 20px 0 !important;
+  padding:10px 12px !important;
+  border:1px solid #fecaca !important;
+  border-radius:10px !important;
+  background:#fff7f7 !important;
+  color:#b42318 !important;
+  font-size:11px !important;
+  line-height:1.7 !important;
+}
+
+.modal-backdrop > .modal-card > .form-sections,
+.modal-backdrop > form.modal-card > .form-sections,
+.modal-backdrop > .modal-card > .form-sections-core,
+.modal-backdrop > form.modal-card > .form-sections-core,
+.modal-backdrop > .modal-card > .form-modal-content,
+.modal-backdrop > form.modal-card > .form-modal-content,
+.modal-backdrop > .modal-card > .form-grid,
+.modal-backdrop > form.modal-card > .form-grid,
+.modal-backdrop > .modal-card > .detail-grid,
+.modal-backdrop > form.modal-card > .detail-grid{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+
+.modal-backdrop > .modal-card > .form-sections,
+.modal-backdrop > form.modal-card > .form-sections{
+  padding:18px 20px 20px !important;
+}
+
+.modal-backdrop .form-section{
+  border:1px solid #e0e7ef !important;
+  border-radius:12px !important;
+  background:#fff !important;
+  box-shadow:none !important;
+}
+
+.modal-backdrop .form-section + .form-section{margin-top:12px;}
+
+.modal-backdrop .form-section-head{
+  min-height:48px;
+  padding:11px 14px !important;
+  background:#f8fafc !important;
+  border-bottom:1px solid #e7edf3 !important;
+}
+
+.modal-backdrop .form-section-head strong{
+  color:#1e293b !important;
+  font-size:12px !important;
+  font-weight:900 !important;
+}
+
+.modal-backdrop .form-section-head span{
+  color:#64748b !important;
+  font-size:9.5px !important;
+}
+
+.modal-backdrop .form-section .form-grid{
+  padding:15px !important;
+  gap:13px !important;
+}
+
+.modal-backdrop .field{min-width:0;}
+.modal-backdrop .field > span{font-size:11px !important;font-weight:800 !important;color:#475569 !important;}
+.modal-backdrop .field input,
+.modal-backdrop .field select,
+.modal-backdrop .field textarea{
+  width:100%;
+  min-height:43px !important;
+  border:1px solid #cbd5e1 !important;
+  border-radius:9px !important;
+  background:#fff !important;
+  color:#0f172a !important;
+  font-size:12px !important;
+  line-height:1.5;
+}
+.modal-backdrop .field textarea{min-height:88px !important;padding-block:10px !important;}
+.modal-backdrop .field input:focus,
+.modal-backdrop .field select:focus,
+.modal-backdrop .field textarea:focus{
+  border-color:#61b8bd !important;
+  box-shadow:0 0 0 3px rgba(8,126,134,.10) !important;
+}
+
+.modal-backdrop .modal-actions{
+  position:relative !important;
+  inset:auto !important;
+  z-index:2 !important;
+  flex:0 0 auto !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:9px !important;
+  padding:13px 20px !important;
+  border-top:1px solid #e5ebf1 !important;
+  background:#f8fafc !important;
+}
+
+.modal-backdrop .modal-actions .primary-button,
+.modal-backdrop .modal-actions .secondary-button,
+.modal-backdrop .modal-actions .ui-button{
+  white-space:nowrap !important;
+  word-break:keep-all !important;
+  flex:0 0 auto !important;
+}
+
+.modal-backdrop .modal-actions .primary-button{min-height:43px !important;border-radius:10px !important;}
+.modal-backdrop .modal-actions .secondary-button{min-height:43px !important;border-radius:10px !important;}
+
+/* A compact context strip makes long forms easier to scan without another header. */
+.modal-context-strip{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+  padding:9px 11px;
+  border:1px solid #dce9ee;
+  border-radius:10px;
+  background:#f7fbfb;
+  color:#526a73;
+  font-size:10.5px;
+}
+.modal-context-strip strong{color:#173d48;font-weight:900;}
+.modal-context-strip .context-separator{color:#a5b4ba;}
+
+@media (max-width:760px){
+  .modal-backdrop,
+  .ds-modal-backdrop{
+    align-items:flex-end !important;
+    padding:8px !important;
+  }
+  .modal-backdrop > .modal-card,
+  .modal-backdrop > form.modal-card,
+  .ds-modal-backdrop > .ds-confirm-modal{
+    width:100% !important;
+    max-width:none !important;
+    max-height:calc(100dvh - 16px) !important;
+    border-radius:16px 16px 12px 12px !important;
+  }
+  .modal-backdrop .modal-head{padding:17px 16px 14px !important;}
+  .modal-backdrop .modal-head h2{font-size:15px !important;}
+  .modal-backdrop .modal-head p{font-size:10px !important;}
+  .modal-backdrop > .modal-card > .form-sections,
+  .modal-backdrop > form.modal-card > .form-sections{padding:13px !important;}
+  .modal-backdrop .form-section .form-grid{grid-template-columns:1fr !important;padding:12px !important;}
+  .modal-backdrop .form-grid .col-span-full{grid-column:1 !important;}
+  .modal-backdrop .modal-actions{padding:12px !important;}
+  .modal-backdrop .modal-actions > button{flex:1 1 0 !important;min-width:0;}
+}
+
+/* v0.46 — modal portal layer: rendered directly under <body> to escape all
+   page stacking contexts. This is the authoritative modal positioning layer. */
+html.modal-open,
+body.modal-open{overflow:hidden!important}
+.modal-portal-root{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  z-index:2147483000!important;
+  pointer-events:none!important;
+}
+.modal-portal-root > .modal-backdrop{
+  pointer-events:auto!important;
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:100%!important;
+  z-index:2147483001!important;
+}
+.trips-create-modal{
+  width:min(1080px,calc(100vw - 48px))!important;
+  max-height:calc(100dvh - 40px)!important;
+}
+.trips-create-modal-body{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+@media(max-width:760px){
+  .trips-create-modal{width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important}
+}
+
+/* v0.46 authoritative portal fix */
+.modal-portal-root{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:2147483647!important;pointer-events:none!important}
+.modal-portal-root>.modal-backdrop{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:24px!important;background:rgba(15,23,42,.58)!important;z-index:2147483647!important;pointer-events:auto!important}
+.modal-portal-root>.modal-backdrop>.modal-card{z-index:2147483647!important}
+body.modal-open{overflow:hidden!important}
+@media(max-width:760px){.modal-portal-root>.modal-backdrop{padding:8px!important;align-items:center!important}.modal-portal-root>.modal-backdrop>.modal-card{width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;border-radius:14px!important}}

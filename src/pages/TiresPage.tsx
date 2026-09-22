@@ -1,7 +1,9 @@
-import { CircleCheckBig, CircleDot, Eye, MinusCircle, Plus, RotateCcw, Search, TriangleAlert, Wrench, X, type LucideIcon } from 'lucide-react'
+import { CircleCheckBig, CircleDot, Eye, MinusCircle, Plus, RotateCcw, TriangleAlert, Wrench, X, type LucideIcon } from 'lucide-react'
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import type { Asset } from '../types/tfms'
+import { useCurrency } from '../features/settings'
 import { ReferenceValue } from '../components/ReferenceValue'
+import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
 
 export type TireRecord = Record<string, unknown>
 export type TireOperationRecord = Record<string, unknown>
@@ -27,15 +29,12 @@ function dateText(value: string) {
 
 export function TiresPage({ records, operations, assets, canEdit, onSave, onSaveOperation }: Props) {
   const [query, setQuery] = useState('')
-  const [editing, setEditing] = useState<TireRecord | null>(null)
+  const {formatMoney}=useCurrency(); const [editing, setEditing] = useState<TireRecord | null>(null)
   const [action, setAction] = useState<{ tire:TireRecord; kind:TireAction } | null>(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
-  const rows = useMemo(() => records.filter(t => {
-    const text = [t.code, t.brand, t.size, t.asset, t.position, t.status].join(' ').toLowerCase()
-    return !query.trim() || text.includes(query.trim().toLowerCase())
-  }), [records, query])
+  const rows = useMemo(() => records, [records])
 
   const service = records.filter(t => String(t.status) === 'بالخدمة').length
   const stored = records.filter(t => String(t.status) === 'مخزن').length
@@ -104,8 +103,8 @@ export function TiresPage({ records, operations, assets, canEdit, onSave, onSave
     } finally { setBusy(false) }
   }
 
-  return <div>
-    <div className="page-head"><div><h1>إدارة الإطارات</h1><p>سجل مستقل للإطارات مع التركيب والتدوير والفك والفحص والإصلاح والاستبعاد.</p></div>{canEdit&&<button type="button" className="primary-button" onClick={openNew}><Plus size={16}/> إطار جديد</button>}</div>
+  return <div className="space-y-6">
+    <PageHeader title="إدارة الإطارات" description="سجل مستقل للإطارات مع التركيب والتدوير والفك والفحص والإصلاح والاستبعاد." action={canEdit&&<Button icon={<Plus size={16}/>} onClick={openNew}>إطار جديد</Button>} />
     {error&&<div className="global-error" role="alert">{error}</div>}
     <div className="metric-grid compact">
       <Metric icon={CircleDot} label="إجمالي الإطارات" value={records.length}/>
@@ -114,32 +113,49 @@ export function TiresPage({ records, operations, assets, canEdit, onSave, onSave
       <Metric icon={TriangleAlert} label="تحتاج متابعة" value={inspection}/>
     </div>
 
-    <section className="panel">
-      <div className="toolbar"><div className="search-field"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="بحث في الإطارات..."/></div><span className="toolbar-count">{rows.length} من {records.length} إطار</span></div>
-      <div className="table-wrap"><table><thead><tr><th>الكود</th><th>الماركة</th><th>المقاس</th><th>التكلفة</th><th>التركيب</th><th>الأصل</th><th>الموضع</th><th>العداد</th><th>الحالة</th>{canEdit&&<th>إجراءات</th>}</tr></thead>
-        <tbody>{rows.map(t=>{const asset=assets.find(a=>a.id===String(t.asset??'')); return <tr key={String(t.id)}>
-          <td><strong>{String(t.code??'—')}</strong></td><td>{String(t.brand??'—')}</td><td>{String(t.size??'—')}</td><td>{fmt(Number(t.cost||0))} ج.م</td><td>{dateText(String(t.install??''))}</td>
-          <td><ReferenceValue field="asset" value={t.asset} lookups={{assets}}/></td><td>{String(t.position??'—')}</td><td>{fmt(Number(t.meterAt||0))}</td>
-          <td><span className={`badge ${String(t.status)==='مستبعد'?'red':String(t.status)==='يحتاج فحص'||String(t.status)==='قيد الإصلاح'?'amber':'green'}`}>{String(t.status??'—')}</span></td>
-          {canEdit&&<td><div className="row-actions">
-            {(String(t.status)==='مخزن'||String(t.status)==='قيد الإصلاح')&&<button type="button" className="workflow-button primary" onClick={()=>openAction(t,'تركيب')}><Wrench size={13}/> تركيب</button>}
-            {String(t.status)==='بالخدمة'&&<><button type="button" className="workflow-button secondary" onClick={()=>openAction(t,'فحص')}><Eye size={13}/> فحص</button><button type="button" className="workflow-button secondary" onClick={()=>openAction(t,'تدوير')}><RotateCcw size={13}/> تدوير</button><button type="button" className="workflow-button secondary" onClick={()=>openAction(t,'فك')}><MinusCircle size={13}/> فك</button></>}
-            {String(t.status)==='يحتاج فحص'&&<button type="button" className="workflow-button secondary" onClick={()=>openAction(t,'إصلاح')}>إصلاح</button>}
-            {String(t.status)!=='مستبعد'&&<button type="button" className="workflow-button danger" onClick={()=>openAction(t,'استبدال')}>إخراج</button>}
-          </div></td>}
-        </tr>})}</tbody>
-      </table>{!rows.length&&<div className="empty">لا توجد إطارات مطابقة.</div>}</div>
+    <section className="space-y-4"><div><h2 className="text-lg font-bold text-slate-900">الإطارات</h2><p className="text-sm font-medium text-gray-500">إدارة المخزون والتركيب والفحص والإصلاح والاستبعاد من الخدمة.</p></div>
+      <DataTable
+        rows={rows}
+        columns={[
+          { id:'code', header:'الكود', render:t=><strong>{String(t.code??'—')}</strong>, sortValue:t=>String(t.code??'') },
+          { id:'brand', header:'الماركة', render:t=>String(t.brand??'—'), sortValue:t=>String(t.brand??'') },
+          { id:'size', header:'المقاس', render:t=>String(t.size??'—'), sortValue:t=>String(t.size??'') },
+          { id:'cost', header:'التكلفة', render:t=>formatMoney(Number(t.cost||0)), sortValue:t=>Number(t.cost||0) },
+          { id:'install', header:'التركيب', render:t=>dateText(String(t.install??'')), sortValue:t=>String(t.install??'') },
+          { id:'asset', header:'الأصل', render:t=><ReferenceValue field="asset" value={t.asset} lookups={{assets}} /> },
+          { id:'position', header:'الموضع', render:t=>String(t.position??'—') },
+          { id:'meterAt', header:'العداد', render:t=>fmt(Number(t.meterAt||0)), sortValue:t=>Number(t.meterAt||0) },
+          { id:'status', header:'الحالة', render:t=>{const status=String(t.status??'');return <StatusBadge tone={status==='مستبعد'?'red':status==='يحتاج فحص'||status==='قيد الإصلاح'?'amber':status==='بالخدمة'?'emerald':'gray'}>{status||'—'}</StatusBadge>}, sortValue:t=>String(t.status??'') },
+          ...(canEdit?[{ id:'actions', header:'إجراءات', render:(t:TireRecord)=><div className="flex flex-wrap gap-2">{(String(t.status)==='مخزن'||String(t.status)==='قيد الإصلاح')&&<Button size="sm" icon={<Wrench size={13}/>} onClick={()=>openAction(t,'تركيب')}>تركيب</Button>}{String(t.status)==='بالخدمة'&&<><Button variant="secondary" size="sm" icon={<Eye size={13}/>} onClick={()=>openAction(t,'فحص')}>فحص</Button><Button variant="secondary" size="sm" icon={<RotateCcw size={13}/>} onClick={()=>openAction(t,'تدوير')}>تدوير</Button><Button variant="secondary" size="sm" icon={<MinusCircle size={13}/>} onClick={()=>openAction(t,'فك')}>فك</Button></>}{String(t.status)==='يحتاج فحص'&&<Button variant="secondary" size="sm" onClick={()=>openAction(t,'إصلاح')}>إصلاح</Button>}{String(t.status)!=='مستبعد'&&<Button variant="danger" size="sm" onClick={()=>openAction(t,'استبدال')}>إخراج</Button>}</div>}]:[]),
+        ]}
+        rowKey={t=>String(t.id)}
+        search={query}
+        onSearchChange={setQuery}
+        searchableText={t=>[t.code,t.brand,t.size,t.asset,t.position,t.status].map(v=>String(v??'')).join(' ')}
+        emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد إطارات مطابقة.</div>}
+      />
     </section>
 
-    <section className="panel">
-      <div className="panel-head"><div><h2>سجل أعمال الإطارات</h2><p>عمليات الإطار وتكلفة كل عملية.</p></div></div>
-      <div className="table-wrap"><table><thead><tr><th>التاريخ</th><th>الإطار</th><th>العملية</th><th>الأصل</th><th>الموضع</th><th>التكلفة</th><th>ملاحظات</th></tr></thead>
-      <tbody>{operations.slice(0,100).map(o=><tr key={String(o.id)}><td>{dateText(String(o.date??''))}</td><td><ReferenceValue field="tire" value={o.tire} lookups={{assets,records:{tires:records}}}/></td><td>{String(o.op??'—')}</td><td><ReferenceValue field="asset" value={o.asset} lookups={{assets}}/></td><td>{String(o.position??'—')}</td><td>{fmt(Number(o.cost||0))} ج.م</td><td>{String(o.notes??'—')}</td></tr>)}</tbody>
-      </table>{!operations.length&&<div className="empty">لا توجد عمليات مسجلة.</div>}</div>
+    <section className="space-y-4"><div><h2 className="text-lg font-bold text-slate-900">سجل أعمال الإطارات</h2><p className="text-sm font-medium text-gray-500">عمليات الإطار وتكلفة كل عملية.</p></div>
+      <DataTable
+        rows={operations.slice(0,100)}
+        columns={[
+          { id:'date', header:'التاريخ', render:o=>dateText(String(o.date??'')), sortValue:o=>String(o.date??'') },
+          { id:'tire', header:'الإطار', render:o=><ReferenceValue field="tire" value={o.tire} lookups={{assets,records:{tires:records}}} /> },
+          { id:'op', header:'العملية', render:o=>String(o.op??'—'), sortValue:o=>String(o.op??'') },
+          { id:'asset', header:'الأصل', render:o=><ReferenceValue field="asset" value={o.asset} lookups={{assets}} /> },
+          { id:'position', header:'الموضع', render:o=>String(o.position??'—') },
+          { id:'cost', header:'التكلفة', render:o=>formatMoney(Number(o.cost||0)), sortValue:o=>Number(o.cost||0) },
+          { id:'notes', header:'ملاحظات', render:o=>String(o.notes??'—') },
+        ]}
+        rowKey={o=>String(o.id)}
+        searchableText={o=>Object.values(o).map(value=>String(value??'')).join(' ')}
+        emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد عمليات مسجلة.</div>}
+      />
     </section>
 
     {editing&&<div className="modal-backdrop" onMouseDown={()=>!busy&&setEditing(null)}><form className="modal-card wide form-modal-premium" onSubmit={saveNew} onMouseDown={e=>e.stopPropagation()}><div className="modal-head"><div><h2>إضافة إطار للمخزون</h2><p>الإطار الجديد يبدأ بحالة «مخزن».</p></div><button type="button" className="icon-button" onClick={()=>setEditing(null)} aria-label="إغلاق"><X size={18}/></button></div>
-      <div className="form-sections"><FormBlock title="هوية الإطار" hint="بيانات التعريف والمقاس"><Input name="code" label="كود الإطار" value="" required/><Input name="brand" label="الماركة" value="" required/><Input name="size" label="المقاس" value="" required/><Input name="serial" label="الرقم التسلسلي" value=""/></FormBlock><FormBlock title="الشراء والتخزين" hint="بيانات الشراء والمورد"><Input name="cost" label="تكلفة الشراء ج.م" type="number" value="0" required/><Input name="buy" label="تاريخ الشراء" type="date" value={new Date().toISOString().slice(0,10)} required/><Input name="supplier" label="المورد" value=""/><Input name="warranty" label="الضمان / العمر المتوقع" value=""/></FormBlock><label className="field field-full"><span>ملاحظات</span><textarea name="notes" rows={3} placeholder="المواصفة، بلد المنشأ، التخزين أو أي بيان مرتبط بالإطار..."/></label></div>
+      <div className="form-sections"><FormBlock title="هوية الإطار" hint="بيانات التعريف والمقاس"><Input name="code" label="كود الإطار" value="" required/><Input name="brand" label="الماركة" value="" required/><Input name="size" label="المقاس" value="" required/><Input name="serial" label="الرقم التسلسلي" value=""/></FormBlock><FormBlock title="الشراء والتخزين" hint="بيانات الشراء والمورد"><Input name="cost" label="تكلفة الشراء" type="number" value="0" required/><Input name="buy" label="تاريخ الشراء" type="date" value={new Date().toISOString().slice(0,10)} required/><Input name="supplier" label="المورد" value=""/><Input name="warranty" label="الضمان / العمر المتوقع" value=""/></FormBlock><label className="field field-full"><span>ملاحظات</span><textarea name="notes" rows={3} placeholder="المواصفة، بلد المنشأ، التخزين أو أي بيان مرتبط بالإطار..."/></label></div>
       <div className="modal-actions"><button type="button" className="secondary-button" onClick={()=>setEditing(null)}>إلغاء</button><button className="primary-button" disabled={busy}>{busy?'جارٍ الحفظ...':'حفظ الإطار'}</button></div>
     </form></div>}
 
@@ -148,7 +164,7 @@ export function TiresPage({ records, operations, assets, canEdit, onSave, onSave
         {['تركيب','تدوير','فك'].includes(action.kind)&&<Select name="asset" label="الأصل" value={String(action.tire.asset??'')} options={assets.map(a=>({v:a.id,l:`${a.name} — ${a.code}`}))} required/>}
         {['تركيب','تدوير'].includes(action.kind)&&<Input name="position" label="موضع التركيب" value={String(action.tire.position??'')} required/>}
         <Input name="date" label="التاريخ" type="date" value={new Date().toISOString().slice(0,10)} required/>
-        <Input name="cost" label="تكلفة العملية ج.م" type="number" value="0"/>
+        <Input name="cost" label="تكلفة العملية" type="number" value="0"/>
         {action.kind==='استبدال'&&<Input name="reason" label="سبب الإخراج من الخدمة" value="" required/>}
         <label className="field"><span>ملاحظات</span><textarea name="notes" defaultValue="" rows={3}/></label>
       </div>

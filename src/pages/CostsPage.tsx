@@ -3,6 +3,9 @@ import { Download, Fuel, Gauge, ReceiptText, Wrench, CircleDollarSign, CalendarR
 import type { Asset, FuelOperation, Project, WorkOrder } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { sameReference } from '../utils/referenceLabels'
+import { useCurrency } from '../features/settings'
+import { PageHeader, Card, CardGrid, StatCard, DataTable, Button } from '../components/ui'
+import type { DataTableColumn } from '../components/ui/DataTable'
 
 type RecordRow = Record<string, unknown>
 
@@ -15,6 +18,7 @@ type Props = {
 }
 
 export function CostsPage({ assets, projects, workOrders, fuelOps, moduleData }: Props) {
+  const {formatMoney} = useCurrency()
   const today = new Date().toISOString().slice(0, 10)
   const monthStart = `${today.slice(0, 7)}-01`
   const [from, setFrom] = useState(monthStart)
@@ -46,31 +50,80 @@ export function CostsPage({ assets, projects, workOrders, fuelOps, moduleData }:
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `KEMEX-costs-${today}.csv`; a.click(); URL.revokeObjectURL(a.href)
   }
 
-  return <div>
-    <div className="page-head">
-      <div><h1>التكاليف والإهلاك</h1><p>تجميع تكلفة الأصل من الوقود والصيانة والزيوت والإطارات والإيجار والإهلاك.</p></div>
-      <div className="page-actions"><button className="secondary-button" onClick={exportCsv}><Download size={16}/> تصدير CSV</button></div>
+  type CostRow = ReturnType<typeof calculateAssetCost> & { asset: Asset }
+  const columns: DataTableColumn<CostRow>[] = [
+    { key: 'asset', header: 'الأصل', accessor: (r) => r.asset.name, render: (r) => <ReferenceValue field="asset" value={r.asset.id} lookups={{ assets }} /> },
+    { key: 'own', header: 'الملكية', accessor: (r) => r.asset.own ?? '', render: (r) => r.asset.own, hideOnMobile: true },
+    { key: 'proj', header: 'المشروع', accessor: (r) => projects.find((p) => sameReference(r.asset.proj, p))?.name ?? '', render: (r) => <ReferenceValue field="proj" value={r.asset.proj} lookups={{ projects }} /> },
+    { key: 'fuel', header: 'وقود', sortable: true, render: (r) => fmt(r.fuel) },
+    { key: 'maint', header: 'صيانة', sortable: true, render: (r) => fmt(r.maint), hideOnMobile: true },
+    { key: 'oils', header: 'زيوت', render: (r) => fmt(r.oils), hideOnMobile: true },
+    { key: 'tires', header: 'إطارات', render: (r) => fmt(r.tires), hideOnMobile: true },
+    { key: 'rental', header: 'إيجار', render: (r) => fmt(r.rental), hideOnMobile: true },
+    { key: 'dep', header: 'إهلاك', render: (r) => fmt(r.dep), hideOnMobile: true },
+    { key: 'total', header: 'الإجمالي', sortable: true, render: (r) => <strong className="font-semibold text-gray-900">{fmt(r.total)}</strong> },
+    { key: 'usage', header: 'الاستخدام', accessor: (r) => (r.asset.mt === 'كم' ? r.km : r.hours), render: (r) => (r.asset.mt === 'كم' ? `${fmt(r.km)} كم` : `${fmt(r.hours)} ساعة`) },
+  ]
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="التكاليف والإهلاك"
+        description="تجميع تكلفة الأصل من الوقود والصيانة والزيوت والإطارات والإيجار والإهلاك."
+        action={
+          <Button variant="secondary" icon={<Download size={16} />} onClick={exportCsv}>
+            تصدير CSV
+          </Button>
+        }
+      />
+
+      <Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <label className="block">
+            <span className="text-xs font-medium text-gray-500 mb-1.5 block">من</span>
+            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition" />
+          </label>
+          <label className="block">
+            <span className="text-xs font-medium text-gray-500 mb-1.5 block">إلى</span>
+            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition" />
+          </label>
+          <label className="block">
+            <span className="text-xs font-medium text-gray-500 mb-1.5 block">الملكية</span>
+            <select value={own} onChange={(e) => setOwn(e.target.value)} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition">
+              <option value="">الكل</option>
+              <option>مملوك</option>
+              <option>مستأجر</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-xs font-medium text-gray-500 mb-1.5 block">المشروع</span>
+            <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition">
+              <option value="">كل المشروعات</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </Card>
+
+      <CardGrid cols={4}>
+        <StatCard icon={<CircleDollarSign size={18} />} label="إجمالي تكاليف الفترة" value={formatMoney(total)} />
+        <StatCard icon={<Fuel size={18} />} label="الوقود" value={formatMoney(fuel)} />
+        <StatCard icon={<Wrench size={18} />} label="الصيانة والمواد" value={formatMoney(maintenance + oils)} />
+        <StatCard icon={<ReceiptText size={18} />} label="الإيجار المستحق" value={formatMoney(rental)} />
+        <StatCard icon={<Gauge size={18} />} label="الإهلاك" value={formatMoney(dep)} />
+      </CardGrid>
+
+      <Card
+        title="تكلفة الأصول خلال الفترة"
+        description={`إطارات ${formatMoney(tires)} · الفترة ${from} ← ${to}`}
+        action={<span className="inline-flex items-center rounded-full bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-600/20 px-2.5 py-1 text-xs font-semibold"><CalendarRange size={13} className="me-1" />{rows.length} أصل</span>}
+      >
+        <DataTable columns={columns} rows={rows} rowKey={(r) => r.asset.id} emptyState="لا توجد بيانات مطابقة." />
+      </Card>
     </div>
-    <section className="panel">
-      <div className="form-grid report-filter-grid">
-        <label className="field"><span>من</span><input type="date" value={from} onChange={e=>setFrom(e.target.value)}/></label>
-        <label className="field"><span>إلى</span><input type="date" value={to} onChange={e=>setTo(e.target.value)}/></label>
-        <label className="field"><span>الملكية</span><select value={own} onChange={e=>setOwn(e.target.value)}><option value="">الكل</option><option>مملوك</option><option>مستأجر</option></select></label>
-        <label className="field"><span>المشروع</span><select value={projectId} onChange={e=>setProjectId(e.target.value)}><option value="">كل المشروعات</option>{projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
-      </div>
-    </section>
-    <div className="metric-grid compact">
-      <Metric icon={CircleDollarSign} label="إجمالي تكاليف الفترة" value={`${fmt(total)} ج.م`}/>
-      <Metric icon={Fuel} label="الوقود" value={`${fmt(fuel)} ج.م`}/>
-      <Metric icon={Wrench} label="الصيانة والمواد" value={`${fmt(maintenance + oils)} ج.م`}/>
-      <Metric icon={ReceiptText} label="الإيجار المستحق" value={`${fmt(rental)} ج.م`}/>
-      <Metric icon={Gauge} label="الإهلاك" value={`${fmt(dep)} ج.م`}/>
-    </div>
-    <section className="panel">
-      <div className="report-meta"><div className="section-title"><div className="section-title-icon"><CalendarRange size={16}/></div><div><strong>تكلفة الأصول خلال الفترة</strong><small>إطارات {fmt(tires)} ج.م · الفترة {from} ← {to}</small></div></div><span className="badge blue">{rows.length} أصل</span></div>
-      <div className="table-wrap"><table><thead><tr><th>الأصل</th><th>الملكية</th><th>المشروع</th><th>وقود</th><th>صيانة</th><th>زيوت</th><th>إطارات</th><th>إيجار</th><th>إهلاك</th><th>الإجمالي</th><th>الاستخدام</th></tr></thead><tbody>{rows.map(r=><tr key={r.asset.id}><td><ReferenceValue field="asset" value={r.asset.id} lookups={{assets}}/></td><td>{r.asset.own}</td><td><ReferenceValue field="proj" value={r.asset.proj} lookups={{projects}}/></td><td>{fmt(r.fuel)}</td><td>{fmt(r.maint)}</td><td>{fmt(r.oils)}</td><td>{fmt(r.tires)}</td><td>{fmt(r.rental)}</td><td>{fmt(r.dep)}</td><td><strong>{fmt(r.total)}</strong></td><td>{r.asset.mt==='كم'?`${fmt(r.km)} كم`:`${fmt(r.hours)} ساعة`}</td></tr>)}</tbody></table>{!rows.length&&<div className="empty">لا توجد بيانات مطابقة.</div>}</div>
-    </section>
-  </div>
+  )
 }
 
 export function calculateAssetCost(asset: Asset, from:string, to:string, workOrders:WorkOrder[], fuelOps:FuelOperation[], moduleData:Record<string,Record<string,unknown>[]>) {
@@ -92,4 +145,3 @@ function includesAsset(raw:unknown,id:string){return Array.isArray(raw)?raw.map(
 function rentalFor(c:RecordRow,from:string,to:string,hours:number){const rate=Number(c.rate||0);const unit=String(c.unit||'');if(!rate)return 0;const days=Math.max(0,Math.floor((new Date(to).getTime()-new Date(from).getTime())/864e5)+1);const months=days/30.4;const min=Number(c.minimum||0);if(unit==='شهر')return rate*months;if(unit==='يوم')return rate*days;if(unit==='ساعة')return rate*Math.max(hours,min*months);return 0}
 function depreciationFor(a:Asset,from:string,to:string){if(a.own!=='مملوك'||!a.capex||!a.life||!a.buy)return 0;const monthly=(Number(a.capex)-Number(a.resid||0))/(Number(a.life)*12);const st=new Date(a.buy),fr=new Date(from),end=new Date(to),now=new Date();const mStart=new Date(Math.max(fr.getTime(),st.getTime()));let months=(end.getFullYear()*12+end.getMonth())-(mStart.getFullYear()*12+mStart.getMonth())+1;const elapsed=(now.getFullYear()*12+now.getMonth())-(st.getFullYear()*12+st.getMonth())+1;months=Math.min(months,Math.max(0,elapsed),Number(a.life)*12);return monthly*Math.max(0,months)}
 function fmt(n:number){return new Intl.NumberFormat('ar-EG',{maximumFractionDigits:1}).format(Number(n||0))}
-function Metric({icon:Icon,label,value}:{icon:typeof Fuel;label:string;value:string}){return <div className="metric-card"><div className="metric-icon"><Icon size={18}/></div><div className="metric-body"><span>{label}</span><strong>{value}</strong></div></div>}

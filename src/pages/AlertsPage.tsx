@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { AlertTriangle, CheckCircle2, Clock3, FileWarning, ShieldAlert, Wrench } from 'lucide-react'
 import type { Asset, Contract, Driver, WorkOrder } from '../types/tfms'
+import { PageHeader, StatusBadge } from '../components/ui'
 
 type Alert = { id:string; title:string; entity:string; detail:string; severity:'عالي'|'متوسط'|'منخفض'; route:string; icon:'license'|'maintenance'|'contract'|'general' }
 
@@ -8,8 +9,8 @@ export function AlertsPage({assets,workOrders,drivers,contracts,onRoute,alertDay
   const alerts=useMemo(()=>buildAlerts(assets,workOrders,drivers,contracts,alertDays,alertKm,alertHours,plans,oils),[assets,workOrders,drivers,contracts,alertDays,alertKm,alertHours,plans,oils])
   const high=alerts.filter(x=>x.severity==='عالي').length
   const medium=alerts.filter(x=>x.severity==='متوسط').length
-  return <div>
-    <div className="page-head"><div><h1>التنبيهات والاستحقاقات</h1><p>متابعة الاستحقاقات التشغيلية والصيانة والتعاقدات من شاشة واحدة.</p></div></div>
+  return <div className="space-y-6">
+    <PageHeader title="التنبيهات والاستحقاقات" description="متابعة الاستحقاقات التشغيلية والصيانة والتعاقدات من شاشة واحدة." />
     <div className="metric-grid compact">
       <Metric icon={ShieldAlert} label="عالية" value={high}/>
       <Metric icon={Clock3} label="متوسطة" value={medium}/>
@@ -19,10 +20,10 @@ export function AlertsPage({assets,workOrders,drivers,contracts,onRoute,alertDay
     <section className="panel">
       {!alerts.length ? <div className="empty"><CheckCircle2 size={26}/><strong>لا توجد تنبيهات نشطة</strong><span>كل الاستحقاقات الحالية داخل الحدود المسموح بها.</span></div> :
       <div className="alert-list">{alerts.map(a=><button className="alert-row" key={a.id} onClick={()=>onRoute(a.route)}>
-        <span className={`alert-dot ${a.severity==='عالي'?'red':a.severity==='متوسط'?'amber':'purple'}`}/>
+        <span className={`alert-dot ${a.severity==='عالي'?'red':a.severity==='متوسط'?'amber':'gray'}`}/>
         <span className="alert-icon">{a.icon==='maintenance'?<Wrench size={16}/>:a.icon==='license'?<FileWarning size={16}/>:<AlertTriangle size={16}/>}</span>
         <span className="alert-copy"><strong>{a.title}</strong><span>{a.entity}</span><small>{a.detail}</small></span>
-        <span className={`badge ${a.severity==='عالي'?'rose':a.severity==='متوسط'?'amber':'purple'}`}>{a.severity}</span>
+        <StatusBadge tone={a.severity==='عالي'?'red':a.severity==='متوسط'?'amber':'gray'}>{a.severity}</StatusBadge>
       </button>)}</div>}
     </section>
   </div>
