@@ -110,7 +110,7 @@ function buildReportInsights(kind:ReportKey, data:ReportDef, assets:Asset[], pro
   const numeric = data.columns.map((header,index)=>({header,index,values:data.rows.map(r=>metricValue(r[index]))})).map(x=>({...x,score:x.values.filter(v=>v!==null).length,prefer:/إجمالي التكلفة|قيمة النقل|تكلفة الوقود|إجمالي|تكلفة|وقود|قيمة|إهلاك|رصيد|ساعات|كم|الهامش|استخدام|توقف/.test(x.header)?10:0})).sort((a,b)=>(b.prefer-b.prefer)||(b.score-a.score))
   const primary=numeric.find(x=>x.score>0)
   const secondary=numeric.find(x=>x.score>0 && x.index!==primary?.index)
-  const primaryTotal=primary?primary.values.reduce((s,v)=>s+(v??0),0):0
+  const primaryTotal=primary?primary.values.reduce<number>((s,v)=>s+(v??0),0):0
   const labels = data.rows.map(r=>labelOf(r[0]))
   const points = primary ? data.rows.map((row,i)=>({label:labels[i],value:primary.values[i]??0,secondary:secondary?secondary.values[i]??0:undefined})).filter(x=>x.value>0 || (x.secondary??0)>0).sort((a,b)=>b.value-a.value).slice(0,8) : []
   const statusIndex=data.columns.findIndex(x=>/الحالة/.test(x))

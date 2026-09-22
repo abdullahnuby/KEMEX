@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { BarChart3, Bell, ChevronDown, LayoutDashboard, LogOut, Menu, Search, Truck, X, type LucideIcon } from 'lucide-react'
-import { APP, NAVIGATION_GROUPS, REPORT_NAV_ITEMS, ROLE_LABELS, canViewModule, type NavigationGroup, type NavigationItem } from '../config/app'
+import { APP, NAVIGATION_GROUPS, REPORT_NAV_ITEMS, ROLE_LABELS, canViewModule, type NavigationGroup, type NavigationItem, type ReportNavigationItem } from '../config/app'
 import type { Role, User } from '../types/tfms'
 
 const ICONS: Record<string, LucideIcon> = {}
@@ -42,7 +42,7 @@ export function Layout({ user, route, onRoute, onLogout, children, alertCount }:
   },[])
 
   const navigate=(next:string)=>{setOpenGroup(null);setMobileOpen(false);onRoute(next)}
-  const homeIcon = iconFor('LayoutDashboard', LayoutDashboard)
+  const HomeIcon = iconFor('LayoutDashboard', LayoutDashboard)
 
   return <div className="app-shell">
     {mobileOpen&&<button className="mobile-nav-scrim" onClick={()=>setMobileOpen(false)} aria-label="إغلاق القائمة"/>}
@@ -55,7 +55,7 @@ export function Layout({ user, route, onRoute, onLogout, children, alertCount }:
 
         <nav className="desktop-nav" aria-label="التنقل الرئيسي">
           <button className={`nav-direct ${routeModule==='dashboard'?'active':''}`} onClick={()=>navigate('dashboard')}>
-            {homeIcon&&<homeIcon size={15}/>}<span>الرئيسية</span>
+            {HomeIcon&&<HomeIcon size={15}/>}<span>الرئيسية</span>
           </button>
 
           {groups.map(group=>{
@@ -69,7 +69,7 @@ export function Layout({ user, route, onRoute, onLogout, children, alertCount }:
               </button>
               {isOpen&&<div className={`nav-menu-panel ${isReports?'nav-reports-panel':'nav-domain-panel'}`}>
                 {isReports
-                  ? renderReportMenu(group.items as readonly typeof REPORT_NAV_ITEMS[number][], route, navigate)
+                  ? renderReportMenu(group.items as unknown as readonly ReportNavigationItem[], route, navigate)
                   : renderDomainMenu(group.items, routeModule, navigate)}
               </div>}
             </div>
@@ -114,7 +114,7 @@ function renderDomainMenu(items:readonly NavigationItem[], routeModule:string, n
   </div>
 }
 
-function renderReportMenu(items:readonly typeof REPORT_NAV_ITEMS[number][], route:string, navigate:(route:string)=>void) {
+function renderReportMenu(items:readonly ReportNavigationItem[], route:string, navigate:(route:string)=>void) {
   const sections = Array.from(new Set(items.map(x=>x.section)))
   return <>
     {sections.map(section=><div className="nav-menu-section" key={section}>
@@ -143,13 +143,13 @@ function MobileGroup({group,route,onNavigate}:{group:NavigationGroup;route:strin
     </button>
     {open&&<div className="mobile-group-items">
       {isReports
-        ? renderMobileReports(group.items as readonly typeof REPORT_NAV_ITEMS[number][], route, onNavigate)
+        ? renderMobileReports(group.items as unknown as readonly ReportNavigationItem[], route, onNavigate)
         : <div className="mobile-nav-section"><div className="mobile-nav-section-title">الوحدات</div>{group.items.map(item=>{const Icon=iconFor(item.icon);const active=routeModule===item.key;return <button key={item.key} className={`mobile-nav-item ${active?'active':''}`} onClick={()=>onNavigate(item.route)}>{Icon&&<Icon size={16}/>}<span>{item.label}</span></button>})}</div>}
     </div>}
   </section>
 }
 
-function renderMobileReports(items:readonly typeof REPORT_NAV_ITEMS[number][], route:string, navigate:(route:string)=>void){
+function renderMobileReports(items:readonly ReportNavigationItem[], route:string, navigate:(route:string)=>void){
   return Array.from(new Set(items.map(x=>x.section))).map(section=><div className="mobile-nav-section" key={section}>
     <div className="mobile-nav-section-title">{section}</div>
     {items.filter(x=>x.section===section).map(item=>{const active=route===item.route || (item.key==='true-cost'&&route==='true-cost');return <button key={item.key} className={`mobile-nav-item ${active?'active':''}`} onClick={()=>navigate(item.route)}><BarChart3 size={16}/><span>{item.label}</span></button>})}

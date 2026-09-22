@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --ds-primary: #0f766e;
   --ds-primary-strong: #115e59;
