@@ -11,6 +11,7 @@ import './styles/modal-overhaul.css'
 import './shared/ui/design-system.css'
 import './styles/phase11-responsive.css'
 import './styles/phase12-rtl.css'
+import './styles/phase17-visual-stability.css'
 import { markPerformance, measurePerformance } from './utils/performance'
 
 markPerformance('app-startup')
