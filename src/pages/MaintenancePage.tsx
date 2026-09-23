@@ -346,23 +346,6 @@ function TechnicianModal({ technicians, onClose, onSave }: { technicians: Mainte
     }
   }
 
-  async function bulkWaitingForParts(selected: readonly WorkOrder[], clearSelection: () => void) {
-    if (!onSave || busy || !selected.length) return
-    const actionable = selected.filter(order => !['مكتمل', 'ملغى', 'بانتظار قطع غيار'].includes(order.status))
-    if (!actionable.length) return
-    if (!window.confirm(`سيتم تحويل ${actionable.length} أمر عمل إلى «بانتظار قطع غيار». هل تريد المتابعة؟`)) return
-    setBusy(true)
-    setError('')
-    try {
-      for (const order of actionable) await onSave({ ...order, status: 'بانتظار قطع غيار' })
-      clearSelection()
-    } catch (bulkError) {
-      setError(bulkError instanceof Error ? bulkError.message : 'تعذر تنفيذ الإجراء الجماعي على أوامر العمل.')
-    } finally {
-      setBusy(false)
-    }
-  }
-
   return (
     <div className="modal-backdrop" onMouseDown={() => !saving && onClose()}>
       <div className="modal-card wide form-modal-premium" onMouseDown={event => event.stopPropagation()}>
