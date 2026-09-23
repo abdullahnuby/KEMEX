@@ -40,11 +40,11 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount }: {
       .filter(item => canViewModule(user.role, permissionKeyForNavItem(item)))
       .map(item => ({ ...item, section: group.group })))
     const reports = canViewModule(user.role, 'reports')
-      ? REPORT_NAV_ITEMS.map(item => ({ ...item, section: item.section }))
+      ? REPORT_NAV_ITEMS.map(item => ({ ...item, section: item.section ?? '' }))
       : []
     const merged = [...items, ...reports]
     if (!q) return merged.slice(0, 12)
-    return merged.filter(item => [item.label, item.hint, item.key, item.route, item.section].some(value => value.toLocaleLowerCase('ar-EG').includes(q))).slice(0, 12)
+    return merged.filter(item => [item.label, item.hint, item.key, item.route, item.section ?? ''].some(value => value.toLocaleLowerCase('ar-EG').includes(q))).slice(0, 12)
   }, [user.role, q])
 
   useEffect(() => {
@@ -189,7 +189,8 @@ function renderMobileReports(items: readonly ReportNavigationItem[], route: stri
 
 function matchesQuery(item: NavigationItem | ReportNavigationItem, q: string) {
   if (!q) return true
-  return [item.label, item.hint, item.key, item.route, 'section' in item ? item.section : ''].some(value => value.toLocaleLowerCase('ar-EG').includes(q))
+  const values = [item.label, item.hint, item.key, item.route, 'section' in item ? item.section ?? '' : ''] as const
+  return values.some(value => value.toLocaleLowerCase('ar-EG').includes(q))
 }
 
 function permissionKeyForNavItem(item: NavigationItem) { return item.permissionModule ?? item.key }
