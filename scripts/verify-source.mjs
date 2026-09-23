@@ -237,6 +237,17 @@ for (const importPath of ["./styles/phase11-responsive.css", "./styles/phase12-r
 console.log('Phase 11: responsive desktop/tablet/mobile + touch + overflow protection')
 console.log('Phase 12: Arabic RTL structural rules + numeric/mixed-content handling')
 
+const phase18Css = read('src/styles/phase17-visual-stability.css')
+for (const marker of ['Phase 18 — Form/mobile repair', '.modal-scroll-body', 'height: min(92dvh, 760px) !important', 'font-size: 16px !important']) {
+  if (!phase18Css.includes(marker)) fail(`Phase 18 form/mobile repair missing: ${marker}`)
+}
+const formModalRepairSource = read('src/shared/ui/FormModal.tsx')
+if (!formModalRepairSource.includes('modal-scroll-body form-modal-content ui-modal__content')) fail('FormModal is missing the authoritative mobile scroll body')
+const tripSource = read('src/pages/TripDetailPage.tsx')
+if (!tripSource.includes('<div className="modal-scroll-body"><div className="form-grid">')) fail('Trip signature modal is missing its mobile scroll body')
+console.log('Phase 18: mobile form scroll containment + readable controls + modal action safety')
+
+
 
 const phase13Files = [
   'src/app/providers/AppErrorBoundary.tsx',

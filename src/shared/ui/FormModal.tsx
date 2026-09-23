@@ -47,7 +47,7 @@ export function FormModal({ title, subtitle, onClose, children, actions, wide = 
             <X size={18} />
           </button>
         </div>
-        <div className="form-modal-content ui-modal__content">{children}</div>
+        <div className="modal-scroll-body form-modal-content ui-modal__content">{children}</div>
         {actions ? <div className="modal-actions ui-modal__actions">{actions}</div> : null}
       </section>
     </div>

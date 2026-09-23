@@ -561,3 +561,271 @@ body {
   .navbar-search-btn span,
   .navbar-search-btn kbd { display: none !important; }
 }
+
+/* ================================================================
+ * Phase 18 — Form/mobile repair
+ * Final, authoritative form rules. The previous responsive layers
+ * allowed modal content to become a flex item without a guaranteed
+ * scroll body, while several legacy rules kept controls too small.
+ * This block restores a predictable modal layout and readable controls.
+ * ================================================================ */
+
+.modal-card,
+.ds-confirm-modal {
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.modal-scroll-body,
+.form-modal-content,
+.modal-card > .form-sections,
+.modal-card > form > .form-sections,
+.modal-card > .form-sections-core,
+.modal-card > form > .form-sections-core,
+.modal-card > .form-grid,
+.modal-card > form > .form-grid {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+}
+
+.modal-card > .modal-actions,
+.modal-card > form > .modal-actions,
+.ui-modal__actions {
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  position: sticky !important;
+  inset-block-end: 0 !important;
+  z-index: 8 !important;
+}
+
+.form-grid,
+.ds-form-section__grid {
+  align-items: start !important;
+  grid-auto-rows: max-content !important;
+}
+
+.field,
+.ds-form-field,
+.check-field {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.field > span,
+.field > label,
+.ds-form-field__label,
+.ds-form-field > label {
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+  font-weight: 700 !important;
+  color: var(--ds-text-soft) !important;
+}
+
+.field-help,
+.ds-form-field__help,
+.ds-form-field__error {
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+}
+
+.field input,
+.field select,
+.field textarea,
+.enterprise-control,
+.ds-form-field input,
+.ds-form-field select,
+.ds-form-field textarea {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 46px !important;
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+  font-size: 15px !important;
+  line-height: 1.55 !important;
+  font-weight: 500 !important;
+}
+
+.field textarea,
+.ds-form-field textarea {
+  min-height: 110px !important;
+}
+
+.form-section,
+.ds-form-section {
+  min-width: 0 !important;
+}
+
+@media (max-width: 760px) {
+  .modal-backdrop,
+  .ds-modal-backdrop {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px !important;
+    overflow-y: auto !important;
+  }
+
+  .modal-backdrop > .modal-card,
+  .modal-backdrop > form.modal-card,
+  .modal-backdrop > .modal-card.wide,
+  .modal-backdrop > form.modal-card.wide,
+  .ds-modal-backdrop > .ds-confirm-modal {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    height: min(92dvh, 760px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    min-height: 0 !important;
+    border-radius: 18px !important;
+  }
+
+  .modal-head,
+  .ui-modal__head,
+  .ds-confirm-modal header {
+    flex: 0 0 auto !important;
+    padding: 14px 15px !important;
+  }
+
+  .modal-head h2,
+  .ds-confirm-modal h2 {
+    font-size: 18px !important;
+    line-height: 1.4 !important;
+  }
+
+  .modal-head p,
+  .ds-confirm-description {
+    margin-top: 4px !important;
+    font-size: 12px !important;
+    line-height: 1.65 !important;
+  }
+
+  .modal-scroll-body,
+  .form-modal-content,
+  .modal-backdrop > .modal-card > .form-sections,
+  .modal-backdrop > form.modal-card > .form-sections,
+  .modal-backdrop > .modal-card > .form-sections-core,
+  .modal-backdrop > form.modal-card > .form-sections-core,
+  .modal-backdrop > .modal-card > .form-grid,
+  .modal-backdrop > form.modal-card > .form-grid {
+    padding: 12px !important;
+  }
+
+  .form-sections,
+  .form-sections-core {
+    gap: 10px !important;
+  }
+
+  .form-section,
+  .ds-form-section {
+    border-radius: 12px !important;
+  }
+
+  .form-section-head,
+  .ds-form-section__head {
+    min-height: 46px !important;
+    padding: 10px 12px !important;
+  }
+
+  .form-section-head strong,
+  .ds-form-section__head h3 {
+    font-size: 14px !important;
+    line-height: 1.45 !important;
+  }
+
+  .form-grid,
+  .ds-form-section__grid,
+  .ds-form-section__grid.cols-2,
+  .ds-form-section__grid.cols-3,
+  .ds-form-section__grid.cols-4 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .form-section .form-grid,
+  .ds-form-section__grid {
+    padding: 12px !important;
+  }
+
+  .field > span,
+  .field > label,
+  .ds-form-field__label,
+  .ds-form-field > label {
+    font-size: 13.5px !important;
+    line-height: 1.5 !important;
+  }
+
+  .field input,
+  .field select,
+  .field textarea,
+  .enterprise-control,
+  .ds-form-field input,
+  .ds-form-field select,
+  .ds-form-field textarea {
+    min-height: 48px !important;
+    padding: 11px 12px !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+  }
+
+  .field textarea,
+  .ds-form-field textarea {
+    min-height: 112px !important;
+  }
+
+  .field-help,
+  .ds-form-field__help,
+  .ds-form-field__error {
+    font-size: 12px !important;
+  }
+
+  .check-field {
+    min-height: 48px !important;
+  }
+
+  .modal-actions,
+  .ui-modal__actions,
+  .ds-confirm-modal footer {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+  }
+
+  .modal-actions > *,
+  .ui-modal__actions > *,
+  .ds-confirm-modal footer > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 46px !important;
+    white-space: normal !important;
+    word-break: normal !important;
+  }
+
+  .modal-backdrop .form-error {
+    margin-inline: 12px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .modal-backdrop > .modal-card,
+  .modal-backdrop > form.modal-card,
+  .ds-modal-backdrop > .ds-confirm-modal {
+    width: calc(100vw - 12px) !important;
+    max-width: calc(100vw - 12px) !important;
+    max-height: calc(100dvh - 12px) !important;
+  }
+
+  .modal-actions,
+  .ui-modal__actions,
+  .ds-confirm-modal footer {
+    grid-template-columns: 1fr !important;
+  }
+}
+
