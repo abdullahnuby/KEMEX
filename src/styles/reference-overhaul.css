@@ -5,7 +5,7 @@
 /* Canonical tokens live in shared/ui/design-system.css. */
 
 html,body,#root{background:var(--ref-bg);color:var(--ref-text)}
-body{font-family:'Cairo','Tajawal',ui-sans-serif,system-ui,sans-serif;font-size:14px;line-height:1.75}
+body{font-family:'Alexandria',ui-sans-serif,system-ui,sans-serif;font-size:14px;line-height:1.75}
 button,input,select,textarea{font-family:inherit}
 
 /* ===== top navigation ===== */

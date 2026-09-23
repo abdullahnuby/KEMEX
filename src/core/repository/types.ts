@@ -35,6 +35,7 @@ export interface Repository {
   saveMaintenancePart(part: MaintenancePart): Promise<void>
   getProjectCost30d(projectId: string): Promise<{ projectId: string; projectCode: string; projectName: string; totalCost30d: number; costEntries30d: number }>
   listAuditLog(): Promise<AnyRecord[]>
+  listApprovalEvents(): Promise<AnyRecord[]>
   listProjects(): Promise<Project[]>
   saveProject(project: Project): Promise<void>
   listAssets(): Promise<Asset[]>

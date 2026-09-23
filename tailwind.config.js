@@ -3,7 +3,7 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
-      fontFamily: { sans: ['Cairo', 'Tajawal', 'system-ui', 'sans-serif'] },
+      fontFamily: { sans: ['Alexandria', 'system-ui', 'sans-serif'] },
       colors: {
         primary: {
           50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf',

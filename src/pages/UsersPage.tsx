@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Check, Copy, KeyRound, Pencil, ShieldCheck, UserPlus, UserRound } from 'lucide-react'
-import { ROLE_LABELS } from '../config/app'
+import { ROLE_LABELS, canManageUsers } from '../config/app'
 import type { Role, User } from '../types/tfms'
 import type { Repository } from '../core/repository/types'
 import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
 import { FormModal } from '../shared/ui/FormModal'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 const ROLE_OPTIONS = Object.entries(ROLE_LABELS) as Array<[Role, string]>
 
 type CreateState = { email:string; name:string; role:Role; password:string }
@@ -21,8 +22,8 @@ export function UsersPage({user,repository}:{user:User;repository:Repository}){
   const [error,setError]=useState('')
   const [notice,setNotice]=useState('')
   const [copied,setCopied]=useState(false)
-  const canView=user.role==='admin'||user.role==='mgmt'
-  const canCreate=user.role==='admin'
+  const canView=canManageUsers(user.role) || user.role === 'mgmt'
+  const canCreate=canManageUsers(user.role)
 
   const load=async()=>{
     if(!canView)return
@@ -37,7 +38,7 @@ export function UsersPage({user,repository}:{user:User;repository:Repository}){
   if(!canView) return <div className="placeholder-panel panel"><div className="placeholder-icon"><ShieldCheck size={24}/></div><h2>الوصول إلى المستخدمين مقيد</h2><p>إدارة حسابات المستخدمين متاحة لمدير النظام، مع عرض المستخدمين للإدارة العليا.</p></div>
 
   async function save(){
-    if(!editing||!user||user.role!=='admin')return
+    if(!editing||!user||!canManageUsers(user.role))return
     setBusy(true);setError('');setNotice('')
     try{
       const saved=await repository.updateUserProfile(editing.id,{full_name:editing.name.trim(),role:editing.role,active:editing.active!==false})
@@ -76,7 +77,7 @@ export function UsersPage({user,repository}:{user:User;repository:Repository}){
       {id:'role',header:'الدور',render:x=><StatusBadge tone="blue">{ROLE_LABELS[x.role]}</StatusBadge>,sortValue:x=>ROLE_LABELS[x.role]},
       {id:'firstLogin',header:'أول دخول',render:x=>x.mustChangePassword?<StatusBadge tone="amber">سيُطلب تغيير كلمة المرور</StatusBadge>:<StatusBadge tone="gray">تم ضبط كلمة المرور</StatusBadge>},
       {id:'active',header:'الحالة',render:x=><StatusBadge tone={x.active===false?'gray':'emerald'}>{x.active===false?'موقوف':'نشط'}</StatusBadge>,sortValue:x=>x.active===false?0:1},
-      {id:'action',header:'إجراء',mobileVisible:false,render:x=>user.role==='admin'?<Button variant="ghost" size="sm" icon={<Pencil size={15}/>} onClick={()=>setEditing({...x})}>تعديل</Button>:null},
+      {id:'action',header:'إجراء',mobileVisible:false,render:x=>canManageUsers(user.role)?<Button variant="ghost" size="sm" icon={<Pencil size={15}/>} onClick={()=>setEditing({...x})}>تعديل</Button>:null},
     ]} rowKey={x=>x.id} searchableText={x=>`${x.name} ${x.username} ${ROLE_LABELS[x.role]}`} emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا يوجد مستخدمون.</div>}/>
 
     {createOpen&&<FormModal title="إنشاء مستخدم جديد" onClose={()=>!busy&&setCreateOpen(false)}>
@@ -97,5 +98,5 @@ export function UsersPage({user,repository}:{user:User;repository:Repository}){
   </div>
 }
 
-function Stat({label,value}:{label:string;value:number}){return <section className="panel rounded-2xl p-4"><div className="text-sm text-slate-500">{label}</div><div className="mt-1 text-2xl font-bold text-slate-900">{new Intl.NumberFormat('ar-EG').format(value)}</div></section>}
+function Stat({label,value}:{label:string;value:number}){return <section className="panel rounded-2xl p-4"><div className="text-sm text-slate-500">{label}</div><div className="mt-1 text-2xl font-bold text-slate-900">{new Intl.NumberFormat(APP_LOCALE).format(value)}</div></section>}
 function FormBlock({title,hint,children}:{title:string;hint:string;children:ReactNode}){return <section className="form-section"><div className="form-section-head"><strong>{title}</strong><span>{hint}</span></div><div className="form-grid">{children}</div></section>}

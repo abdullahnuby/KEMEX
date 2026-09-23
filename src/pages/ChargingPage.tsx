@@ -8,6 +8,7 @@ import { useCurrency } from '../features/settings'
 import { PageHeader, Card, CardGrid, StatCard, DataTable, EmptyState, Button } from '../components/ui'
 import type { DataTableColumn } from '../components/ui/DataTable'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 type Props={assets:Asset[];projects:Project[];moduleData:Record<string,Record<string,unknown>[]>;workOrders:WorkOrder[];fuelOps:FuelOperation[];chargingRates:Rate[];assetTypes:AssetTypeRef[]}
 type Rate={id:string;assetTypeId?:string;assetId?:string;projectId?:string;unit:string;rate:number;minimum?:number;active:boolean}
 type AssetTypeRef={id:string;code:string;name:string;defaultMeterType:string;standardConsumption?:number;billingUnit?:string;billingRate?:number;billingMinimum?:number;active:boolean}
@@ -100,4 +101,4 @@ function rateFor(a:Asset,rates:Rate[],assetTypes:AssetTypeRef[],projectId:string
 }
 function monthRange(month:string){const [y,m]=month.split('-').map(Number);const last=new Date(y,m,0).getDate();return [`${month}-01`,`${month}-${String(last).padStart(2,'0')}`]}
 function daysInMonth(month:string){const [y,m]=month.split('-').map(Number);return new Date(y,m,0).getDate()}
-function fmt(n:number){return new Intl.NumberFormat('ar-EG',{maximumFractionDigits:1}).format(Number(n||0))}
+function fmt(n:number){return new Intl.NumberFormat(APP_LOCALE,{maximumFractionDigits:1}).format(Number(n||0))}

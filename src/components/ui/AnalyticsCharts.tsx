@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react'
 
+import { APP_LOCALE } from '../../shared/formatters/locale'
 export type ChartPoint = { label: string; value: number; secondary?: number }
 
-const nfmt = new Intl.NumberFormat('ar-EG', { maximumFractionDigits: 0 })
+const nfmt = new Intl.NumberFormat(APP_LOCALE, { maximumFractionDigits: 0 })
 const num = (value: number) => nfmt.format(Math.round(Number.isFinite(value) ? value : 0))
 
 export function AnalyticsLineChart({ points, height = 230, valueSuffix = '', secondarySuffix = '', primaryLabel, secondaryLabel }: { points: ChartPoint[]; height?: number; valueSuffix?: string; secondarySuffix?: string; primaryLabel?: string; secondaryLabel?: string }) {
@@ -27,7 +28,7 @@ export function AnalyticsLineChart({ points, height = 230, valueSuffix = '', sec
   const primaryPath = pathFor('value')
   const secondaryPath = hasSecondary ? pathFor('secondary') : ''
   const area = `${primaryPath} L ${x(safe.length - 1)} ${top + chartH} L ${x(0)} ${top + chartH} Z`
-  const numberFormat = new Intl.NumberFormat('ar-EG', { maximumFractionDigits: 0 })
+  const numberFormat = new Intl.NumberFormat(APP_LOCALE, { maximumFractionDigits: 0 })
 
   return <div className="analytics-chart" dir="ltr">
     {(primaryLabel || secondaryLabel) && <div className="analytics-line-legend" dir="rtl"><span>{primaryLabel && <i className="legend-dot primary" />}{primaryLabel}</span>{secondaryLabel && hasSecondary && <span><i className="legend-dot secondary" />{secondaryLabel}</span>}</div>}

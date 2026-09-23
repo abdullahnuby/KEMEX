@@ -10,6 +10,7 @@ import { useAssetDetailData } from '../features/assets'
 import { useCurrency } from '../features/settings'
 import { VEHICLE_WORKFLOW, vehicleStageForStatus } from '../shared/workflows/workflowDefinitions'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 /** Central asset-detail view. Operational bootstrap data is combined with independently cached financial/document/audit data. */
 export function AssetDetailPage({ asset, assets, projects, operations, fuelOps, workOrders, trips = [], moduleData, onBack, onEdit, onRoute }: {
   asset?: Asset
@@ -237,6 +238,6 @@ function documentSummaryDate(value?:string){
 function documentTypeLabel(type:AssetDocument['documentType']){return ({license:'ترخيص',insurance:'تأمين',registration:'استمارة / تسجيل',inspection:'فحص',contract:'عقد',other:'أخرى'} as Record<AssetDocument['documentType'],string>)[type]}
 function costLabel(category:AssetCostEntry['category']){return ({fuel:'وقود',maintenance:'صيانة',tires:'إطارات',purchase:'شراء',depreciation:'إهلاك',other:'أخرى'} as Record<AssetCostEntry['category'],string>)[category]}
 function fieldLabel(key:string){return ({date:'التاريخ',type:'النوع',hours:'الساعات',meter:'العداد',qty:'الكمية',total:'الإجمالي',status:'الحالة',desc:'الوصف',opened:'تاريخ الفتح',prio:'الأولوية',proj:'المشروع',drv:'السائق / المشغل',notes:'ملاحظات',name:'الاسم',code:'الكود'} as Record<string,string>)[key] ?? key}
-function fmt(value:number|undefined){return new Intl.NumberFormat('ar-EG',{maximumFractionDigits:2}).format(Number(value)||0)}
-function formatDate(value?:string){return value ? new Intl.DateTimeFormat('ar-EG',{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(value)) : '—'}
-function formatDateTime(value:string){return value ? new Intl.DateTimeFormat('ar-EG',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value)) : '—'}
+function fmt(value:number|undefined){return new Intl.NumberFormat(APP_LOCALE,{maximumFractionDigits:2}).format(Number(value)||0)}
+function formatDate(value?:string){return value ? new Intl.DateTimeFormat(APP_LOCALE,{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(value)) : '—'}
+function formatDateTime(value:string){return value ? new Intl.DateTimeFormat(APP_LOCALE,{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value)) : '—'}

@@ -197,7 +197,7 @@ export function AppRoutes({ user, route, navigate, data, actions }: AppRoutesPro
   return <Routes>
     <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
     <Route path="dashboard" element={guard('dashboard', <DashboardPage assets={data.assets} projects={data.projects} workOrders={data.workOrders} fuelOps={data.fuelOps} operations={data.operations} onRoute={navigate}/>)}/>
-    <Route path="alerts" element={guard('alerts', <AlertsPage assets={data.assets} workOrders={data.workOrders} drivers={data.drivers as any} contracts={data.contracts as any} onRoute={navigate} alertDays={data.systemSettings.alertDays} alertKm={data.systemSettings.alertKm} alertHours={data.systemSettings.alertHours} plans={data.moduleData.plans??[]} oils={data.moduleData.oils??[]}/>)}/>
+    <Route path="alerts" element={guard('alerts', <AlertsPage assets={data.assets} workOrders={data.workOrders} fuelOps={data.fuelOps} drivers={data.drivers as any} contracts={data.contracts as any} onRoute={navigate} alertDays={data.systemSettings.alertDays} alertKm={data.systemSettings.alertKm} alertHours={data.systemSettings.alertHours} plans={data.moduleData.plans??[]} oils={data.moduleData.oils??[]}/>)}/>
     <Route path="operations" element={guard('operations', <OperationsWorkspacePage {...operationsWorkspaceProps}/>)}/>
     <Route path="assets" element={guard('assets', <FleetWorkspacePage {...fleetWorkspaceProps}/>)}/>
     <Route path="assets/edit/:id" element={guard('assets', <AssetEditRoute data={data} navigate={navigate} actions={actions} canEdit={['admin','fleet','pm'].includes(user.role)}/>)}/>

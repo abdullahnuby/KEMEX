@@ -105,6 +105,16 @@ export class TfmsRepository implements Repository {
     return (data??[]).map(x=>({id:x.id,ts:x.occurred_at,user:x.username??'',action:x.action,entity:x.entity??'',ref:x.reference??'',details:x.details??'',source:x.source??''}))
   }
 
+  async listApprovalEvents():Promise<AnyRecord[]> {
+    const db = requireSupabase()
+    const { data, error } = await db.from('approval_events').select('*').order('acted_at', { ascending: false }).limit(1000)
+    if (error) throw error
+    return (data ?? []).map(x => ({
+      id: x.id, module: x.module_name ?? '', recordId: x.record_id ?? '', fromStatus: x.from_status ?? '',
+      toStatus: x.to_status ?? '', comment: x.comment ?? '', actedBy: x.acted_by ?? '', actedAt: x.acted_at, metadata: x.metadata ?? {},
+    }))
+  }
+
   private async recordAudit(_action:string,_entity:string,_reference:string,_details:string){
     // Audit is produced by database triggers; keep this method for the existing repository API.
   }

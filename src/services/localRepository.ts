@@ -117,6 +117,7 @@ export class LocalStorageRepository implements Repository {
   }
 
   async listAuditLog(): Promise<AnyRecord[]> { return clone(read<AnyRecord[]>('audit', [])) }
+  async listApprovalEvents(): Promise<AnyRecord[]> { return [] }
 
   async listClients(): Promise<import('../types/tfms').Customer[]> {
     return clone(read<import('../types/tfms').Customer[]>('clients', []))

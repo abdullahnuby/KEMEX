@@ -1,11 +1,19 @@
 import { requireSupabase } from '../../services/supabase'
 import type { Trip,TripInsert,TripUpdate,TripPermit,TripPermitInsert,TripCost,TripCostInsert,TripFuelLog,TripFuelLogInsert } from './types'
+import { assertTransition } from '../../shared/workflows/workflowEngine'
 const db=()=>requireSupabase()
 export const tripsService={
  async list(){const {data,error}=await db().from('trips').select('*').order('created_at',{ascending:false});if(error)throw error;return (data??[]) as Trip[]},
  async getById(id:string){const {data,error}=await db().from('trips').select('*').eq('id',id).single();if(error)throw error;return data as Trip},
  async create(input:TripInsert){const {data,error}=await db().from('trips').insert(input).select('*').single();if(error)throw error;return data as Trip},
- async update(id:string,input:TripUpdate){const {data,error}=await db().from('trips').update(input).eq('id',id).select('*').single();if(error)throw error;return data as Trip},
+ async update(id:string,input:TripUpdate){
+  if (input.status) {
+   const current = await this.getById(id)
+   assertTransition('transportation', current.status, input.status)
+   if (input.status === 'invoiced' && !input.invoice_id && !current.invoice_id) throw new Error('لا يمكن تحويل الرحلة إلى مفوترة بدون رقم فاتورة.')
+  }
+  const {data,error}=await db().from('trips').update(input).eq('id',id).select('*').single();if(error)throw error;return data as Trip
+ },
  async updateStatus(id:string,status:Trip['status']){return this.update(id,{status})},
  async cancel(id:string){return this.updateStatus(id,'cancelled')},
  async delete(id:string){const {error}=await db().from('trips').delete().eq('id',id);if(error)throw error},
@@ -37,7 +45,13 @@ export const tripFuelService={
 }
 
 export const tripBillingService={
- async markAsInvoiced(id:string,invoiceId:string){return tripsService.update(id,{status:'invoiced',invoice_id:invoiceId})},
+ async markAsInvoiced(id:string,invoiceId:string){
+  if (!invoiceId.trim()) throw new Error('رقم الفاتورة مطلوب قبل فوترة الرحلة.')
+  const trip = await tripsService.getById(id)
+  if (!trip.is_billable) throw new Error('هذه الرحلة غير قابلة للفوترة.')
+  if (trip.status !== 'received') throw new Error('لا يمكن فوترة الرحلة قبل تأكيد الاستلام.')
+  return tripsService.update(id,{status:'invoiced',invoice_id:invoiceId})
+ },
  async markAsPaid(id:string){return tripsService.updateStatus(id,'paid')},
  async getUnbilledTrips(){const {data,error}=await db().from('trips').select('*').eq('status','received').eq('is_billable',true).is('invoice_id',null).order('scheduled_start');if(error)throw error;return (data??[]) as Trip[]},
  async getProjectSummary(projectId:string){const trips=await tripsService.listByProject(projectId);return trips.filter(t=>t.to_project_id===projectId).reduce((s,t)=>({tripCount:s.tripCount+1,billableAmount:s.billableAmount+(t.is_billable?Number(t.total_charge):0),unbilledAmount:s.unbilledAmount+(t.is_billable&&t.status==='received'&&!t.invoice_id?Number(t.total_charge):0)}),{tripCount:0,billableAmount:0,unbilledAmount:0})},

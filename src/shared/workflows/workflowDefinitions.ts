@@ -5,7 +5,7 @@ export type WorkflowStage = {
 }
 
 export type WorkflowDefinition = {
-  id: 'vehicle' | 'maintenance' | 'transportation'
+  id: 'vehicle' | 'maintenance' | 'transportation' | 'purchase' | 'invoice'
   label: string
   stages: readonly WorkflowStage[]
 }
@@ -91,4 +91,25 @@ export function transportationStageForStatus(status: string): string {
     case 'cancelled': return 'history'
     default: return 'request'
   }
+}
+
+
+export const PURCHASE_WORKFLOW: WorkflowDefinition = {
+  id: 'purchase', label: 'دورة المشتريات', stages: [
+    { id: 'request', label: 'طلب الشراء', description: 'إنشاء الطلب وتحديد الاحتياج.' },
+    { id: 'approval', label: 'الاعتماد', description: 'مراجعة الطلب واعتماده أو رفضه.' },
+    { id: 'po', label: 'أمر الشراء', description: 'إصدار أمر شراء للمورد.' },
+    { id: 'receipt', label: 'الاستلام', description: 'استلام جزئي أو كامل وربط الحركة بالمخزون.' },
+    { id: 'closed', label: 'الإغلاق', description: 'إقفال دورة الشراء بعد الاستلام.' },
+  ],
+}
+
+export const INVOICE_WORKFLOW: WorkflowDefinition = {
+  id: 'invoice', label: 'دورة الفاتورة', stages: [
+    { id: 'registered', label: 'التسجيل', description: 'تسجيل الفاتورة وربطها بالمستند المرجعي.' },
+    { id: 'review', label: 'المراجعة', description: 'مطابقة الفاتورة والمستندات والبيانات.' },
+    { id: 'approval', label: 'الاعتماد', description: 'اعتماد الفاتورة قبل الترحيل.' },
+    { id: 'posting', label: 'الترحيل', description: 'ترحيل الاستحقاق إلى المرحلة المالية.' },
+    { id: 'settlement', label: 'السداد/التحصيل', description: 'إثبات السداد أو التحصيل وإغلاق الدورة.' },
+  ],
 }

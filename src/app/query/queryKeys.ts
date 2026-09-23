@@ -1,5 +1,8 @@
 /** Shared React Query key factory. Query keys are user-scoped so data cannot bleed between sessions. */
 export const kemexQueryKeys = {
+  approvalEvents: (userId?: string) => ['approval-events', userId] as const,
+  notifications: (userId?: string) => ['notifications', userId] as const,
+  attachments: (userId: string | undefined, entityType: string, entityId: string) => ['attachments', userId, entityType, entityId] as const,
   all: ['kemex'] as const,
   bootstrap: (userId: string | undefined) => ['kemex', 'bootstrap', userId] as const,
   assets: (userId: string | undefined) => ['kemex', 'assets', userId] as const,

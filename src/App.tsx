@@ -27,7 +27,7 @@ function AppInner() {
   const routerNavigate = useNavigate()
   const route = location.pathname.replace(/^\//, '') || 'dashboard'
 
-  const bootstrapQuery = useKemexBootstrap(user?.id && !user.mustChangePassword ? user.id : undefined)
+  const bootstrapQuery = useKemexBootstrap(user?.id && !user.mustChangePassword ? user.id : undefined, route)
   const assets = bootstrapQuery.data?.assets ?? []
   const projects = bootstrapQuery.data?.projects ?? []
   const workOrders = bootstrapQuery.data?.workOrders ?? []
@@ -43,6 +43,7 @@ function AppInner() {
   const maintenanceTechnicians = bootstrapQuery.data?.maintenanceTechnicians ?? []
   const fuelOps = bootstrapQuery.data?.fuelOps ?? []
   const moduleData = bootstrapQuery.data?.moduleData ?? {}
+  const approvalEvents = bootstrapQuery.data?.approvalEvents ?? []
   const systemSettings = bootstrapQuery.data?.settings ?? {
     alertDays: 30,
     alertKm: 1500,
@@ -88,6 +89,7 @@ function AppInner() {
     userName: user?.name,
     route,
     assets,
+    workOrders,
     moduleData,
     navigate,
   })
@@ -146,6 +148,7 @@ function AppInner() {
           maintenanceTechnicians={maintenanceTechnicians}
           fuelOps={fuelOps}
           moduleData={moduleData}
+          approvalEvents={approvalEvents}
           systemSettings={systemSettings}
           navigate={navigate}
           saveProject={saveProject}

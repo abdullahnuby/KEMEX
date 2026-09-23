@@ -7,6 +7,7 @@ import { useCurrency } from '../features/settings'
 import { PageHeader, Card, CardGrid, StatCard, DataTable, Button } from '../components/ui'
 import type { DataTableColumn } from '../components/ui/DataTable'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 type RecordRow = Record<string, unknown>
 
 type Props = {
@@ -144,4 +145,4 @@ export function calculateAssetCost(asset: Asset, from:string, to:string, workOrd
 function includesAsset(raw:unknown,id:string){return Array.isArray(raw)?raw.map(String).includes(id):String(raw??'').split(',').map(x=>x.trim()).includes(id)}
 function rentalFor(c:RecordRow,from:string,to:string,hours:number){const rate=Number(c.rate||0);const unit=String(c.unit||'');if(!rate)return 0;const days=Math.max(0,Math.floor((new Date(to).getTime()-new Date(from).getTime())/864e5)+1);const months=days/30.4;const min=Number(c.minimum||0);if(unit==='شهر')return rate*months;if(unit==='يوم')return rate*days;if(unit==='ساعة')return rate*Math.max(hours,min*months);return 0}
 function depreciationFor(a:Asset,from:string,to:string){if(a.own!=='مملوك'||!a.capex||!a.life||!a.buy)return 0;const monthly=(Number(a.capex)-Number(a.resid||0))/(Number(a.life)*12);const st=new Date(a.buy),fr=new Date(from),end=new Date(to),now=new Date();const mStart=new Date(Math.max(fr.getTime(),st.getTime()));let months=(end.getFullYear()*12+end.getMonth())-(mStart.getFullYear()*12+mStart.getMonth())+1;const elapsed=(now.getFullYear()*12+now.getMonth())-(st.getFullYear()*12+st.getMonth())+1;months=Math.min(months,Math.max(0,elapsed),Number(a.life)*12);return monthly*Math.max(0,months)}
-function fmt(n:number){return new Intl.NumberFormat('ar-EG',{maximumFractionDigits:1}).format(Number(n||0))}
+function fmt(n:number){return new Intl.NumberFormat(APP_LOCALE,{maximumFractionDigits:1}).format(Number(n||0))}

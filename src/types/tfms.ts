@@ -1,5 +1,10 @@
 export type Role = 'admin' | 'mgmt' | 'fleet' | 'pm' | 'eng' | 'maint' | 'acct'
 
+export type AssetStatus = 'متاح' | 'محجوز' | 'مخصص لمشروع' | 'يعمل' | 'تحت الصيانة' | 'خارج الخدمة' | 'متوقف مؤقتًا' | 'موقوف' | 'غير نشط' | 'مستبعد'
+export type AssetCondition = 'سليم' | 'جيد' | 'يحتاج فحص' | 'يحتاج صيانة' | 'يحتاج إصلاح' | 'تالف' | 'حرج'
+export type AssetOwnership = 'مملوك' | 'مستأجر' | 'مؤجر' | 'مشترك'
+export type AssetMeterType = 'كم' | 'ساعة' | 'عداد مركب'
+
 export type User = {
   id: string
   username: string
@@ -37,14 +42,14 @@ export type Asset = {
   cat: string
   type: string
   assetTypeId?: string
-  own: string
-  status: string
-  cond: string
+  own: AssetOwnership
+  status: AssetStatus
+  cond: AssetCondition
   mfr?: string
   model?: string
   year?: number
   fuel?: string
-  mt: string
+  mt: AssetMeterType | string
   meter: number
   std?: number
   capex?: number

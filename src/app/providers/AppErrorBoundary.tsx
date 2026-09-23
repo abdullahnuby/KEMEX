@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { reportClientError } from '../../services/telemetry'
 
 interface Props { children: ReactNode }
 interface State { hasError: boolean; message: string }
@@ -11,6 +12,7 @@ export class AppErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: unknown, info: ErrorInfo) {
+    reportClientError(error, { route: window.location.hash || window.location.pathname, componentStack: info.componentStack ?? undefined })
     if (import.meta.env.DEV) console.error('KEMEX UI error boundary', error, info)
   }
 

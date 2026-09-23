@@ -14,7 +14,11 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm install
+      - run: npm ci
       - run: node scripts/verify-source.mjs
+      - run: npm run verify:migrations
       - run: npm run test:db
+      - run: npm run test:security
+      - run: npm run test:source
+      - run: npm run typecheck
       - run: npm run build

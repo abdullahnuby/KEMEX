@@ -6,6 +6,7 @@ import { sameReference } from '../utils/referenceLabels'
 import { Button, DataTable, PageHeader, StatusBadge, AnalyticsBarChart, AnalyticsDonut, AnalyticsDualBars, ChartShell } from '../components/ui'
 import { useCurrency } from '../features/settings'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 export type ReportKey = 'all'|'owned'|'rented'|'veh'|'eq'|'contracts'|'due'|'fuel'|'invn'|'drivers'|'appr'|'unbilled'|'trip-profitability'
 type RefCell = { kind:'ref'; field:'asset'|'proj'|'item'; label:string; code?:string }
 type ReportCell = string | number | RefCell
@@ -44,7 +45,7 @@ export function ReportsPage({assets,projects,workOrders,fuelOps,operations,modul
           <span className="report-selection-icon"><BarChart3 size={16}/></span>
           <div><span>التقرير المحدد</span><strong>{selectedReport.title}</strong><small>{selectedReport.subtitle}</small></div>
         </div>
-        <div className="report-selection-meta"><StatusBadge tone="blue">RPT-{String(REPORTS.findIndex(x=>x.key===kind)+1).padStart(2,'0')}</StatusBadge><strong>{new Intl.NumberFormat('ar-EG').format(data.rows.length)}</strong><span>سجل</span></div>
+        <div className="report-selection-meta"><StatusBadge tone="blue">RPT-{String(REPORTS.findIndex(x=>x.key===kind)+1).padStart(2,'0')}</StatusBadge><strong>{new Intl.NumberFormat(APP_LOCALE).format(data.rows.length)}</strong><span>سجل</span></div>
       </div>
 
       <div className="report-filter-inline">
@@ -62,18 +63,18 @@ export function ReportsPage({assets,projects,workOrders,fuelOps,operations,modul
           {insights.kind==='dual' ? <AnalyticsDualBars points={insights.points} firstLabel={insights.firstLabel} secondLabel={insights.secondLabel}/> : <AnalyticsBarChart points={insights.points} valueSuffix={insights.valueSuffix} limit={8}/>} 
         </ChartShell>
         <div className="report-live-kpis">
-          <div className="report-live-kpi"><span><Search size={16}/></span><div><small>السجلات الناتجة</small><strong>{new Intl.NumberFormat('ar-EG').format(data.rows.length)}</strong></div></div>
-          <div className="report-live-kpi"><span><Truck size={16}/></span><div><small>الأصول المعنية</small><strong>{new Intl.NumberFormat('ar-EG').format(insights.assetCount)}</strong></div></div>
+          <div className="report-live-kpi"><span><Search size={16}/></span><div><small>السجلات الناتجة</small><strong>{new Intl.NumberFormat(APP_LOCALE).format(data.rows.length)}</strong></div></div>
+          <div className="report-live-kpi"><span><Truck size={16}/></span><div><small>الأصول المعنية</small><strong>{new Intl.NumberFormat(APP_LOCALE).format(insights.assetCount)}</strong></div></div>
           <div className="report-live-kpi"><span><Fuel size={16}/></span><div><small>تكلفة الوقود</small><strong>{formatMoney(totalFuel)}</strong></div></div>
           <div className="report-live-kpi"><span><Gauge size={16}/></span><div><small>المؤشر المالي</small><strong>{formatMoney(totalCost || insights.primaryTotal)}</strong></div></div>
-          {insights.donut.length>0 && <div className="report-donut-mini"><AnalyticsDonut segments={insights.donut} centerValue={new Intl.NumberFormat('ar-EG').format(data.rows.length)} centerLabel="سجل"/></div>}
+          {insights.donut.length>0 && <div className="report-donut-mini"><AnalyticsDonut segments={insights.donut} centerValue={new Intl.NumberFormat(APP_LOCALE).format(data.rows.length)} centerLabel="سجل"/></div>}
         </div>
       </section>
     </section>
 
     <section className="report-results">
       <div className="report-results-head"><div><h2>النتيجة التفصيلية</h2><p>البيانات المطابقة للمرشحات الحالية · يتم تحديثها مباشرة</p></div><StatusBadge tone="emerald">بيانات محدثة</StatusBadge></div>
-      <div className="report-result-meta"><span>{data.columns.length} أعمدة</span><span>{new Intl.NumberFormat('ar-EG').format(data.rows.length)} سجل</span><span>{filters.cat||'كل الفئات'}</span><span>{filters.own||'كل الملكيات'}</span><span>{filters.status||'كل الحالات'}</span><span>{filters.proj?projects.find(p=>p.id===filters.proj)?.name??'مشروع محدد':'كل المشروعات'}</span></div>
+      <div className="report-result-meta"><span>{data.columns.length} أعمدة</span><span>{new Intl.NumberFormat(APP_LOCALE).format(data.rows.length)} سجل</span><span>{filters.cat||'كل الفئات'}</span><span>{filters.own||'كل الملكيات'}</span><span>{filters.status||'كل الحالات'}</span><span>{filters.proj?projects.find(p=>p.id===filters.proj)?.name??'مشروع محدد':'كل المشروعات'}</span></div>
       <DataTable<ReportCell[]>
         rows={data.rows}
         rowKey={(row) => `${kind}-${JSON.stringify(row)}`}
@@ -152,7 +153,7 @@ function renderReportCell(v:ReportCell){
   return v as string|number
 }
 function sumNumericColumn(data:ReportDef,column:string){const i=data.columns.indexOf(column);if(i<0)return 0;return data.rows.reduce((s,r)=>s+(typeof r[i]==='object'?0:normalizeNumberText(String(r[i]??''))),0)}
-function fmt(n:number){return new Intl.NumberFormat('ar-EG',{maximumFractionDigits:0}).format(Number(n||0))}
+function fmt(n:number){return new Intl.NumberFormat(APP_LOCALE,{maximumFractionDigits:0}).format(Number(n||0))}
 
 function ReportIcon({kind}:{kind:ReportKey}){
   if(kind==='fuel')return <Fuel size={18}/>; if(kind==='eq'||kind==='veh')return <Truck size={18}/>; if(kind==='due')return <CalendarClock size={18}/>; if(kind==='invn')return <PackageCheck size={18}/>; if(kind==='appr')return <ClipboardCheck size={18}/>; if(kind==='contracts'||kind==='rented')return <ReceiptText size={18}/>; if(kind==='owned')return <FileBarChart size={18}/>; return <Gauge size={18}/>
@@ -185,7 +186,7 @@ function build(kind:ReportKey,assets:Asset[],projects:Project[],workOrders:WorkO
   const assetRef=(id:string)=>{const a=assets.find(x=>sameReference(id,x));return a?`${a.name} (${a.code})`:id||'—'}
   const driverRef=(id:string)=>{const d=drivers.find(x=>String(x.id??'')===id||String(x.code??'')===id);return d?`${String(d.name??'')} (${String(d.code??'')})`:id||'—'}
   const assetName=(id:string)=>id?assets.find(a=>sameReference(id,a))?.name??id:'—'
-  const fmt=(n:unknown)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:1}).format(Number(n||0))
+  const fmt=(n:unknown)=>new Intl.NumberFormat(APP_LOCALE,{maximumFractionDigits:1}).format(Number(n||0))
   const plans=moduleData.plans??[]
   const oils=moduleData.oils??[]
   const tires=moduleData.tireOps??[]
@@ -289,6 +290,6 @@ function includesAsset(raw:unknown,id:string){return Array.isArray(raw)?raw.map(
 function daysLeft(date:string){if(!date)return '—';const n=Math.ceil((new Date(date).getTime()-Date.now())/86400000);return n}
 function ageDays(date:string){if(!date)return 0;return Math.max(0,Math.ceil((Date.now()-new Date(date).getTime())/86400000))}
 function ruleText(r:Record<string,unknown>){const x=[Number(r.everyKm||0)>0?`${r.everyKm} كم`:'',Number(r.everyHours||0)>0?`${r.everyHours} س`:'',Number(r.everyDays||0)>0?`${r.everyDays} يوم`:'' ].filter(Boolean);return x.length?x.join(' / '):'—'}
-function dueText(r:Record<string,unknown>,a:Asset){const meter=Number(a.meter||0),last=Number(r.lastMeter||0),everyKm=Number(r.everyKm||0),everyH=Number(r.everyHours||0),lastDate=String(r.lastDate??'');const candidates:string[]=[];if(everyKm)candidates.push(`عداد: ${new Intl.NumberFormat('ar-EG').format(last+everyKm)}`);if(everyH)candidates.push(`ساعات: ${new Intl.NumberFormat('ar-EG').format(last+everyH)}`);if(r.everyDays&&lastDate){const d=new Date(lastDate);d.setDate(d.getDate()+Number(r.everyDays));candidates.push(`تاريخ: ${d.toISOString().slice(0,10)}`)}if(everyKm&&meter>=last+everyKm)return 'مستحق الآن';if(everyH&&meter>=last+everyH)return 'مستحق الآن';return candidates.join(' • ')||'حسب الجدول'}
+function dueText(r:Record<string,unknown>,a:Asset){const meter=Number(a.meter||0),last=Number(r.lastMeter||0),everyKm=Number(r.everyKm||0),everyH=Number(r.everyHours||0),lastDate=String(r.lastDate??'');const candidates:string[]=[];if(everyKm)candidates.push(`عداد: ${new Intl.NumberFormat(APP_LOCALE).format(last+everyKm)}`);if(everyH)candidates.push(`ساعات: ${new Intl.NumberFormat(APP_LOCALE).format(last+everyH)}`);if(r.everyDays&&lastDate){const d=new Date(lastDate);d.setDate(d.getDate()+Number(r.everyDays));candidates.push(`تاريخ: ${d.toISOString().slice(0,10)}`)}if(everyKm&&meter>=last+everyKm)return 'مستحق الآن';if(everyH&&meter>=last+everyH)return 'مستحق الآن';return candidates.join(' • ')||'حسب الجدول'}
 function normalizeNumberText(value:string){const arabic='٠١٢٣٤٥٦٧٨٩';let out=value;for(let i=0;i<arabic.length;i++)out=out.replaceAll(arabic[i],String(i));return Number(out.replaceAll('٬','').replaceAll(',','').replaceAll('،','').trim())||0}
 function toCsv(columns:string[],rows:ReportCell[][]){const text=(v:ReportCell)=>typeof v==='object'&&'kind' in v?(v.code&&v.label!==v.code?`${v.label} (${v.code})`:v.label):String(v??'');return [columns,...rows].map(row=>row.map(v=>`"${text(v).replaceAll('"','""')}"`).join(',')).join('\n')}

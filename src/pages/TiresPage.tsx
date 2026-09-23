@@ -5,6 +5,7 @@ import { useCurrency } from '../features/settings'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 export type TireRecord = Record<string, unknown>
 export type TireOperationRecord = Record<string, unknown>
 type TireAction = 'تركيب' | 'فحص' | 'تدوير' | 'فك' | 'إصلاح' | 'استبدال'
@@ -19,12 +20,12 @@ type Props = {
 }
 
 function fmt(n: number) {
-  return new Intl.NumberFormat('ar-EG', { maximumFractionDigits: 1 }).format(Number(n || 0))
+  return new Intl.NumberFormat(APP_LOCALE, { maximumFractionDigits: 1 }).format(Number(n || 0))
 }
 function dateText(value: string) {
   if (!value) return '—'
   const d = new Date(value)
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('ar-EG', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d)
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(APP_LOCALE, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d)
 }
 
 export function TiresPage({ records, operations, assets, canEdit, onSave, onSaveOperation }: Props) {

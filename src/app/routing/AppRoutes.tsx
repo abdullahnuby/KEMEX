@@ -63,6 +63,7 @@ type AppRoutesProps = {
   maintenanceTechnicians: MaintenanceTechnician[]
   fuelOps: FuelOperation[]
   moduleData: Record<string, KemexModuleRecord[]>
+  approvalEvents: Record<string, unknown>[]
   systemSettings: { alertDays: number; alertKm: number; alertHours: number; vat: number; currencyCode: string }
   navigate: RouteHandler
   saveProject: (project: Project) => Promise<void>
@@ -114,6 +115,7 @@ function ProjectDetailRoute({ projects, assets, operations, workOrders, fuelOps,
   trips: Trip[]
   tripCosts: TripCost[]
   moduleData: Record<string, KemexModuleRecord[]>
+  approvalEvents: Record<string, unknown>[]
   onRoute: RouteHandler
 }) {
   const { id } = useParams()
@@ -138,6 +140,7 @@ function BreakdownDetailRoute({ assets, projects, drivers, clients, workOrders, 
 
 function AssignmentCreateRoute({ moduleData, assets, projects, userName, onSaveAssignment, onSaveAsset, onUpdateRequest, allowed, onRoute }: {
   moduleData: Record<string, KemexModuleRecord[]>
+  approvalEvents: Record<string, unknown>[]
   assets: Asset[]
   projects: Project[]
   userName: string
@@ -172,6 +175,7 @@ function ReportsKeyRoute(props: Omit<ComponentProps<typeof ReportsPage>, 'initia
 
 function GenericModuleRoute({ moduleData, assets, projects, drivers, workOrders, onSave, onWorkflow, onNavigate, onDelete, user, titleFallback }: {
   moduleData: Record<string, KemexModuleRecord[]>
+  approvalEvents: Record<string, unknown>[]
   assets: Asset[]
   projects: Project[]
   drivers: Driver[]
@@ -206,6 +210,7 @@ export function AppRoutes({
   maintenanceTechnicians,
   fuelOps,
   moduleData,
+  approvalEvents,
   systemSettings,
   navigate,
   saveProject,
@@ -262,7 +267,7 @@ export function AppRoutes({
   return <Routes>
     <Route path="/" element={<Navigate to="/dashboard" replace />} />
     <Route path="dashboard" element={guard('dashboard', <DashboardPage assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} onRoute={navigate} />)} />
-    <Route path="alerts" element={guard('alerts', <AlertsPage assets={assets} workOrders={workOrders} drivers={drivers as any} contracts={contracts} onRoute={navigate} alertDays={systemSettings.alertDays} alertKm={systemSettings.alertKm} alertHours={systemSettings.alertHours} plans={moduleData.plans ?? []} oils={moduleData.oils ?? []} />)} />
+    <Route path="alerts" element={guard('alerts', <AlertsPage assets={assets} workOrders={workOrders} fuelOps={fuelOps} drivers={drivers as any} contracts={contracts} onRoute={navigate} alertDays={systemSettings.alertDays} alertKm={systemSettings.alertKm} alertHours={systemSettings.alertHours} plans={moduleData.plans ?? []} oils={moduleData.oils ?? []} />)} />
     <Route path="operations" element={guard('operations', <OperationsWorkspacePage {...operationsWorkspaceProps} />)} />
     <Route path="assets" element={guard('assets', <FleetWorkspacePage {...fleetWorkspaceProps} />)} />
     <Route path="assets/edit/:id" element={guard('assets', <AssetEditRoute assets={assets} projects={projects} onSave={saveAsset} onRoute={navigate} canEdit={assetsCanEdit} />)} />
@@ -283,7 +288,7 @@ export function AppRoutes({
     <Route path="purchases" element={guard('purchases', <InventoryWorkspacePage initialTab="purchases" {...inventoryWorkspaceProps} />)} />
     <Route path="fuel" element={guard('fuel', <OperationsWorkspacePage initialTab="fuel" {...operationsWorkspaceProps} />)} />
     <Route path="projects" element={guard('projects', <OperationsWorkspacePage initialTab="projects" {...operationsWorkspaceProps} />)} />
-    <Route path="project/:id" element={guard('projects', <ProjectDetailRoute projects={projects} assets={assets} operations={operations} workOrders={workOrders} fuelOps={fuelOps} trips={trips} tripCosts={tripCosts} moduleData={moduleData} onRoute={navigate} />)} />
+    <Route path="project/:id" element={guard('projects', <ProjectDetailRoute projects={projects} assets={assets} operations={operations} workOrders={workOrders} fuelOps={fuelOps} trips={trips} tripCosts={tripCosts} moduleData={moduleData} approvalEvents={approvalEvents} onRoute={navigate} />)} />
     <Route path="costs" element={guard('costs', <FinanceWorkspacePage initialTab="costs" {...financeWorkspaceProps} />)} />
     <Route path="charging" element={guard('charging', <FinanceWorkspacePage initialTab="charging" {...financeWorkspaceProps} />)} />
     <Route path="invoices" element={guard('invoices', <FinanceWorkspacePage initialTab="invoices" {...financeWorkspaceProps} />)} />
@@ -291,13 +296,13 @@ export function AppRoutes({
     <Route path="reports" element={guard('reports', <ReportsPage assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} moduleData={moduleData} trips={trips} tripCosts={tripCosts} onRoute={navigate} />)} />
     <Route path="reports/:key" element={guard('reports', <ReportsKeyRoute assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} moduleData={moduleData} trips={trips} tripCosts={tripCosts} onRoute={navigate} />)} />
     <Route path="users" element={guard('users', <AdminWorkspacePage user={user} repository={repository} moduleData={moduleData} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} onSaved={invalidateData} />)} />
-    <Route path="audit" element={guard('audit', <AuditPage records={moduleData.audit ?? []} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} moduleData={moduleData} />)} />
+    <Route path="audit" element={guard('audit', <AuditPage records={moduleData.audit ?? []} approvalEvents={approvalEvents} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} moduleData={moduleData} />)} />
     <Route path="settings" element={guard('settings', <SettingsPage user={user} repository={repository} onSaved={invalidateData} />)} />
     <Route path="trips" element={guard('trips', <TripsPage assets={assets} drivers={drivers} projects={projects} clients={clients} onRoute={navigate} initialView="list" currencyCode={systemSettings.currencyCode} />)} />
     <Route path="trips/dispatch" element={guard('trips', <TripsPage assets={assets} drivers={drivers} projects={projects} clients={clients} onRoute={navigate} initialView="board" currencyCode={systemSettings.currencyCode} />)} />
     <Route path="trips/:id" element={guard('trips', <TripDetailRoute assets={assets} drivers={drivers} projects={projects} currencyCode={systemSettings.currencyCode} onRoute={navigate} />)} />
-    <Route path="assignments/new/:requestId" element={guard('assignments', <AssignmentCreateRoute moduleData={moduleData} assets={assets} projects={projects} userName={user.name} onSaveAssignment={record => saveModule('assignments', record)} onSaveAsset={saveAsset} onUpdateRequest={record => saveModule('requests', record)} allowed={assignmentAllowed} onRoute={navigate} />)} />
-    <Route path=":moduleKey" element={<GenericModuleRoute moduleData={moduleData} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} onSave={saveModule} onWorkflow={workflowModule} onNavigate={navigate} onDelete={deleteModule} user={user} titleFallback={key => ROUTE_DESCRIPTIONS[key] ?? 'وحدة من وحدات إدارة النقل والأسطول.'} />} />
+    <Route path="assignments/new/:requestId" element={guard('assignments', <AssignmentCreateRoute moduleData={moduleData} approvalEvents={approvalEvents} assets={assets} projects={projects} userName={user.name} onSaveAssignment={record => saveModule('assignments', record)} onSaveAsset={saveAsset} onUpdateRequest={record => saveModule('requests', record)} allowed={assignmentAllowed} onRoute={navigate} />)} />
+    <Route path=":moduleKey" element={<GenericModuleRoute moduleData={moduleData} approvalEvents={approvalEvents} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} onSave={saveModule} onWorkflow={workflowModule} onNavigate={navigate} onDelete={deleteModule} user={user} titleFallback={key => ROUTE_DESCRIPTIONS[key] ?? 'وحدة من وحدات إدارة النقل والأسطول.'} />} />
     <Route path="*" element={<ModulePlaceholderPage title="غير موجود" description="المسار المطلوب غير موجود." onRoute={navigate} />} />
   </Routes>
 

@@ -7,6 +7,7 @@ import { sameReference } from '../utils/referenceLabels'
 import { PageHeader, Card, CardGrid, StatCard, DataTable, StatusBadge, Button } from '../components/ui'
 import type { DataTableColumn } from '../components/ui/DataTable'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 type Props = {
   fuelOps: FuelOperation[]
   assets: Asset[]
@@ -289,5 +290,5 @@ function FormBlock({ title, children }: { title: string; children: ReactNode }) 
   )
 }
 
-const fmt = (n: number) => new Intl.NumberFormat('ar-EG', { maximumFractionDigits: 1 }).format(n)
-const fmtDate = (v: string) => (v ? new Intl.DateTimeFormat('ar-EG', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(v)) : '—')
+const fmt = (n: number) => new Intl.NumberFormat(APP_LOCALE, { maximumFractionDigits: 1 }).format(n)
+const fmtDate = (v: string) => (v ? new Intl.DateTimeFormat(APP_LOCALE, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(v)) : '—')

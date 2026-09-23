@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { APP_LOCALE } from '../shared/formatters/locale'
 import {
   AlertTriangle,
   ArrowLeft,
@@ -677,7 +678,7 @@ className={`text-sm ${isCurrent ? 'font-bold text-primary-700' : isDone ? 'font-
                   <div><span>الأصل:</span> <strong>{selectedAsset?.name} ({selectedAsset?.code})</strong></div>
                   <div><span>المشروع:</span> <strong>{selectedProject?.name ?? '—'}</strong></div>
                   <div><span>السائق:</span> <strong>{selectedDriver?.name ?? '—'}</strong></div>
-                  <div><span>التاريخ:</span> <strong>{new Date(breakdownDatetime).toLocaleString('ar-EG')}</strong></div>
+                  <div><span>التاريخ:</span> <strong>{new Date(breakdownDatetime).toLocaleString(APP_LOCALE)}</strong></div>
                   <div><span>درجة الخطورة:</span> <strong>{SEVERITY_LABELS[severity]}</strong></div>
                   <div><span>الموقع:</span> <strong>{location || '—'}</strong></div>
                 </div>

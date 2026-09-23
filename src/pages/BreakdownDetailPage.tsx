@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { APP_LOCALE } from '../shared/formatters/locale'
 import {
   ArrowRight,
   AlertTriangle,
@@ -571,11 +572,11 @@ function OverviewTab({
           </div>
           <div className="detail-item">
             <span>تاريخ ووقت حدوث العطل</span>
-            <strong>{new Date(breakdown.breakdown_datetime).toLocaleString('ar-EG')}</strong>
+            <strong>{new Date(breakdown.breakdown_datetime).toLocaleString(APP_LOCALE)}</strong>
           </div>
           <div className="detail-item">
             <span>تاريخ ووقت الإبلاغ</span>
-            <strong>{new Date(breakdown.reported_at).toLocaleString('ar-EG')}</strong>
+            <strong>{new Date(breakdown.reported_at).toLocaleString(APP_LOCALE)}</strong>
           </div>
           <div className="detail-item">
             <span>مكان / موقع العطل</span>
@@ -585,7 +586,7 @@ function OverviewTab({
             <span>تاريخ ووقت الاستعادة والعودة</span>
             <strong>
               {breakdown.recovery_datetime
-                ? new Date(breakdown.recovery_datetime).toLocaleString('ar-EG')
+                ? new Date(breakdown.recovery_datetime).toLocaleString(APP_LOCALE)
                 : 'ما زالت معطلة'}
             </strong>
           </div>
@@ -646,7 +647,7 @@ function TransportsTab({
           { id:'type', header:'نوع الوسيلة', render:t=>TRANSPORT_TYPE_LABELS[t.transport_type] ?? t.transport_type, sortValue:t=>t.transport_type },
           { id:'from', header:'من', render:t=>t.from_location || '—' },
           { id:'to', header:'إلى', render:t=>t.to_location || '—' },
-          { id:'date', header:'التاريخ', render:t=>new Date(t.transport_date).toLocaleDateString('ar-EG'), sortValue:t=>t.transport_date },
+          { id:'date', header:'التاريخ', render:t=>new Date(t.transport_date).toLocaleDateString(APP_LOCALE), sortValue:t=>t.transport_date },
           { id:'vendor', header:'المورد / الورشة', render:t=>t.vendor_name || '—' },
           { id:'crew', header:'رقم اللوحة / السائق', render:t=>[t.plate_number ? `لوحة: ${t.plate_number}` : '', t.driver_name ? `(${t.driver_name})` : ''].filter(Boolean).join(' ') || '—' },
           { id:'cost', header:'التكلفة', render:t=><strong className="text-primary-700">{formatMoney(t.transport_cost)}</strong>, sortValue:t=>t.transport_cost },
@@ -740,8 +741,8 @@ function DowntimeTab({
       <DataTable
         rows={downtime}
         columns={[
-          { id:'start', header:'بداية التوقف', render:d=>new Date(d.start_datetime).toLocaleString('ar-EG'), sortValue:d=>d.start_datetime },
-          { id:'end', header:'نهاية التوقف', render:d=>d.end_datetime?<span>{new Date(d.end_datetime).toLocaleString('ar-EG')}</span>:<StatusBadge tone="amber">مستمر حتى الآن</StatusBadge>, sortValue:d=>d.end_datetime||'' },
+          { id:'start', header:'بداية التوقف', render:d=>new Date(d.start_datetime).toLocaleString(APP_LOCALE), sortValue:d=>d.start_datetime },
+          { id:'end', header:'نهاية التوقف', render:d=>d.end_datetime?<span>{new Date(d.end_datetime).toLocaleString(APP_LOCALE)}</span>:<StatusBadge tone="amber">مستمر حتى الآن</StatusBadge>, sortValue:d=>d.end_datetime||'' },
           { id:'duration', header:'المدة (ساعة)', render:d=><strong>{d.duration_hours?`${d.duration_hours.toFixed(1)} س`:'—'}</strong>, sortValue:d=>d.duration_hours??0 },
           { id:'dailyRate', header:'بدل السائق اليومي', render:d=>formatMoney(d.driver_daily_rate), sortValue:d=>d.driver_daily_rate??0 },
           { id:'driverCost', header:'إجمالي بدل السائق', render:d=><strong className="text-red-700">{formatMoney(d.driver_downtime_cost)}</strong>, sortValue:d=>d.driver_downtime_cost??0 },

@@ -4,7 +4,7 @@
 /* Canonical tokens live in shared/ui/design-system.css. */
 
 html{scroll-behavior:smooth}
-body{background:var(--ui-bg);color:var(--ui-ink);font-family:'Tajawal','Cairo',system-ui,sans-serif;line-height:1.65}
+body{background:var(--ui-bg);color:var(--ui-ink);font-family:'Alexandria',system-ui,sans-serif;line-height:1.65}
 button,input,select,textarea{font-family:inherit}
 button{transition:background-color .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease,transform .18s ease}
 
@@ -12,9 +12,9 @@ button{transition:background-color .18s ease,border-color .18s ease,color .18s e
 .app-shell{min-height:100vh;background:linear-gradient(180deg,#f7f9fa 0,#f4f7f8 36%,#f3f6f7 100%)}
 .main-shell{min-height:100vh}
 .site-navbar{
-  height:78px;
-  padding:0 28px;
-  gap:20px;
+  height:64px;
+  padding:0 20px;
+  gap:16px;
   background:rgba(255,255,255,.94);
   border-bottom:1px solid rgba(203,218,221,.82);
   box-shadow:0 8px 26px rgba(18,48,57,.055);
@@ -23,19 +23,19 @@ button{transition:background-color .18s ease,border-color .18s ease,color .18s e
 .navbar-brand{min-width:245px;gap:12px;padding:5px 8px;border-radius:14px}
 .navbar-brand:hover{background:#f6fafb}
 .brand-mark{width:44px;height:44px;border-radius:13px;background:linear-gradient(145deg,#0e6d78,#0b9489);box-shadow:0 10px 24px rgba(11,125,118,.18)}
-.navbar-brand strong{font-size:17px;line-height:1.15;letter-spacing:-.2px;color:#13343d}
-.navbar-brand span{margin-top:4px;font-size:11px;font-weight:600;letter-spacing:.05px;color:#84979d}
+.navbar-brand strong{font-size:14px;line-height:1.15;letter-spacing:-.2px;color:#13343d}
+.navbar-brand span{margin-top:4px;font-size:8.5px;font-weight:600;letter-spacing:.05px;color:#84979d}
 .desktop-nav{gap:2px;overflow:auto;scrollbar-width:none}
 .desktop-nav::-webkit-scrollbar{display:none}
 .nav-direct,.nav-group-trigger{
   position:relative;
-  height:44px;
-  padding:0 12px;
+  height:38px;
+  padding:0 9px;
   border:1px solid transparent;
   border-radius:11px;
   gap:7px;
   color:#5b7077;
-  font-size:12.5px;
+  font-size:10.5px;
   font-weight:800;
 }
 .nav-direct:hover,.nav-group-trigger:hover{background:#f3f8f8;color:var(--ui-brand-dark)}
@@ -63,8 +63,8 @@ button{transition:background-color .18s ease,border-color .18s ease,color .18s e
 .nav-menu-item:hover{background:#f5faf9;border-color:#dcecea;transform:translateY(-1px)}
 .nav-menu-item.active{background:#eef9f7;border-color:#cbe8e3;color:var(--ui-brand-dark)}
 .nav-menu-icon{width:32px;height:32px;border-radius:9px;background:#f0f6f7;color:#0c7775}
-.nav-menu-item strong{font-size:12px;font-weight:900}
-.nav-menu-item small{font-size:10px;line-height:1.45;color:#889aa0}
+.nav-menu-item strong{font-size:10.5px;font-weight:900}
+.nav-menu-item small{font-size:8.8px;line-height:1.45;color:#889aa0}
 .navbar-actions{gap:7px}
 .navbar-icon-btn{width:40px;height:40px;border-radius:11px;background:#fff;border-color:#d9e5e7;color:#5e747a}
 .navbar-icon-btn:hover{background:#f2f9f8;border-color:#b9d8d5;color:var(--ui-brand)}

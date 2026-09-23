@@ -6,7 +6,22 @@ import { ReferenceValue } from '../components/ReferenceValue'
 import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
 import { useCurrency } from '../features/settings'
 
-export type PlanRecord = Record<string, unknown>
+import { APP_LOCALE } from '../shared/formatters/locale'
+export type PlanRecord = {
+  id?: string
+  name?: string
+  asset?: string
+  type?: string
+  everyHours?: number
+  everyKm?: number
+  everyDays?: number
+  lastMeter?: number
+  lastDate?: string
+  tasks?: string
+  est?: number
+  resp?: string
+  [key: string]: unknown
+}
 
 export function PlansPage({records,assets,onSave,onCreateWorkOrder}:{records:PlanRecord[];assets:Asset[];onSave:(record:PlanRecord)=>Promise<void>|void;onCreateWorkOrder:(workOrder:WorkOrder,plan:PlanRecord)=>Promise<void>|void}){
   const [editing,setEditing]=useState<PlanRecord|null>(null); const [busy,setBusy]=useState(false); const [error,setError]=useState('')
@@ -20,7 +35,7 @@ export function PlansPage({records,assets,onSave,onCreateWorkOrder}:{records:Pla
   }),[records,assets])
   const dueCount=rows.filter(x=>x.due).length
   const {formatMoney}=useCurrency()
-  const fmt=(n:number)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:0}).format(n)
+  const fmt=(n:number)=>new Intl.NumberFormat(APP_LOCALE,{maximumFractionDigits:0}).format(n)
   async function createWO(plan:PlanRecord){const asset=assets.find(a=>a.id===String(plan.asset??'')||a.code===String(plan.asset??''));if(!asset){setError('لا يمكن إنشاء أمر عمل بدون أصل مرتبط بالخطة.');return}const wo:WorkOrder={id:`WO-${Date.now()}`,asset:asset.id,proj:asset.proj,type:String(plan.type??'وقائية'),desc:`${String(plan.name??'خطة صيانة')} — ${String(plan.tasks??'')}`.trim(),opened:new Date().toISOString().slice(0,10),prio:'عادية',status:'مفتوح',laborCost:0,partsCost:0,vendorCost:0,planId:String(plan.id??'')};await onCreateWorkOrder(wo,plan)}
   async function savePlan(e:FormEvent<HTMLFormElement>){e.preventDefault();if(!editing||busy)return;setBusy(true);setError('');try{const fd=new FormData(e.currentTarget);const n=(k:string)=>Number(fd.get(k)||0);const next={...editing,name:String(fd.get('name')||'').trim(),asset:String(fd.get('asset')||''),type:String(fd.get('type')||'وقائية'),everyHours:n('everyHours'),everyKm:n('everyKm'),everyDays:n('everyDays'),lastMeter:n('lastMeter'),lastDate:String(fd.get('lastDate')||''),tasks:String(fd.get('tasks')||''),est:n('est'),resp:String(fd.get('resp')||'')};if(!next.name)throw new Error('اسم الخطة مطلوب.');if([next.everyHours,next.everyKm,next.everyDays,next.lastMeter,next.est].some(v=>!Number.isFinite(v)||v<0))throw new Error('قيم دورية الصيانة والتكلفة يجب أن تكون أرقامًا غير سالبة.');if(!next.everyHours&&!next.everyKm&&!next.everyDays)throw new Error('أدخل معيار استحقاق واحدًا على الأقل: ساعات أو كيلومترات أو أيام.');await onSave(next);setEditing(null)}catch(err){setError(err instanceof Error?err.message:'تعذر حفظ الخطة.')}finally{setBusy(false)}}
   return <div className="space-y-6">

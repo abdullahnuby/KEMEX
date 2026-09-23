@@ -11,9 +11,10 @@ import { requireSupabase } from '../services/supabase'
 import { TRANSPORTATION_WORKFLOW, transportationStageForStatus } from '../shared/workflows/workflowDefinitions'
 import type { Asset, Driver, Project } from '../types/tfms'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 export function TripDetailPage({id,assets,drivers,projects,onBack,currencyCode='EGP'}:{id:string;assets:Asset[];drivers:Driver[];projects:Project[];onBack:()=>void;currencyCode?:string}){
  const [trip,setTrip]=useState<Trip|null>(null),[permits,setPermits]=useState<TripPermit[]>([]),[costs,setCosts]=useState<TripCost[]>([]),[error,setError]=useState(''),[busy,setBusy]=useState(false),[signing,setSigning]=useState<TripPermit|null>(null),[invoiceId,setInvoiceId]=useState('')
- const money=(v:number)=>new Intl.NumberFormat('ar-EG',{style:'currency',currency:currencyCode,maximumFractionDigits:2}).format(v)
+ const money=(v:number)=>new Intl.NumberFormat(APP_LOCALE,{style:'currency',currency:currencyCode,maximumFractionDigits:2}).format(v)
  const load=async()=>{try{const [t,p,c]=await Promise.all([tripsService.getById(id),tripPermitsService.listByTrip(id),tripCostsService.listByTrip(id)]);setTrip(t);setPermits(p);setCosts(c);setInvoiceId(t.invoice_id??'');setError('')}catch(e){setError(e instanceof Error?e.message:'تعذر تحميل تفاصيل عملية النقل.')}}
  useEffect(()=>{void load()},[id])
  const transition=async(next:Trip['status'])=>{setBusy(true);try{await tripsService.updateStatus(id,next);await load()}catch(e){setError(e instanceof Error?e.message:'تعذر تحديث الحالة.')}finally{setBusy(false)}}

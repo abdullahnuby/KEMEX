@@ -11,7 +11,8 @@ import { TRIP_STATUS_LABELS, TRIP_TYPE_LABELS, TRIP_STATUS_TRANSITIONS, type Tri
 import type { Asset, Driver, Project, Customer } from '../types/tfms'
 import { OperationalSummaryStrip } from '../shared/ui'
 
-const money=(n:number|null|undefined,currency='EGP')=>new Intl.NumberFormat('ar-EG',{style:'currency',currency,maximumFractionDigits:2}).format(Number(n??0))
+import { APP_LOCALE } from '../shared/formatters/locale'
+const money=(n:number|null|undefined,currency='EGP')=>new Intl.NumberFormat(APP_LOCALE,{style:'currency',currency,maximumFractionDigits:2}).format(Number(n??0))
 const statusTone=(s:TripStatus)=>s==='received'||s==='paid'?'emerald':s==='cancelled'?'red':s==='invoiced'?'blue':s==='delivered'?'amber':s==='in_transit'?'blue':'gray'
 const boardColumns:TripStatus[]=['draft','assigned','dispatched','in_transit','delivered','received','invoiced','paid']
 

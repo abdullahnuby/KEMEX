@@ -162,6 +162,15 @@ export function useTripQueries(userId: string | undefined) {
   }
 }
 
+export function useApprovalEventsQuery(userId: string | undefined) {
+  return useQuery({
+    queryKey: kemexQueryKeys.approvalEvents(userId),
+    enabled: Boolean(userId),
+    queryFn: () => repository.listApprovalEvents(),
+    staleTime: 15_000,
+  })
+}
+
 export function useSettingsQuery(userId: string | undefined) {
   return useQuery({
     queryKey: kemexQueryKeys.settings(userId),
@@ -170,10 +179,26 @@ export function useSettingsQuery(userId: string | undefined) {
   })
 }
 
-export function useModuleRecordsQueries(userId: string | undefined) {
-  const modules = [...GENERIC_MODULES, 'oilChanges', 'tireOps']
+export function useModuleRecordsQueries(userId: string | undefined, activeRoute = 'dashboard') {
+  const allModules = [...GENERIC_MODULES, 'oilChanges', 'tireOps']
+  const coreModules = ['drivers', 'operations', 'contracts', 'customers', 'requests', 'assignments']
+  const routeKey = activeRoute.split('/')[0]
+  const needsAll = ['reports'].includes(routeKey)
+  const routeModules = needsAll
+    ? allModules
+    : Array.from(new Set([
+        ...coreModules,
+        ...(allModules.includes(routeKey) ? [routeKey] : []),
+        ...(routeKey === 'maintenance' ? ['plans', 'oilChanges', 'tireOps'] : []),
+        ...(routeKey === 'breakdowns' ? ['costs', 'oilChanges', 'tireOps'] : []),
+        ...(routeKey === 'inventory' || routeKey === 'purchases' ? ['inventory', 'purchases'] : []),
+        ...(routeKey === 'invoices' || routeKey === 'customers' ? ['invoices', 'customers'] : []),
+        ...(routeKey === 'costs' || routeKey === 'charging' ? ['costs', 'charging'] : []),
+        ...(routeKey === 'trips' ? ['trips', 'fuel'] : []),
+        ...(routeKey === 'audit' ? ['audit'] : []),
+      ]))
   const queries = useQueries({
-    queries: modules.map(module => ({
+    queries: routeModules.map(module => ({
       queryKey: kemexQueryKeys.modules.record(userId, module),
       enabled: Boolean(userId),
       queryFn: () => repository.listModuleRecords(module),
@@ -183,7 +208,7 @@ export function useModuleRecordsQueries(userId: string | undefined) {
 
   const data: Record<string, Record<string, unknown>[]> = {}
   const failures: string[] = []
-  modules.forEach((module, index) => {
+  routeModules.forEach((module, index) => {
     const query = queries[index]
     data[module] = query.data ?? []
     if (query.isError) failures.push(`${module}: ${query.error instanceof Error ? query.error.message : 'تعذر تحميل البيانات'}`)

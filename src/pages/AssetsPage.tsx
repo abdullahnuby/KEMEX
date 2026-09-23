@@ -1,10 +1,11 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Eye, Pencil, Plus, Truck, X } from 'lucide-react'
-import type { Asset, Project } from '../types/tfms'
+import type { Asset, AssetCondition, AssetOwnership, AssetStatus, Project } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { Button, DataTable, EmptyState, IconButton, PageHeader, StatusBadge, useToast } from '../components/ui'
 import { FormSection, OperationalSummaryStrip } from '../shared/ui'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 export function AssetsPage({assets, projects, onSave, onRoute, canEdit=true, focusAssetId}: {assets:Asset[]; projects:Project[]; onSave:(asset:Asset)=>Promise<void>; onRoute:(r:string)=>void; canEdit?:boolean; focusAssetId?:string}) {
   const [editing, setEditingState] = useState<Asset|null>(null)
   const [saving, setSaving] = useState(false)
@@ -43,15 +44,18 @@ export function AssetsPage({assets, projects, onSave, onRoute, canEdit=true, foc
     try {
       const fd=new FormData(e.currentTarget)
       const n=(k:string)=>Number(fd.get(k)||0)
+      const statusValue = String(fd.get('status') || 'متاح')
+      const condValue = String(fd.get('cond') || 'سليم')
+      const ownValue = String(fd.get('own') || 'مملوك')
       const asset: Asset = {
         ...editing,
         code:String(fd.get('code')||'').trim(),
         name:String(fd.get('name')||'').trim(),
         cat:String(fd.get('cat')||'').trim(),
         type:String(fd.get('type')||'').trim(),
-        status:String(fd.get('status')||''),
-        cond:String(fd.get('cond')||''),
-        own:String(fd.get('own')||''),
+        status: normalizeAssetStatus(statusValue),
+        cond: normalizeAssetCondition(condValue),
+        own: normalizeAssetOwnership(ownValue),
         mfr:String(fd.get('mfr')||'').trim(),
         model:String(fd.get('model')||'').trim(),
         year:n('year'), fuel:String(fd.get('fuel')||''), mt:String(fd.get('mt')||'كم'), meter:n('meter'),
@@ -109,5 +113,8 @@ export function AssetsPage({assets, projects, onSave, onRoute, canEdit=true, foc
 function Field({name,label,defaultValue,type='text',required=false}:{name:string;label:string;defaultValue:string;type?:string;required?:boolean}){return <label className="field"><span>{label}{required&&<em className="required-mark"> *</em>}</span><input name={name} type={type} defaultValue={defaultValue} required={required} min={type==='number'?0:undefined} step={type==='number'?'any':undefined}/></label>}
 function Select({name,label,value,options}:{name:string;label:string;value:string;options:Array<string|{v:string;l:string}>}){return <label className="field"><span>{label}</span><select name={name} defaultValue={value}>{options.map(o=>typeof o==='string'?<option key={o} value={o}>{o}</option>:<option key={o.v} value={o.v}>{o.l}</option>)}</select></label>}
 function Detail({label,value}:{label:string;value:ReactNode}){return <div className="detail-item"><span>{label}</span><strong>{value}</strong></div>}
-const fmt=(n:number)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:0}).format(n)
-const fmtDate=(v?:string)=>v?new Intl.DateTimeFormat('ar-EG',{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(v)):'—'
+const normalizeAssetStatus = (value: string): AssetStatus => ['متاح','محجوز','مخصص لمشروع','يعمل','تحت الصيانة','خارج الخدمة','متوقف مؤقتًا','موقوف','غير نشط','مستبعد'].includes(value as AssetStatus) ? (value as AssetStatus) : 'متاح'
+const normalizeAssetCondition = (value: string): AssetCondition => ['سليم','جيد','يحتاج فحص','يحتاج صيانة','يحتاج إصلاح','تالف','حرج'].includes(value as AssetCondition) ? (value as AssetCondition) : 'سليم'
+const normalizeAssetOwnership = (value: string): AssetOwnership => ['مملوك','مستأجر','مؤجر','مشترك'].includes(value as AssetOwnership) ? (value as AssetOwnership) : 'مملوك'
+const fmt=(n:number)=>new Intl.NumberFormat(APP_LOCALE,{maximumFractionDigits:0}).format(n)
+const fmtDate=(v?:string)=>v?new Intl.DateTimeFormat(APP_LOCALE,{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(v)):'—'

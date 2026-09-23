@@ -5,6 +5,7 @@ import { ReferenceValue } from '../components/ReferenceValue'
 import { useCurrency } from '../features/settings'
 import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 export type OilRecord = Record<string, unknown>
 
 type Props = {
@@ -20,12 +21,12 @@ type Props = {
 }
 
 function fmt(n: number) {
-  return new Intl.NumberFormat('ar-EG', { maximumFractionDigits: 1 }).format(Number(n || 0))
+  return new Intl.NumberFormat(APP_LOCALE, { maximumFractionDigits: 1 }).format(Number(n || 0))
 }
 function dateText(value: string) {
   if (!value) return '—'
   const d = new Date(value)
-  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('ar-EG', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d)
+  return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(APP_LOCALE, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d)
 }
 function daysBetween(from: string, to = new Date().toISOString().slice(0, 10)) {
   const a = new Date(from); const b = new Date(to)

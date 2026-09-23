@@ -8,6 +8,7 @@ import { DataTable, DetailTabs, EmptyState, StatusBadge } from '../shared/ui'
 import { Button, Card, PageHeader } from '../components/ui'
 import { useCurrency } from '../features/settings'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 type Props={
   project:Project
   assets:Asset[]
@@ -59,13 +60,13 @@ export function ProjectDetailPage({project,assets,operations,workOrders,fuelOps,
     {id:'name',header:'الأصل',sortValue:(r:Asset)=>r.name,render:(r:Asset)=>r.name},
     {id:'type',header:'النوع',sortValue:(r:Asset)=>r.type,render:(r:Asset)=>r.type},
     {id:'status',header:'الحالة',sortValue:(r:Asset)=>r.status,render:(r:Asset)=><StatusBadge>{r.status}</StatusBadge>},
-    {id:'meter',header:'العداد',sortValue:(r:Asset)=>r.meter,render:(r:Asset)=>`${Number(r.meter||0).toLocaleString('ar-EG')} ${r.mt}`},
+    {id:'meter',header:'العداد',sortValue:(r:Asset)=>r.meter,render:(r:Asset)=>`${Number(r.meter||0).toLocaleString(APP_LOCALE)} ${r.mt}`},
   ]} rowKey={r=>r.id} pageSize={12} searchPlaceholder="بحث في أصول المشروع..."/>:<EmptyState title="لا توجد أصول مرتبطة" description="اربط الأصول بالمشروع من بطاقة الأصل أو التخصيص."/>},
   {id:'operations',label:`التشغيل (${linkedOps.length})`,content:<section className="panel"><Section title="التشغيل والعدادات" icon={<Gauge size={18}/>} meta={`${linkedOps.length} سجل`}/>{linkedOps.length?<DataTable rows={linkedOps} columns={[
     {id:'asset',header:'الأصل',render:r=>String(linkedAssets.find(a=>sameReference(r.assetId,a))?.name??r.assetId)},
     {id:'date',header:'التاريخ',render:r=>r.date},
-    {id:'hours',header:'الساعات',render:r=>Number(r.hours||0).toLocaleString('ar-EG')},
-    {id:'meter',header:'العداد',render:r=>Number(r.meter||0).toLocaleString('ar-EG')},
+    {id:'hours',header:'الساعات',render:r=>Number(r.hours||0).toLocaleString(APP_LOCALE)},
+    {id:'meter',header:'العداد',render:r=>Number(r.meter||0).toLocaleString(APP_LOCALE)},
     {id:'status',header:'الحالة',render:r=><StatusBadge>{r.status}</StatusBadge>},
   ]} rowKey={r=>r.id} pageSize={12}/>:<EmptyState title="لا يوجد تشغيل مسجل" description="لم يتم اعتماد تشغيل يومي مرتبط بالمشروع."/>}</section>},
   {id:'maintenance',label:`الصيانة (${linkedOrders.length})`,content:<section className="panel"><Section title="أوامر الصيانة" icon={<Wrench size={18}/>} meta={formatMoney(maintenanceCost)}/>{linkedOrders.length?<DataTable rows={linkedOrders} columns={[

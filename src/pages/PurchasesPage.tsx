@@ -6,6 +6,7 @@ import { ReferenceValue } from '../components/ReferenceValue'
 import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
 import { useCurrency } from '../features/settings'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 type RecordType = Record<string, unknown>
 
 type Props = {
@@ -22,12 +23,12 @@ type Props = {
 const APPROVER_ROLES = ['admin', 'fleet', 'maint']
 
 function fmt(n:number) {
-  return new Intl.NumberFormat('ar-EG',{maximumFractionDigits:2}).format(Number(n||0))
+  return new Intl.NumberFormat(APP_LOCALE,{maximumFractionDigits:2}).format(Number(n||0))
 }
 function dateText(value:string) {
   if(!value)return '—'
   const d=new Date(value)
-  return Number.isNaN(d.getTime())?value:new Intl.DateTimeFormat('ar-EG',{day:'2-digit',month:'2-digit',year:'numeric'}).format(d)
+  return Number.isNaN(d.getTime())?value:new Intl.DateTimeFormat(APP_LOCALE,{day:'2-digit',month:'2-digit',year:'numeric'}).format(d)
 }
 
 export function PurchasesPage({records,user,projects,inventoryItems=[],warehouses=[],canEdit,onSave,onReceive}:Props) {

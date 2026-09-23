@@ -1,7 +1,7 @@
 {
   "name": "kemex-web",
   "private": true,
-  "version": "0.46.0",
+  "version": "0.52.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,12 @@
     "typecheck": "tsc -b --pretty false",
     "test:db": "node --test tests/db/rls.test.mjs",
     "verify:source": "node scripts/verify-source.mjs",
-    "test:source": "node --test tests/frontend/source-integrity.test.mjs"
+    "test:source": "node --test tests/frontend/source-integrity.test.mjs",
+    "test:security": "node --test tests/db/action-authorization.test.mjs tests/frontend/permission-matrix.test.mjs",
+    "verify:migrations": "node scripts/verify-migrations.mjs",
+    "test:security:static": "node --test tests/frontend/permission-matrix.test.mjs",
+    "test:enterprise-sprint": "node --test tests/enterprise/sprint-052.test.mjs",
+    "verify:production": "node scripts/verify-production.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",

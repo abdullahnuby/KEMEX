@@ -3,7 +3,7 @@ export const APP = {
   arabicName: 'إدارة النقل والأسطول والمعدات',
   subtitle: 'النقل • الأسطول • المعدات • الصيانة • الوقود • التكاليف',
   company: 'شركة المجموعة للنقل والمعدات',
-  version: '0.46.0',
+  version: '0.52.0',
 }
 
 
@@ -145,4 +145,59 @@ export function canWriteModule(module:string, role:string){
     'true-cost':['admin','mgmt','fleet','pm','acct']
   }
   return (allowed[module]??[]).includes(role as RoleKey)
+}
+
+
+/** Canonical UI capability matrix. The database migration 024 mirrors these sensitive actions. */
+export const ACTION_PERMISSIONS: Record<string, readonly RoleKey[]> = {
+  'users:manage': ['admin'],
+  'audit:read': ['admin','mgmt','fleet','maint','acct'],
+  'maintenance:transition': ['admin','maint','fleet'],
+  'trips:transition': ['admin','fleet','pm','acct'],
+  'purchases:approve': ['admin','fleet','maint'],
+  'purchases:receive': ['admin','fleet','maint','acct'],
+  'invoices:approve': ['admin','acct'],
+  'invoices:pay': ['admin','acct'],
+  'attachments:write': ['admin','fleet','pm','eng','maint','acct'],
+  'observability:write': ['admin','mgmt','fleet','pm','eng','maint','acct'],
+}
+
+export function canAction(module: string, action: string, role: string): boolean {
+  if (role === 'admin') return true
+  const allowed = ACTION_PERMISSIONS[`${module}:${action}`]
+  return Boolean(allowed?.includes(role as RoleKey))
+}
+
+export function canDeleteModule(module: string, role: string): boolean {
+  if (role === 'admin') return true
+  const allowed: Record<string, RoleKey[]> = {
+    assets: ['fleet'], drivers: ['fleet'], contracts: [], maintenance: [], breakdowns: [],
+    plans: [], oils: [], tires: [], fuel: ['fleet'], operations: ['fleet'], requests: [],
+    assignments: ['fleet'], projects: [], inventory: ['fleet'], purchases: [], costs: [],
+    charging: [], invoices: [], customers: [], trips: ['fleet'], audit: [], settings: [],
+    'true-cost': [],
+  }
+  return (allowed[module] ?? []).includes(role as RoleKey)
+}
+
+export function canApproveModule(module: string, role: string): boolean {
+  if (canAction(module, 'approve', role)) return true
+  if (module === 'maintenance' || module === 'trips') return canAction(module, 'transition', role)
+  const allowed: Record<string, RoleKey[]> = {
+    requests: ['admin','fleet','pm'], assignments: ['admin','fleet','pm'],
+    breakdowns: ['admin','maint','fleet'],
+  }
+  return (allowed[module] ?? []).includes(role as RoleKey)
+}
+
+export function canExportModule(_module: string, role: string): boolean {
+  return ['admin', 'mgmt', 'fleet', 'pm', 'maint', 'acct'].includes(role)
+}
+
+export function canManageUsers(role: string): boolean {
+  return canAction('users', 'manage', role)
+}
+
+export function canReadAudit(role: string): boolean {
+  return canAction('audit', 'read', role)
 }

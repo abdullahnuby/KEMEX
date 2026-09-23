@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Ban, Check, Download, Eye, Flag, Info, Pencil, Plus, RotateCcw, Search, Send, ShoppingCart, Trash2, X } from 'lucide-react'
 import { MODULE_CONFIG, canWriteModule, type ModuleField, type WorkflowAction } from '../config/modules'
+import { canApproveModule, canDeleteModule, canExportModule } from '../config/app'
 import type { Asset, Driver, Project, User, WorkOrder } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { displayReference, referenceOptions, type ReferenceLookups } from '../utils/referenceLabels'
@@ -25,8 +26,10 @@ export function ModuleRecordsPage({module,records,onSave,onDelete,onWorkflow,onN
   const rows=useMemo(()=>records.filter(r=>statusFilter==='all'||statusGroup(r)===statusFilter),[records,statusFilter])
   const columns=(cfg.display??cfg.fields.map(f=>f.key)).slice(0,7).map(k=>cfg.fields.find(f=>f.key===k)!).filter(Boolean)
   const canEdit=!cfg.readOnly&&canWriteModule(module,user.role)
+  const canDelete=canEdit&&canDeleteModule(module,user.role)
+  const canApprove=canApproveModule(module,user.role)
 
-  function availableActions(record:Record<string,unknown>){if(!workflow)return [];const status=String(record[workflow.statusField??'status']??'');return workflow.actions.filter(a=>a.roles.includes(user.role)&&a.from.includes(status))}
+  function availableActions(record:Record<string,unknown>){if(!workflow)return [];const status=String(record[workflow.statusField??'status']??'');return workflow.actions.filter(a=>a.roles.includes(user.role)&&a.from.includes(status)&&(a.key==='approve'||a.key==='reject'||a.key==='po'?canApprove:canEdit))}
   async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();if(!editing||busy)return;setActionError('');setBusy(true);const fd=new FormData(e.currentTarget);const next={...editing};try{cfg.fields.forEach(f=>{if(workflow&&f.key===(workflow.statusField??'status'))return;const raw=String(fd.get(f.key)??'').trim();if(f.type==='number'){if(raw===''){next[f.key]='';return};const n=Number(raw);if(!Number.isFinite(n)||n<0)throw new Error(`قيمة غير صالحة في حقل ${f.label}؛ أدخل رقمًا غير سالب.`);next[f.key]=n;return}next[f.key]=raw});if(workflow&&!next.status)next.status=workflow.createStatus??'';await onSave(next);setEditing(null)}catch(err){setActionError(err instanceof Error?err.message:'تعذر حفظ السجل. حاول مرة أخرى.')}finally{setBusy(false)}}
   function newRecord(){const x:Record<string,unknown>={id:`${module.toUpperCase()}-${Date.now()}`};cfg.fields.forEach(f=>x[f.key]='');if(workflow?.createStatus)x[workflow.statusField??'status']=workflow.createStatus;if(module==='requests'){x.number=`REQ-${500+records.length+1}`;x.date=new Date().toISOString().slice(0,10);x.req=user.name;x.apprs=[];x.reason=''}if(module==='assignments')x.number=`AS-${300+records.length+1}`;if(module==='operations')x.src='ويب';if(module==='trips')x.number=`TRP-${100+records.length+1}`;if(module==='purchases'){x.number=`PR-${100+records.length+1}`;x.date=new Date().toISOString().slice(0,10);x.req=user.name;x.po='';x.supplier=''}setActionError('');setEditing(x)}
   async function runWorkflow(record:Record<string,unknown>,action:WorkflowAction){if(busy)return;if(action.kind==='navigate'&&action.route&&onNavigate){onNavigate(`${action.route}/${encodeURIComponent(String(record.id))}`);setViewing(null);return}const statusField=workflow?.statusField??'status';const current=String(record[statusField]??'');if(!action.from.includes(current)){setActionError('حالة السجل تغيّرت؛ أعد تحميل الصفحة قبل تنفيذ الإجراء.');return}if(action.tone==='danger'&&!window.confirm(`هل تريد تنفيذ «${action.label}» على هذا السجل؟`))return;setActionError('');setBusy(true);const next={...record,[statusField]:action.to};const trail=Array.isArray(record.apprs)?record.apprs:[];next.apprs=[...trail,{by:user.name,act:action.label}];if(module==='requests'&&action.key==='reject')next.reason=`رفض بواسطة ${user.name}`;if(module==='purchases'&&action.key==='po'&&!String(next.po??'').trim())next.po=`PO-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;try{if(onWorkflow)await onWorkflow(next,record,action);else await onSave(next);setViewing(null)}catch(err){setActionError(err instanceof Error?err.message:'تعذر تنفيذ الإجراء. حاول مرة أخرى.')}finally{setBusy(false)}}
@@ -38,7 +41,7 @@ export function ModuleRecordsPage({module,records,onSave,onDelete,onWorkflow,onN
       description={cfg.description}
       action={(
         <>
-          <Button variant="secondary" icon={<Download size={16}/>} onClick={exportCsv} disabled={!rows.length}>تصدير CSV</Button>
+          <Button variant="secondary" icon={<Download size={16}/>} onClick={exportCsv} disabled={!rows.length || !canExportModule(module,user.role)}>تصدير CSV</Button>
           {canEdit ? <Button icon={<Plus size={16}/>} onClick={newRecord}>إضافة سجل</Button> : null}
         </>
       )}
@@ -57,7 +60,30 @@ export function ModuleRecordsPage({module,records,onSave,onDelete,onWorkflow,onN
         columns={[
           ...columns.map(c=>({ id:c.key, header:c.label, render:(r:Record<string,unknown>)=>c.key==='status'?<StatusBadge tone={statusGroup(r)==='approved'?'emerald':statusGroup(r)==='rejected'?'red':statusGroup(r)==='pending'?'amber':'blue'}>{valueText(r[c.key])}</StatusBadge>:<ReferenceValue field={c.key} value={r[c.key]} lookups={lookups} />, sortValue:(r:Record<string,unknown>)=>displayReference(c.key,r[c.key],lookups) })),
           { id:'view', header:'عرض', render:(r:Record<string,unknown>)=><Button variant="ghost" size="sm" icon={<Eye size={15}/>} onClick={()=>setViewing({...r})}>عرض</Button> },
-          ...((canEdit||Boolean(workflow?.actions.length))?[{ id:'actions', header:'إجراءات', render:(r:Record<string,unknown>)=>{const actions=availableActions(r);return <div className="flex flex-wrap gap-2">{actions.map(a=><WorkflowButton key={a.key} action={a} disabled={busy} onClick={()=>void runWorkflow(r,a)}/>) }{canEdit&&<><Button variant="ghost" size="sm" icon={<Pencil size={15}/>} onClick={()=>setEditing({...r})}>تعديل</Button><Button variant="danger" size="sm" icon={<Trash2 size={15}/>} disabled={deleting===String(r.id)} onClick={()=>{if(!r.id){setActionError('لا يمكن حذف سجل بدون معرّف.');return}if(window.confirm('هل تريد حذف هذا السجل نهائيًا؟')){setActionError('');setDeleting(String(r.id));void Promise.resolve(onDelete(String(r.id))).catch((err: unknown)=>setActionError(err instanceof Error?err.message:'تعذر حذف السجل. حاول مرة أخرى.')).finally(()=>setDeleting(null))}}}>{deleting===String(r.id)?'جارٍ الحذف…':'حذف'}</Button></>}</div>} }]:[]),
+          ...((canEdit || Boolean(workflow?.actions.length)) ? [{
+            id: 'actions',
+            header: 'إجراءات',
+            render: (r: Record<string, unknown>) => {
+              const actions = availableActions(r)
+              return (
+                <div className="flex flex-wrap gap-2">
+                  {actions.map(a => <WorkflowButton key={a.key} action={a} disabled={busy} onClick={() => void runWorkflow(r, a)} />)}
+                  {canEdit && <>
+                    <Button variant="ghost" size="sm" icon={<Pencil size={15} />} onClick={() => setEditing({ ...r })}>تعديل</Button>
+                    {canDelete && <Button variant="danger" size="sm" icon={<Trash2 size={15} />} disabled={deleting === String(r.id)} onClick={() => {
+                      if (!r.id) { setActionError('لا يمكن حذف سجل بدون معرّف.'); return }
+                      if (window.confirm('هل تريد حذف هذا السجل نهائيًا؟')) {
+                        setActionError(''); setDeleting(String(r.id))
+                        void Promise.resolve(onDelete(String(r.id)))
+                          .catch((err: unknown) => setActionError(err instanceof Error ? err.message : 'تعذر حذف السجل. حاول مرة أخرى.'))
+                          .finally(() => setDeleting(null))
+                      }
+                    }}>{deleting === String(r.id) ? 'جارٍ الحذف…' : 'حذف'}</Button>}
+                  </>}
+                </div>
+              )
+            }
+          }] : []),
         ]}
         rowKey={r=>String(r.id ?? '')}
         searchable

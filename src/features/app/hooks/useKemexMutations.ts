@@ -1,3 +1,4 @@
+import { assertTransition, workflowDomainForModule } from '../../../shared/workflows/workflowEngine'
 import { useCallback, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { repository } from '../../../services/repositoryFactory'
@@ -29,6 +30,7 @@ type UseKemexMutationsOptions = {
   userName?: string
   route: string
   assets: Asset[]
+  workOrders: WorkOrder[]
   moduleData: Record<string, KemexModuleRecord[]>
   navigate: (route: string) => void
 }
@@ -38,6 +40,7 @@ export function useKemexMutations({
   userName,
   route,
   assets,
+  workOrders,
   moduleData,
   navigate,
 }: UseKemexMutationsOptions) {
@@ -185,7 +188,32 @@ export function useKemexMutations({
 
   const saveWorkOrder = useCallback(async (workOrder: WorkOrder) => {
     try {
+      const existing = workOrder.id ? workOrders.find(item => item.id === workOrder.id) : undefined
+      if (existing) assertTransition('maintenance', existing.status, workOrder.status)
       await repository.saveWorkOrder(workOrder)
+
+      // Preventive-maintenance lifecycle: once a work order linked to a plan
+      // is completed, advance the plan's execution baseline automatically.
+      // This closes the P0 gap identified in the enterprise maintenance audit.
+      if (workOrder.status === 'مكتمل' && workOrder.planId) {
+        const plan = (moduleData.plans ?? []).find(item => String(item.id ?? '') === String(workOrder.planId))
+        if (plan) {
+          const asset = assets.find(item => item.id === workOrder.asset || item.code === workOrder.asset)
+          const completedDate = String(workOrder.completed ?? new Date().toISOString().slice(0, 10))
+          const currentLastDate = String(plan.lastDate ?? '')
+          const currentLastMeter = Number(plan.lastMeter ?? 0)
+          const nextMeter = asset ? Math.max(currentLastMeter, Number(asset.meter ?? 0)) : currentLastMeter
+          const nextDate = !currentLastDate || completedDate >= currentLastDate ? completedDate : currentLastDate
+          await repository.saveModuleRecord('plans', {
+            ...plan,
+            lastMeter: nextMeter,
+            lastDate: nextDate,
+            lastWorkOrderId: workOrder.id,
+            lastCompletedAt: completedDate,
+          })
+        }
+      }
+
       setError('')
       await invalidateData()
     } catch (err) {
@@ -193,7 +221,7 @@ export function useKemexMutations({
       setError(`تعذر حفظ أمر الصيانة: ${message}`)
       throw err
     }
-  }, [formatError, invalidateData])
+  }, [assets, formatError, invalidateData, moduleData.plans, workOrders])
 
   const saveFuelOperation = useCallback(async (operation: FuelOperation) => {
     try {
@@ -209,6 +237,11 @@ export function useKemexMutations({
 
   const saveModule = useCallback(async (module: string, record: KemexModuleRecord) => {
     try {
+      const domain = workflowDomainForModule(module, String(record.kind ?? ''))
+      if (domain && record.id) {
+        const existing = (moduleData[module] ?? []).find(item => String(item.id ?? '') === String(record.id))
+        if (existing) assertTransition(domain, String(existing.status ?? ''), String(record.status ?? ''))
+      }
       await repository.saveModuleRecord(module, record)
       setError('')
       await invalidateData()
@@ -217,7 +250,7 @@ export function useKemexMutations({
       setError(`تعذر حفظ السجل: ${message}`)
       throw err
     }
-  }, [formatError, invalidateData])
+  }, [formatError, invalidateData, moduleData])
 
   const createPurchaseFromInventory = useCallback(async (item: KemexModuleRecord) => {
     const records = moduleData.purchases ?? []

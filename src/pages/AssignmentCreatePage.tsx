@@ -1,9 +1,10 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { ArrowRight, ClipboardCheck, Truck } from 'lucide-react'
-import type { Asset, Project } from '../types/tfms'
+import type { Asset, AssetStatus, Project } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { PageHeader } from '../shared/ui'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 type RecordLike=Record<string,unknown>
 
 type Props={
@@ -57,7 +58,7 @@ export function AssignmentCreatePage({request,assets,projects,onSaveAssignment,o
         status:'قيد التنفيذ',
         apprs:[...(Array.isArray(request.apprs)?request.apprs:[]),{by:userName,act:`اعتماد التخصيص — ${number}`}],
       }
-      const nextAsset={...selected,status:selected.own==='مملوك'?'مخصص لمشروع':'يعمل',proj:String(request.proj??selected.proj??'')}
+      const nextAsset: Asset = { ...selected, status: (selected.own === 'مملوك' ? 'مخصص لمشروع' : 'يعمل') as AssetStatus, proj: String(request.proj ?? selected.proj ?? '') }
       await onSaveAssignment(assignment)
       await onSaveAsset(nextAsset)
       await onUpdateRequest(nextRequest)
@@ -77,7 +78,7 @@ export function AssignmentCreatePage({request,assets,projects,onSaveAssignment,o
         <label className="field"><span>المسؤول عن العهدة</span><input value={cust} onChange={e=>setCust(e.target.value)} /></label>
         <label className="field"><span>تاريخ بداية التخصيص *</span><input type="date" value={from} onChange={e=>setFrom(e.target.value)} required /></label>
         <label className="field"><span>المدة المخططة (شهر) *</span><input type="number" min="1" step="1" value={months} onChange={e=>setMonths(e.target.value)} required /></label>
-        {selected&&<label className="field"><span>عداد التسليم</span><div className="workflow-status-readonly"><strong>{selected.meter.toLocaleString('ar-EG')}</strong><small>{selected.mt}</small></div></label>}
+        {selected&&<label className="field"><span>عداد التسليم</span><div className="workflow-status-readonly"><strong>{selected.meter.toLocaleString(APP_LOCALE)}</strong><small>{selected.mt}</small></div></label>}
         <div className="modal-actions form-span-all"><button type="button" className="secondary-button" disabled={busy} onClick={onBack}>إلغاء</button><button className="primary-button" disabled={busy}>{busy?'جارٍ تسجيل التخصيص...':'اعتماد التخصيص وتسجيل التسليم'}</button></div>
       </form>}
     </section>}

@@ -6,6 +6,7 @@ import { ReferenceValue } from '../components/ReferenceValue'
 import { sameReference } from '../utils/referenceLabels'
 import { useCurrency } from '../features/settings'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 type DashboardPeriod = 30 | 90 | 180
 
 export function DashboardPage({ assets, projects, workOrders, fuelOps, operations, onRoute }: { assets: Asset[]; projects: Project[]; workOrders: WorkOrder[]; fuelOps: FuelOperation[]; operations: Operation[]; onRoute: (route: string) => void }) {
@@ -232,7 +233,7 @@ function buildMonthlyCost(fuelOps: FuelOperation[], workOrders: WorkOrder[]) {
     const d = new Date()
     d.setDate(1)
     d.setMonth(d.getMonth() - (5 - index))
-    return { key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, label: new Intl.DateTimeFormat('ar-EG', { month: 'short' }).format(d) }
+    return { key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, label: new Intl.DateTimeFormat(APP_LOCALE, { month: 'short' }).format(d) }
   })
   return months.map(month => ({
     label: month.label,
@@ -249,7 +250,7 @@ const sum = (values: number[]) => values.reduce((total, value) => total + (Numbe
 const monthKey = (value: string) => { const date = new Date(value); return Number.isNaN(date.getTime()) ? '' : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` }
 const withinDays = (value: string, days: number) => { const time = new Date(value).getTime(); return Number.isFinite(time) && (Date.now() - time) / 86400000 >= 0 && (Date.now() - time) / 86400000 <= days }
 const daysTo = (value: string) => Math.ceil((new Date(value).getTime() - Date.now()) / 86400000)
-const fmt = (value: number) => new Intl.NumberFormat('ar-EG', { maximumFractionDigits: 1 }).format(Number(value || 0))
-const fmtDate = (value: string) => value ? new Intl.DateTimeFormat('ar-EG', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value)) : '—'
+const fmt = (value: number) => new Intl.NumberFormat(APP_LOCALE, { maximumFractionDigits: 1 }).format(Number(value || 0))
+const fmtDate = (value: string) => value ? new Intl.DateTimeFormat(APP_LOCALE, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value)) : '—'
 const periodLabel = (period: DashboardPeriod) => period === 30 ? 'آخر 30 يومًا' : period === 90 ? 'آخر 90 يومًا' : 'آخر 6 أشهر'
 const periodLabelShort = (period: DashboardPeriod) => period === 30 ? '30 يوم' : period === 90 ? '90 يوم' : '6 أشهر'

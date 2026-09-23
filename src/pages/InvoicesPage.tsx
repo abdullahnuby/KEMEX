@@ -5,6 +5,7 @@ import { ReferenceValue } from '../components/ReferenceValue'
 import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
 import { useCurrency } from '../features/settings'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 type Props={records:Record<string,unknown>[];user:User;canEdit:boolean;vatRate:number;onSave:(record:Record<string,unknown>)=>Promise<void>|void;assets?:Asset[];projects?:Project[];drivers?:Driver[];workOrders?:WorkOrder[];moduleData?:Record<string,Record<string,unknown>[]>}
 const supplierFlow=['مسجلة','بانتظار مراجعة','معتمدة','مرحلة','مدفوعة'];const customerFlow=['مسجلة','بانتظار مراجعة','معتمدة','محصلة']
 export function InvoicesPage({records,user,canEdit,vatRate,onSave,assets=[],projects=[],drivers=[],workOrders=[],moduleData={}}:Props){
@@ -45,7 +46,7 @@ function ReferenceSelect({name,label,value,assets,projects,moduleData}:{name:str
 }
 
 function Field({name,label,value,type='text',required}:{name:string;label:string;value:string;type?:string;required?:boolean}){return <label className="field"><span>{label}{required?' *':''}</span><input name={name} type={type} defaultValue={value} required={required} min={type==='number'?0:undefined}/></label>}
-function fmt(n:number){return new Intl.NumberFormat('ar-EG',{maximumFractionDigits:0}).format(n||0)}
+function fmt(n:number){return new Intl.NumberFormat(APP_LOCALE,{maximumFractionDigits:0}).format(n||0)}
 function FormBlock({title,hint,children}:{title:string;hint:string;children:ReactNode}){return <section className="form-section"><div className="form-section-head"><strong>{title}</strong><span>{hint}</span></div><div className="form-grid">{children}</div></section>}
 
 function Metric({icon:Icon,label,value}:{icon:typeof ReceiptText;label:string;value:string|number}){return <div className="metric-card"><div className="metric-icon"><Icon size={18}/></div><div className="metric-body"><span>{label}</span><strong>{value}</strong></div></div>}

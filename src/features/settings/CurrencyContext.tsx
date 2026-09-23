@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 
+import { APP_LOCALE } from '../../shared/formatters/locale'
 export type CurrencyCode = 'EGP' | 'SAR' | 'AED' | 'USD' | 'EUR' | 'KWD' | 'QAR'
 
 export const CURRENCY_OPTIONS: Array<{ code: CurrencyCode; label: string }> = [
@@ -35,7 +36,7 @@ export function CurrencyProvider({ currencyCode, children }: { currencyCode?: st
       currencyLabel: option?.label ?? code,
       formatMoney: (amount, options) => {
         if (amount == null || !Number.isFinite(Number(amount))) return '—'
-        return new Intl.NumberFormat('ar-EG', {
+        return new Intl.NumberFormat(APP_LOCALE, {
           style: 'currency',
           currency: code,
           currencyDisplay: 'symbol',
@@ -43,7 +44,7 @@ export function CurrencyProvider({ currencyCode, children }: { currencyCode?: st
           ...options,
         }).format(Number(amount))
       },
-      formatNumber: (amount, maximumFractionDigits = 2) => new Intl.NumberFormat('ar-EG', {
+      formatNumber: (amount, maximumFractionDigits = 2) => new Intl.NumberFormat(APP_LOCALE, {
         maximumFractionDigits,
       }).format(Number(amount ?? 0) || 0),
     }

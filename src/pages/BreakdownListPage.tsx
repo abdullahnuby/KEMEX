@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { APP_LOCALE } from '../shared/formatters/locale'
 import {
   AlertTriangle,
   Clock,
@@ -142,7 +143,7 @@ export function BreakdownListPage({
         const d = new Date(row.breakdown_datetime)
         return (
           <span className="text-sm font-medium text-slate-700">
-            {new Intl.DateTimeFormat('ar-EG', {
+            {new Intl.DateTimeFormat(APP_LOCALE, {
               year: 'numeric',
               month: 'short',
               day: 'numeric',

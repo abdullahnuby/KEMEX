@@ -6,6 +6,7 @@ import { ReferenceValue } from '../components/ReferenceValue'
 import { Button, DataTable, IconButton, PageHeader, StatusBadge } from '../components/ui'
 import { FormSection, OperationalSummaryStrip } from '../shared/ui'
 
+import { APP_LOCALE } from '../shared/formatters/locale'
 type MaintenancePageProps = {
   workOrders: WorkOrder[]
   assets: Asset[]
@@ -28,6 +29,7 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
   const waitingCount = workOrders.filter(order => ['بانتظار الاعتماد', 'بانتظار قطع غيار'].includes(order.status)).length
   const completedCount = workOrders.filter(order => order.status === 'مكتمل').length
   const highPriorityCount = workOrders.filter(order => ['عالية', 'عاجلة', 'حرجة'].includes(order.prio) && !['مكتمل', 'ملغى'].includes(order.status)).length
+  const maintenanceKpis = calculateMaintenanceKpis(workOrders)
 
   function newWorkOrder() {
     const firstAsset = assets[0]?.id ?? ''
@@ -188,6 +190,8 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
         <Stat icon={Clock3} label="بانتظار إجراء" value={waitingCount} />
         <Stat icon={CheckCircle2} label="مكتملة" value={completedCount} />
         <Stat icon={AlertCircle} label="أولوية عالية" value={highPriorityCount} />
+        <Stat icon={Clock3} label="MTTR" value={maintenanceKpis.mttrHours === null ? '—' : `${formatNumber(maintenanceKpis.mttrHours)} س`} />
+        <Stat icon={Wrench} label="MTBF تقديري" value={maintenanceKpis.mtbfDays === null ? '—' : `${formatNumber(maintenanceKpis.mtbfDays)} يوم`} />
       </div>
 
       <OperationalSummaryStrip items={[
@@ -308,11 +312,46 @@ function Input({ name, label, value, type = 'text' }: { name: string; label: str
   return <label className="field"><span>{label}</span><input name={name} type={type} defaultValue={value} min={type === 'number' ? 0 : undefined} step={type === 'number' ? 'any' : undefined} /></label>
 }
 
-function Stat({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: number }) {
-  return <div className="metric-card"><div className="metric-icon"><Icon size={18} /></div><div className="metric-body"><span>{label}</span><strong>{value}</strong></div></div>
+function Stat({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: number | string }) {
+  return <div className="metric-card"><div className="metric-icon"><Icon size={18} /></div><div className="metric-body"><span>{label}</span><strong>{String(value)}</strong></div></div>
 }
 
-const formatDate = (value?: string) => value ? new Intl.DateTimeFormat('ar-EG', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value)) : '—'
+const formatDate = (value?: string) => value ? new Intl.DateTimeFormat(APP_LOCALE, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value)) : '—'
+
+
+function calculateMaintenanceKpis(workOrders: WorkOrder[]) {
+  const completed = workOrders
+    .filter(order => order.status === 'مكتمل' && order.completed)
+    .map(order => ({
+      ...order,
+      completedAt: new Date(order.completed as string).getTime(),
+      openedAt: new Date(order.opened).getTime(),
+    }))
+    .filter(order => Number.isFinite(order.completedAt) && Number.isFinite(order.openedAt))
+
+  const downtimeOrders = completed.filter(order => Number(order.downHrs || 0) > 0)
+  const mttrHours = downtimeOrders.length
+    ? downtimeOrders.reduce((sum, order) => sum + Number(order.downHrs || 0), 0) / downtimeOrders.length
+    : null
+
+  const byAsset = new Map<string, number[]>()
+  for (const order of completed.filter(order => order.type !== 'صيانة دورية' && order.type !== 'وقائية')) {
+    const dates = byAsset.get(order.asset) ?? []
+    dates.push(order.openedAt)
+    byAsset.set(order.asset, dates)
+  }
+  const intervals:number[] = []
+  for (const dates of byAsset.values()) {
+    dates.sort((a,b)=>a-b)
+    for(let i=1;i<dates.length;i++) intervals.push((dates[i]-dates[i-1])/86400000)
+  }
+  const mtbfDays = intervals.length ? intervals.reduce((sum,value)=>sum+value,0)/intervals.length : null
+  return { mttrHours, mtbfDays }
+}
+
+function formatNumber(value:number){
+  return new Intl.NumberFormat(APP_LOCALE,{maximumFractionDigits:1}).format(value)
+}
 
 function TechnicianModal({ technicians, onClose, onSave }: { technicians: MaintenanceTechnician[]; onClose: () => void; onSave?: (technician: MaintenanceTechnician) => Promise<void> }) {
   const [saving, setSaving] = useState(false)

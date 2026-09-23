@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import {
   useAssetQueries,
+  useApprovalEventsQuery,
   useInventoryQueries,
   useMaintenanceQueries,
   useModuleRecordsQueries,
@@ -39,6 +40,7 @@ export interface KemexBootstrapData {
   maintenanceTechnicians: MaintenanceTechnician[]
   maintenanceParts: MaintenancePart[]
   moduleData: Record<string, Record<string, unknown>[]>
+  approvalEvents: Record<string, unknown>[]
   settings: BootstrapSettings
   failures: string[]
 }
@@ -48,7 +50,7 @@ export interface KemexBootstrapData {
  * into the data shape expected by the existing page layer.
  */
 
-export function useKemexBootstrap(userId: string | undefined) {
+export function useKemexBootstrap(userId: string | undefined, activeRoute = 'dashboard') {
   const assetsQuery = useAssetQueries(userId)
   const projectsQuery = useProjectQueries(userId)
   const maintenanceQuery = useMaintenanceQueries(userId)
@@ -56,7 +58,8 @@ export function useKemexBootstrap(userId: string | undefined) {
   const operationsQuery = useOperationsQueries(userId)
   const tripsQuery = useTripQueries(userId)
   const settingsQuery = useSettingsQuery(userId)
-  const modulesQuery = useModuleRecordsQueries(userId)
+  const modulesQuery = useModuleRecordsQueries(userId, activeRoute)
+  const approvalEventsQuery = useApprovalEventsQuery(userId)
 
   const data = useMemo<KemexBootstrapData>(() => {
     const settingsRaw = settingsQuery.data ?? {}
@@ -69,6 +72,7 @@ export function useKemexBootstrap(userId: string | undefined) {
       ...tripsQuery.failures,
       settingsQuery.isError ? `الإعدادات: ${settingsQuery.error instanceof Error ? settingsQuery.error.message : 'تعذر تحميل البيانات'}` : '',
       ...modulesQuery.failures,
+      approvalEventsQuery.isError ? `سجل الاعتمادات: ${approvalEventsQuery.error instanceof Error ? approvalEventsQuery.error.message : 'تعذر تحميل البيانات'}` : '',
     ].filter(Boolean)
 
     return {
@@ -88,6 +92,7 @@ export function useKemexBootstrap(userId: string | undefined) {
       trips: tripsQuery.trips,
       tripCosts: tripsQuery.tripCosts,
       moduleData: modulesQuery.data,
+      approvalEvents: approvalEventsQuery.data ?? [],
       settings: {
         alertDays: Number(settingsRaw.alert_days ?? 30),
         alertKm: Number(settingsRaw.alert_km ?? 1500),
@@ -108,9 +113,10 @@ export function useKemexBootstrap(userId: string | undefined) {
     tripsQuery,
     settingsQuery,
     modulesQuery,
+    approvalEventsQuery,
   ])
 
-  const queries = [assetsQuery, projectsQuery, maintenanceQuery, inventoryQuery, operationsQuery, tripsQuery, settingsQuery]
+  const queries = [assetsQuery, projectsQuery, maintenanceQuery, inventoryQuery, operationsQuery, tripsQuery, settingsQuery, approvalEventsQuery]
   const isPending = queries.some(query => query.isPending) || modulesQuery.isPending
   const isFetching = queries.some(query => query.isFetching) || modulesQuery.isFetching
   const isError = data.failures.length > 0
