@@ -189,7 +189,8 @@ function renderMobileReports(items: readonly ReportNavigationItem[], route: stri
 
 function matchesQuery(item: NavigationItem | ReportNavigationItem, q: string) {
   if (!q) return true
-  return [item.label, item.hint, item.key, item.route, 'section' in item ? item.section : ''].some(value => value.toLocaleLowerCase('ar-EG').includes(q))
+  const values = [item.label, item.hint, item.key, item.route, 'section' in item ? item.section ?? '' : ''] as const
+  return values.some(value => value.toLocaleLowerCase('ar-EG').includes(q))
 }
 
 function permissionKeyForNavItem(item: NavigationItem) { return item.permissionModule ?? item.key }
