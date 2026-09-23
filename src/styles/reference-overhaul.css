@@ -2,30 +2,7 @@
    Reference target: clean Arabic enterprise UI, flat slate surfaces, restrained teal actions,
    strong information hierarchy, dense-but-readable cards, and top navigation only.
 */
-:root{
-  --ref-bg:#eef2f6;
-  --ref-surface:#ffffff;
-  --ref-surface-soft:#f8fafc;
-  --ref-border:#e2e8f0;
-  --ref-border-soft:#edf2f7;
-  --ref-text:#0f172a;
-  --ref-text-2:#334155;
-  --ref-muted:#64748b;
-  --ref-muted-2:#94a3b8;
-  --ref-primary:#0e7490;
-  --ref-primary-dark:#155e75;
-  --ref-primary-soft:#ecfeff;
-  --ref-success-bg:#dcfce7;
-  --ref-success:#15803d;
-  --ref-warning-bg:#fef3c7;
-  --ref-warning:#a16207;
-  --ref-danger-bg:#fee2e2;
-  --ref-danger:#b91c1c;
-  --ref-info-bg:#dbeafe;
-  --ref-info:#1d4ed8;
-  --ref-radius:14px;
-  --ref-shadow:0 1px 2px rgba(15,23,42,.04);
-}
+/* Canonical tokens live in shared/ui/design-system.css. */
 
 html,body,#root{background:var(--ref-bg);color:var(--ref-text)}
 body{font-family:'Cairo','Tajawal',ui-sans-serif,system-ui,sans-serif;font-size:14px;line-height:1.75}

@@ -128,7 +128,8 @@ export function TiresPage({ records, operations, assets, canEdit, onSave, onSave
           { id:'status', header:'الحالة', render:t=>{const status=String(t.status??'');return <StatusBadge tone={status==='مستبعد'?'red':status==='يحتاج فحص'||status==='قيد الإصلاح'?'amber':status==='بالخدمة'?'emerald':'gray'}>{status||'—'}</StatusBadge>}, sortValue:t=>String(t.status??'') },
           ...(canEdit?[{ id:'actions', header:'إجراءات', render:(t:TireRecord)=><div className="flex flex-wrap gap-2">{(String(t.status)==='مخزن'||String(t.status)==='قيد الإصلاح')&&<Button size="sm" icon={<Wrench size={13}/>} onClick={()=>openAction(t,'تركيب')}>تركيب</Button>}{String(t.status)==='بالخدمة'&&<><Button variant="secondary" size="sm" icon={<Eye size={13}/>} onClick={()=>openAction(t,'فحص')}>فحص</Button><Button variant="secondary" size="sm" icon={<RotateCcw size={13}/>} onClick={()=>openAction(t,'تدوير')}>تدوير</Button><Button variant="secondary" size="sm" icon={<MinusCircle size={13}/>} onClick={()=>openAction(t,'فك')}>فك</Button></>}{String(t.status)==='يحتاج فحص'&&<Button variant="secondary" size="sm" onClick={()=>openAction(t,'إصلاح')}>إصلاح</Button>}{String(t.status)!=='مستبعد'&&<Button variant="danger" size="sm" onClick={()=>openAction(t,'استبدال')}>إخراج</Button>}</div>}]:[]),
         ]}
-        rowKey={t=>String(t.id)}
+        enableColumnVisibility columnVisibilityStorageKey="kemex.tires.registry.columns.v1" exportable exportFileName="KEMEX-tires"
+      rowKey={t=>String(t.id)}
         search={query}
         onSearchChange={setQuery}
         searchableText={t=>[t.code,t.brand,t.size,t.asset,t.position,t.status].map(v=>String(v??'')).join(' ')}
@@ -148,7 +149,8 @@ export function TiresPage({ records, operations, assets, canEdit, onSave, onSave
           { id:'cost', header:'التكلفة', render:o=>formatMoney(Number(o.cost||0)), sortValue:o=>Number(o.cost||0) },
           { id:'notes', header:'ملاحظات', render:o=>String(o.notes??'—') },
         ]}
-        rowKey={o=>String(o.id)}
+        enableColumnVisibility columnVisibilityStorageKey="kemex.tires.operations.columns.v1" exportable exportFileName="KEMEX-tires"
+      rowKey={o=>String(o.id)}
         searchableText={o=>Object.values(o).map(value=>String(value??'')).join(' ')}
         emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد عمليات مسجلة.</div>}
       />

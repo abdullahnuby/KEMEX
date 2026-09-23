@@ -3,6 +3,7 @@ import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import type { Asset, InventoryItem, Project, StockMovement, StockMovementType, Warehouse, WorkOrder } from '../types/tfms'
 import { useCurrency } from '../features/settings'
 import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
+import { OperationalSummaryStrip } from '../shared/ui'
 
 /** Input accepted by the atomic stock-posting RPC. */
 type PostMovementInput = {
@@ -202,6 +203,13 @@ export function InventoryPage({
         <Metric icon={ShoppingCart} label="قيمة المخزون" value={formatMoney(inventoryValue)} />
       </div>
 
+      <OperationalSummaryStrip items={[
+        { id:'items', label:'الأصناف', value:items.length },
+        { id:'low', label:'تحت حد إعادة الطلب', value:lowStockCount, tone:lowStockCount?'alert':'default' },
+        { id:'warehouses', label:'المخازن', value:warehouses.length },
+        { id:'value', label:'قيمة المخزون', value:formatMoney(inventoryValue) },
+      ]} />
+
       <DataTable
         rows={filteredItems}
         columns={[
@@ -218,6 +226,11 @@ export function InventoryPage({
         rowKey={item=>item.id}
         searchableText={item=>[item.code,item.name,item.category,item.brand,item.unit,item.barcode,item.location].join(' ')}
         emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد أصناف مطابقة.</div>}
+        enableColumnVisibility
+        columnVisibilityStorageKey="kemex.inventory.columns.v1"
+        exportable
+        exportFileName="KEMEX-inventory"
+        pageSizeOptions={[15, 30, 60]}
       />
 
       <section className="space-y-4">
@@ -235,6 +248,10 @@ export function InventoryPage({
           ]}
           rowKey={move=>move.id}
           emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد حركات مخزون.</div>}
+          enableColumnVisibility
+          columnVisibilityStorageKey="kemex.stock-movements.columns.v1"
+          exportable
+          exportFileName="KEMEX-stock-movements"
         />
       </section>
 

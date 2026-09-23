@@ -8,14 +8,17 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
-    "test:db": "node --test tests/db/rls.test.mjs"
+    "test:db": "node --test tests/db/rls.test.mjs",
+    "verify:source": "node scripts/verify-source.mjs",
+    "test:source": "node --test tests/frontend/source-integrity.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",
     "@tanstack/react-query": "5.103.2",
     "lucide-react": "1.47.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "react-router-dom": "^6.30.6"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",

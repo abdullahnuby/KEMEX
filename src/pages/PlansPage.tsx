@@ -41,6 +41,13 @@ export function PlansPage({records,assets,onSave,onCreateWorkOrder}:{records:Pla
         { id:'actions', header:'إجراءات', render:x=><div className="flex flex-wrap gap-2"><Button size="sm" disabled={!x.asset||!x.due} icon={<Wrench size={13}/>} onClick={()=>void createWO(x.plan)}>إنشاء أمر عمل</Button><Button variant="ghost" size="sm" icon={<Pencil size={14}/>} onClick={()=>{setError('');setEditing({...x.plan})}}>تعديل</Button></div> },
       ]}
       rowKey={x=>String(x.plan.id)}
+      pageSize={12}
+      pageSizeOptions={[12, 24, 48]}
+      stickyHeader
+      enableColumnVisibility
+      columnVisibilityStorageKey="kemex.plans.columns.v1"
+      exportable
+      exportFileName="KEMEX-maintenance-plans"
       searchableText={x=>`${String(x.plan.name??'')} ${String(x.plan.resp??'')} ${String(x.plan.type??'')} ${x.rule}`}
       emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد خطط صيانة.</div>}
     />

@@ -1,27 +1,7 @@
 /* KEMEX Frontend Overhaul v0.38
    Visual-only system layer. Business logic, routing and data contracts remain untouched.
 */
-:root{
-  --ui-bg:#f4f7f8;
-  --ui-surface:#ffffff;
-  --ui-surface-2:#f8fafb;
-  --ui-ink:#102d34;
-  --ui-ink-2:#2c4a52;
-  --ui-muted:#70838a;
-  --ui-muted-2:#94a4aa;
-  --ui-line:#dde7e9;
-  --ui-line-strong:#cbdadd;
-  --ui-brand:#0b7d76;
-  --ui-brand-dark:#075f5a;
-  --ui-brand-soft:#eaf8f6;
-  --ui-info:#2f70a8;
-  --ui-warning:#ba7b16;
-  --ui-danger:#c3474f;
-  --ui-shadow:0 14px 40px rgba(20,47,56,.07);
-  --ui-shadow-lg:0 28px 80px rgba(16,43,52,.16);
-  --ui-radius:16px;
-  --ui-radius-sm:11px;
-}
+/* Canonical tokens live in shared/ui/design-system.css. */
 
 html{scroll-behavior:smooth}
 body{background:var(--ui-bg);color:var(--ui-ink);font-family:'Tajawal','Cairo',system-ui,sans-serif;line-height:1.65}

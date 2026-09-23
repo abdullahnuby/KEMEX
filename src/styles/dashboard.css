@@ -1,0 +1,65 @@
+/* لوحة المعلومات التشغيلية — بادئة dash- فقط */
+
+/* شريط التنبيهات التشغيلي */
+.dash-alert-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.dash-alert-card{background:var(--tfms-surface,#fff);border:1px solid var(--tfms-border,#dce7e9);border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:9px;min-width:0;box-shadow:var(--tfms-shadow-soft,0 7px 21px rgba(18,55,66,.035))}
+.dash-alert-card.dash-tone-red{border-inline-start:4px solid #d85a66}
+.dash-alert-card.dash-tone-amber{border-inline-start:4px solid #e8a52a}
+.dash-alert-card.dash-tone-purple{border-inline-start:4px solid #8055b6}
+.dash-alert-card.dash-tone-teal{border-inline-start:4px solid #0d827c}
+.dash-alert-card-head{display:flex;align-items:center;gap:8px}
+.dash-alert-card-head strong{font-size:11.5px;color:#21373f;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-alert-count{min-width:24px;height:24px;padding:0 7px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:#f1f5f6;color:#40535c}
+.dash-tone-red .dash-alert-count{background:#ffebee;color:#c55060}
+.dash-tone-amber .dash-alert-count{background:#fff4df;color:#b7791f}
+.dash-tone-purple .dash-alert-count{background:#f0eafa;color:#7854b8}
+.dash-tone-teal .dash-alert-count{background:#e6f6eb;color:#26934f}
+.dash-alert-items{display:flex;flex-direction:column}
+.dash-alert-item{display:flex;align-items:center;gap:7px;border:0;background:transparent;text-align:right;padding:6px 4px;border-radius:8px;font-size:10.5px;color:#40535c;width:100%}
+.dash-alert-item:hover{background:#f7fafb}
+.dash-alert-item .dash-alert-item-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-alert-item small{color:#88979d;font-size:9px;flex:0 0 auto}
+.dash-alert-more{border:0;background:transparent;color:#0b7a73;font-size:10px;font-weight:700;text-align:right;padding:4px 2px;width:100%}
+.dash-alert-more:hover{text-decoration:underline}
+.dash-alert-empty{color:#91a0a5;font-size:10.5px;display:flex;align-items:center;gap:6px;padding:6px 2px}
+.dash-alert-link-card{align-items:stretch;justify-content:center;text-align:center;gap:7px;cursor:pointer;color:#0b7a73}
+.dash-alert-link-card:hover{border-color:#0d827c}
+.dash-alert-link-card strong{font-size:12px;color:#0b7a73}
+.dash-alert-link-card small{color:#7b8c93;font-size:10px}
+
+/* شبكات الأقسام */
+.dash-two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dash-main-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
+
+/* قوائم الصيانة والأولوية */
+.dash-status-rows{display:flex;flex-direction:column}
+.dash-status-row{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;text-align:right;padding:9px 6px;border-bottom:1px dashed #e8eeee;border-radius:8px}
+.dash-status-row:last-child{border-bottom:0}
+.dash-status-row:hover{background:#f7fafb}
+.dash-status-row strong{margin-inline-start:auto;font-size:13px;color:#21373f}
+.dash-status-row.dash-overdue{background:#fff5f6;border-radius:8px}
+.dash-status-row.dash-overdue strong{color:#c55060}
+.dash-prio-strip{display:flex;gap:8px;flex-wrap:wrap;padding:10px 0 2px}
+.dash-prio-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:9px;background:#f1f7f7;border:1px solid #e1ecec;font-size:10px;color:#35545d}
+.dash-prio-chip b{font-size:12px;color:#21373f}
+.dash-prio-chip.dash-high{background:#fff0f1;border-color:#f3d4d8;color:#a34352}
+
+/* قائمة النشاط الأخير (تشغيل) */
+.dash-activity-list{display:flex;flex-direction:column}
+.dash-activity-row{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;text-align:right;padding:9px 6px;border-bottom:1px dashed #e8eeee;border-radius:8px}
+.dash-activity-row:last-child{border-bottom:0}
+.dash-activity-row:hover{background:#f7fafb}
+.dash-activity-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.dash-activity-main strong{font-size:11px;color:#21373f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-activity-main small{font-size:9.5px;color:#88979d}
+.dash-activity-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:0 0 auto}
+.dash-activity-meta span{font-size:10px;color:#40535c;font-weight:700}
+.dash-activity-meta small{font-size:9px;color:#95a2a7}
+
+@media (max-width:1250px){
+  .dash-alert-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dash-main-grid,.dash-two-col{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  .dash-alert-grid{grid-template-columns:1fr}
+}

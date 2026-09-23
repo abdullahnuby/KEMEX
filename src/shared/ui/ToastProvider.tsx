@@ -24,7 +24,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className="ds-toast-region" aria-live="polite" aria-atomic="false">
         {items.map(item => (
-          <div key={item.id} className={`ds-toast ${item.tone}`}>
+          <div key={item.id} className={`ds-toast ${item.tone}`} role={item.tone === 'error' ? 'alert' : 'status'} aria-live={item.tone === 'error' ? 'assertive' : 'polite'}>
             {item.tone === 'success' ? <CheckCircle2 size={18} /> : item.tone === 'error' ? <XCircle size={18} /> : <Info size={18} />}
             <span>{item.message}</span>
             <button type="button" aria-label="إغلاق" onClick={() => dismiss(item.id)}><X size={15} /></button>

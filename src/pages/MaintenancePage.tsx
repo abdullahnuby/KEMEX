@@ -1,9 +1,10 @@
 import { AlertCircle, CheckCircle2, Clock3, Pencil, Plus, Wrench, X, type LucideIcon } from 'lucide-react'
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useState, type FormEvent } from 'react'
 import type { Asset, MaintenanceTechnician, Project, WorkOrder } from '../types/tfms'
 import { useCurrency } from '../features/settings'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { Button, DataTable, IconButton, PageHeader, StatusBadge } from '../components/ui'
+import { FormSection, OperationalSummaryStrip } from '../shared/ui'
 
 type MaintenancePageProps = {
   workOrders: WorkOrder[]
@@ -152,6 +153,23 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
     }
   }
 
+  async function bulkWaitingForParts(selected: readonly WorkOrder[], clearSelection: () => void) {
+    if (!onSave || busy || !selected.length) return
+    const actionable = selected.filter(order => !['مكتمل', 'ملغى', 'بانتظار قطع غيار'].includes(order.status))
+    if (!actionable.length) return
+    if (!window.confirm(`سيتم تحويل ${actionable.length} أمر عمل إلى «بانتظار قطع غيار». هل تريد المتابعة؟`)) return
+    setBusy(true)
+    setError('')
+    try {
+      for (const order of actionable) await onSave({ ...order, status: 'بانتظار قطع غيار' })
+      clearSelection()
+    } catch (bulkError) {
+      setError(bulkError instanceof Error ? bulkError.message : 'تعذر تنفيذ الإجراء الجماعي على أوامر العمل.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -172,6 +190,13 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
         <Stat icon={AlertCircle} label="أولوية عالية" value={highPriorityCount} />
       </div>
 
+      <OperationalSummaryStrip items={[
+        { id: 'open', label: 'أوامر نشطة', value: openCount },
+        { id: 'waiting', label: 'بانتظار إجراء', value: waitingCount, tone: waitingCount ? 'alert' : 'default' },
+        { id: 'completed', label: 'مكتملة', value: completedCount, tone: 'success' },
+        { id: 'priority', label: 'أولوية عالية / عاجلة', value: highPriorityCount, tone: highPriorityCount ? 'alert' : 'default' },
+      ]} />
+
       <DataTable
         rows={workOrders}
         rowKey={order => order.id}
@@ -183,6 +208,27 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
           return [asset?.code, asset?.name, project?.code, project?.name, order.type, order.desc, order.prio, order.status].filter(Boolean).join(' ')
         }}
         emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد أوامر عمل مطابقة.</div>}
+        enableColumnVisibility
+        columnVisibilityStorageKey="kemex.maintenance.columns.v1"
+        exportable
+        exportFileName="KEMEX-work-orders"
+        enableSelection={Boolean(onSave)}
+        bulkActions={(selected, clear) => <Button size="sm" variant="secondary" onClick={() => void bulkWaitingForParts(selected, clear)} disabled={busy}>تحويل لانتظار قطع الغيار ({selected.length})</Button>}
+        filters={[
+          { id: 'status', label: 'الحالة', options: [
+            { value: 'مفتوح', label: 'مفتوح' }, { value: 'قيد التنفيذ', label: 'قيد التنفيذ' }, { value: 'بانتظار قطع غيار', label: 'بانتظار قطع غيار' }, { value: 'مكتمل', label: 'مكتمل' },
+          ], getValue: order => order.status },
+          { id: 'dateWindow', label: 'تاريخ الفتح', options: [
+            { value: '7', label: 'آخر 7 أيام' }, { value: '30', label: 'آخر 30 يومًا' }, { value: '90', label: 'آخر 90 يومًا' }, { value: 'older', label: 'أقدم من 90 يومًا' },
+          ], getValue: order => {
+            if (!order.opened) return 'older'
+            const days = Math.floor((Date.now() - new Date(order.opened).getTime()) / 86400000)
+            if (days <= 7) return '7'
+            if (days <= 30) return '30'
+            if (days <= 90) return '90'
+            return 'older'
+          } },
+        ]}
         columns={[
           { id:'asset', header:'الأصل', sortValue:order=>String(order.asset??''), render:order=><ReferenceValue field="asset" value={order.asset} lookups={{ assets, projects }} /> },
           { id:'type', header:'نوع العمل', sortValue:order=>order.type, render:order=>order.type },
@@ -206,26 +252,26 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
           <form className="modal-card wide form-modal-premium" onSubmit={saveEdit} onMouseDown={event => event.stopPropagation()}>
             <div className="modal-head"><div><h2>{workOrders.some(order => order.id === editing.id) ? 'تعديل أمر العمل' : 'أمر عمل جديد'}</h2><p>الحالة تُدار من دورة الاعتماد وليس من الحقل.</p></div><button type="button" className="icon-button" onClick={() => setEditing(null)} aria-label="إغلاق"><X size={18} /></button></div>
             <div className="form-sections">
-              <FormBlock title="فتح أمر العمل">
+              <FormSection title="فتح أمر العمل">
                 <Select name="asset" label="الأصل" value={editing.asset} options={assets.map(asset => ({ v: asset.id, l: `${asset.name} — ${asset.code}` }))} />
                 <Select name="proj" label="المشروع" value={editing.proj ?? ''} options={[{ v: '', l: 'المقر / بدون مشروع' }, ...projects.map(project => ({ v: project.id, l: `${project.name} — ${project.code}` }))]} />
                 <Input name="type" label="نوع العمل" value={editing.type} />
                 <Input name="opened" label="تاريخ الفتح" type="date" value={editing.opened} />
                 <Select name="prio" label="الأولوية" value={editing.prio} options={['عادية', 'متوسطة', 'عالية', 'عاجلة', 'حرجة'].map(value => ({ v: value, l: value }))} />
                 <Input name="estimatedCost" label="التكلفة التقديرية" type="number" value={String(editing.estimatedCost ?? 0)} />
-              </FormBlock>
-              <FormBlock title="التنفيذ">
+              </FormSection>
+              <FormSection title="التنفيذ">
                 <Input name="vendor" label="المورد / الورشة" value={editing.vendor ?? ''} />
                 <Select name="techs" label="الفني المسؤول" value={editing.techs ?? ''} options={[{ v: '', l: '— بدون تعيين —' }, ...technicians.filter(technician => technician.active).map(technician => ({ v: technician.name, l: `${technician.name}${technician.specialty ? ` — ${technician.specialty}` : ''}` }))]} />
                 <Input name="planId" label="مرجع خطة الصيانة" value={editing.planId ?? ''} />
                 <Input name="warranty" label="الضمان / شروط ما بعد الإصلاح" value={editing.warranty ?? ''} />
                 <label className="field field-full"><span>وصف العمل</span><textarea name="desc" defaultValue={editing.desc} rows={4} /></label>
-              </FormBlock>
-              <FormBlock title="التشخيص والمواد">
+              </FormSection>
+              <FormSection title="التشخيص والمواد">
                 <label className="field field-full"><span>سبب العطل / التشخيص</span><textarea name="cause" defaultValue={editing.cause ?? ''} rows={3} /></label>
                 <label className="field field-full"><span>المواد وقطع الغيار المتوقعة</span><textarea name="materials" defaultValue={editing.materials ?? ''} rows={3} /></label>
                 <label className="field field-full"><span>ملاحظات الاعتماد</span><textarea name="approvalNotes" defaultValue={editing.approvalNotes ?? ''} rows={3} /></label>
-              </FormBlock>
+              </FormSection>
             </div>
             <div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setEditing(null)}>إلغاء</button><button className="primary-button" disabled={busy}>{busy ? 'جارٍ الحفظ...' : 'حفظ الأمر'}</button></div>
           </form>
@@ -260,10 +306,6 @@ function Select({ name, label, value, options }: { name: string; label: string; 
 
 function Input({ name, label, value, type = 'text' }: { name: string; label: string; value: string; type?: string }) {
   return <label className="field"><span>{label}</span><input name={name} type={type} defaultValue={value} min={type === 'number' ? 0 : undefined} step={type === 'number' ? 'any' : undefined} /></label>
-}
-
-function FormBlock({ title, children }: { title: string; children: ReactNode }) {
-  return <section className="form-section"><div className="form-section-head"><strong>{title}</strong><span>بيانات مرتبطة بدورة أمر العمل</span></div><div className="form-grid">{children}</div></section>
 }
 
 function Stat({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: number }) {

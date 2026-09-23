@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { ArrowRight, Check, FileText, PenLine, RefreshCw, Upload, X } from 'lucide-react'
 import { Button } from '../components/ui/Button'
+import { WorkflowActionCard, WorkflowTimeline } from '../shared/ui'
 import { Card } from '../components/ui/Card'
 import { PageHeader } from '../components/ui/PageHeader'
 import { StatusBadge } from '../components/ui/StatusBadge'
 import { tripCostsService, tripPermitsService, tripsService } from '../features/trips/service'
 import { PERMIT_TYPE_LABELS, TRIP_STATUS_LABELS, TRIP_TYPE_LABELS, TRIP_STATUS_TRANSITIONS, type Trip, type TripPermit, type TripCost } from '../features/trips/types'
 import { requireSupabase } from '../services/supabase'
+import { TRANSPORTATION_WORKFLOW, transportationStageForStatus } from '../shared/workflows/workflowDefinitions'
 import type { Asset, Driver, Project } from '../types/tfms'
 
 export function TripDetailPage({id,assets,drivers,projects,onBack,currencyCode='EGP'}:{id:string;assets:Asset[];drivers:Driver[];projects:Project[];onBack:()=>void;currencyCode?:string}){
@@ -23,7 +25,22 @@ export function TripDetailPage({id,assets,drivers,projects,onBack,currencyCode='
  const label=(value:string|null,items:{id:string;name:string}[])=>items.find(x=>x.id===value)?.name??value??'—'
  const totalCost=costs.reduce((sum,c)=>sum+Number(c.amount),0),charge=Number(trip.total_charge??0)
  return <div className="space-y-6" dir="rtl"><PageHeader title={trip.trip_number} description={`${TRIP_TYPE_LABELS[trip.trip_type]} • ${trip.cargo_description}`} action={<div className="flex gap-2"><Button variant="secondary" onClick={onBack}><ArrowRight size={16}/> رجوع</Button><Button variant="secondary" onClick={()=>void load()}><RefreshCw size={16}/> تحديث</Button></div>}/>{error&&<div role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</div>}
- <Card><div className="flex flex-wrap items-center justify-between gap-4"><div><div className="text-sm text-slate-500">حالة النقل</div><div className="mt-2"><StatusBadge tone={trip.status==='cancelled'?'red':trip.status==='paid'||trip.status==='received'?'emerald':trip.status==='invoiced'?'blue':trip.status==='delivered'?'amber':'gray'}>{TRIP_STATUS_LABELS[trip.status]}</StatusBadge></div></div>{next&&<Button loading={busy} onClick={()=>void transition(next)}>تغيير الحالة إلى: {TRIP_STATUS_LABELS[next]}</Button>}</div></Card>
+ <WorkflowTimeline
+   label={TRANSPORTATION_WORKFLOW.label}
+   stages={TRANSPORTATION_WORKFLOW.stages}
+   currentStageId={transportationStageForStatus(trip.status)}
+   currentStatus={TRIP_STATUS_LABELS[trip.status]}
+   cancelled={trip.status==='cancelled'}
+   busy={busy}
+   nextActions={next ? [{label:`تقدم إلى ${TRIP_STATUS_LABELS[next]}`,onClick:()=>void transition(next),tone:'primary' as const}] : []}
+  />
+  <WorkflowActionCard
+   title={trip.status==='received' && trip.is_billable && !trip.invoice_id ? 'اربط الفاتورة الفعلية' : trip.status==='paid' ? 'الرحلة مكتملة ماليًا' : 'الإجراء التالي في الرحلة'}
+   description={trip.status==='received' && trip.is_billable && !trip.invoice_id ? 'تم الاستلام؛ اربط رقم الفاتورة المسجلة فعليًا قبل نقل الرحلة إلى مرحلة الفوترة.' : trip.status==='paid' ? 'تم الاستلام والفوترة والسداد؛ حافظ على سجل المستندات والتكاليف كمرجع تاريخي.' : 'نفّذ الإجراء الظاهر مع إبقاء المستندات والتسليم والتكاليف داخل نفس بطاقة الرحلة.'}
+   status={<StatusBadge tone={trip.status==='cancelled'?'red':trip.status==='paid'?'emerald':'blue'}>{TRIP_STATUS_LABELS[trip.status]}</StatusBadge>}
+   action={next ? <Button loading={busy} onClick={()=>void transition(next)}>تغيير الحالة إلى: {TRIP_STATUS_LABELS[next]}</Button> : undefined}
+   secondary={trip.status==='received' && trip.is_billable && !trip.invoice_id ? <button type="button" className="secondary-button" onClick={()=>document.querySelector<HTMLInputElement>('input[placeholder^="أدخل رقم الفاتورة"]')?.focus()}>الانتقال للفوترة</button> : undefined}
+  />
  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[['الشاحنة',label(trip.truck_asset_id,assets)],['السائق',label(trip.driver_id,drivers)],['مشروع المصدر',label(trip.from_project_id,projects)],['مشروع الاستقبال',label(trip.to_project_id,projects)],['المسار',`${trip.from_location||'—'} ← ${trip.to_location||'—'}`],['الحمولة',`${trip.cargo_description}${trip.cargo_quantity!=null?` (${trip.cargo_quantity} ${trip.cargo_unit??''})`:''}`],['قيمة النقل',money(charge)],['التكاليف المسجلة',money(totalCost)]].map(([k,v])=><Card key={String(k)}><p className="text-sm text-slate-500">{k}</p><p className="mt-2 break-words text-base font-semibold text-slate-900">{v}</p></Card>)}</div>
  <Card><div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="text-lg font-bold">أذونات التسليم والاستلام</h2><p className="text-sm text-slate-500">إصدار الإذن ثم تسجيل التوقيع والمرفقات من نفس بطاقة النقل.</p></div><FileText size={20} className="text-slate-400"/></div><div className="grid gap-3 md:grid-cols-2">{(['delivery','receipt'] as const).map(type=>{const permit=permits.find(p=>p.permit_type===type);return <div key={type} className="rounded-xl border border-slate-200 p-4"><div className="flex items-center justify-between"><h3 className="font-semibold">{PERMIT_TYPE_LABELS[type]}</h3>{permit&&<StatusBadge tone={permit.signed_at?'emerald':'amber'}>{permit.signed_at?'موقّع':'بانتظار التوقيع'}</StatusBadge>}</div>{permit?<div className="mt-3 space-y-2 text-sm"><p>رقم الإذن: <strong>{permit.permit_number}</strong></p>{permit.signed_by_name&&<p>الموقّع: <strong>{permit.signed_by_name}</strong> — {permit.signed_by_role}</p>}{permit.received_quantity!=null&&<p>الكمية المستلمة: <strong>{permit.received_quantity}</strong></p>}{permit.attachment_urls?.length>0&&<p className="text-emerald-700">تم إرفاق {permit.attachment_urls.length} مستند.</p>} {!permit.signed_at&&<Button size="sm" variant="secondary" icon={<PenLine size={15}/>} onClick={()=>setSigning(permit)} disabled={busy}>توقيع واستكمال الإذن</Button>}</div>:<div className="mt-3"><p className="mb-3 text-sm text-slate-500">لم يصدر الإذن بعد.</p><Button size="sm" variant="secondary" icon={<FileText size={15}/>} disabled={busy||['invoiced','paid','cancelled'].includes(trip.status)} onClick={()=>void issuePermit(type)}>إصدار الإذن</Button></div>}</div>})}</div></Card>
  <Card><div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between"><div><h2 className="text-lg font-bold">الفوترة وربط المستند المالي</h2><p className="text-sm text-slate-500">بعد الاستلام، اربط رقم الفاتورة الفعلية ليتم نقل العملية إلى «مفوترة».</p></div>{trip.invoice_id&&<StatusBadge tone="blue">فاتورة: {trip.invoice_id}</StatusBadge>}</div>{trip.status==='received'&&trip.is_billable&&!trip.invoice_id&&<div className="flex flex-col gap-3 sm:flex-row"><label className="field flex-1"><span>رقم الفاتورة</span><input value={invoiceId} onChange={e=>setInvoiceId(e.target.value)} placeholder="أدخل رقم الفاتورة الموجودة في النظام"/></label><Button onClick={()=>void linkInvoice()} disabled={!invoiceId.trim()||busy} icon={<Check size={15}/>}>ربط الفاتورة واعتماد الفوترة</Button></div>}</Card>

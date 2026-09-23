@@ -5,9 +5,10 @@ import type { Trip } from '../features/trips/types'
 import { ReferenceValue } from '../components/ReferenceValue'
 import type { ReferenceLookups } from '../utils/referenceLabels'
 import { sameReference } from '../utils/referenceLabels'
-import { DetailTabs, EmptyState, PageHeader, DataTable, Skeleton, StatusBadge } from '../shared/ui'
+import { DetailTabs, EmptyState, PageHeader, DataTable, Skeleton, StatusBadge, WorkflowActionCard, WorkflowTimeline } from '../shared/ui'
 import { useAssetDetailData } from '../features/assets'
 import { useCurrency } from '../features/settings'
+import { VEHICLE_WORKFLOW, vehicleStageForStatus } from '../shared/workflows/workflowDefinitions'
 
 /** Central asset-detail view. Operational bootstrap data is combined with independently cached financial/document/audit data. */
 export function AssetDetailPage({ asset, assets, projects, operations, fuelOps, workOrders, trips = [], moduleData, onBack, onEdit, onRoute }: {
@@ -108,6 +109,20 @@ export function AssetDetailPage({ asset, assets, projects, operations, fuelOps, 
       action={<div className="reference-header-actions"><button className="secondary-button" onClick={onBack}><ArrowRight size={15}/> العودة للأصول</button><button className="primary-button" onClick={() => onEdit(asset)}><Pencil size={15}/> تعديل بيانات الأصل</button></div>}
     />
     {detail.failures.length > 0 && <div className="global-error"><ShieldCheck size={17}/><span>تعذر تحميل بعض بيانات التفاصيل: {detail.failures.join(' | ')}</span></div>}
+    <WorkflowTimeline
+      label={VEHICLE_WORKFLOW.label}
+      stages={VEHICLE_WORKFLOW.stages}
+      currentStageId={vehicleStageForStatus(asset.status)}
+      currentStatus={asset.status}
+      compact
+    />
+    <WorkflowActionCard
+      title={asset.status === 'تحت الصيانة' ? 'استكمال الصيانة ومراجعة الجاهزية' : asset.status === 'متاح' ? 'التخصيص التالي عند الحاجة' : 'متابعة التشغيل الحالي'}
+      description={asset.status === 'تحت الصيانة' ? 'راجع أوامر العمل والمهام المرتبطة قبل إعادة الأصل للتشغيل.': asset.status === 'متاح' ? 'الأصل جاهز للتخصيص؛ افتح التخصيص أو راجع السجل التشغيلي عند بدء الاستخدام.' : 'استخدم البطاقة الحالية للتنقل مباشرة إلى التخصيص أو التشغيل أو الصيانة أو التكلفة.'}
+      status={<StatusBadge tone={asset.status === 'تحت الصيانة' ? 'amber' : 'blue'}>{asset.status}</StatusBadge>}
+      action={<button className="primary-button" onClick={() => onRoute(asset.status === 'تحت الصيانة' ? 'maintenance' : 'operations')}>{asset.status === 'تحت الصيانة' ? 'فتح الصيانة' : 'فتح التشغيل'}</button>}
+      secondary={<button className="secondary-button" onClick={() => onRoute('assets')}>قائمة الأصول</button>}
+    />
     <DetailTabs tabs={tabs}/>
   </div>
 }

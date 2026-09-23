@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useDialogA11y } from './useDialogA11y'
 import { AlertTriangle, X } from 'lucide-react'
 
 export interface ConfirmModalProps {
@@ -25,15 +26,16 @@ export function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
+  const dialogRef = useDialogA11y(open)
   if (!open) return null
   return (
     <div className="ds-modal-backdrop" onMouseDown={onCancel}>
-      <section className="ds-confirm-modal ui-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" onMouseDown={event => event.stopPropagation()}>
+      <section ref={dialogRef} className="ds-confirm-modal ui-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-description" onMouseDown={event => event.stopPropagation()}>
         <header>
           <div className="ds-confirm-icon"><AlertTriangle size={21} /></div>
           <div>
             <h2 id="confirm-modal-title">{title}</h2>
-            <div className="ds-confirm-description">{description}</div>
+            <div id="confirm-modal-description" className="ds-confirm-description">{description}</div>
           </div>
           <button type="button" className="icon-button ui-modal__close" aria-label="إغلاق" onClick={onCancel}><X size={18} /></button>
         </header>

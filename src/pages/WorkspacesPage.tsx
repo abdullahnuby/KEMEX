@@ -22,6 +22,7 @@ import { AuditPage } from './AuditPage'
 import { SettingsPage } from './SettingsPage'
 import { FuelPage } from './FuelPage'
 import { ModuleRecordsPage } from './ModuleRecordsPage'
+import { ContractsPage } from './ContractsPage'
 
 function Workspace({ children }: { children: ReactNode }) {
   return <div className="workspace-contentless" dir="rtl">{children}</div>
@@ -33,7 +34,7 @@ export function FleetWorkspacePage(props:{assets:Asset[];projects:Project[];driv
   return <Workspace>
     {tab==='assets'&&<AssetsPage assets={props.assets} projects={props.projects} onSave={props.onSaveAsset} onRoute={props.onRoute} canEdit={props.canEditAssets}/>} 
     {tab==='drivers'&&<DriversPage drivers={props.drivers} assets={props.assets} canEdit={props.canEditAssets && canWriteModule('drivers',props.user.role)} onSave={(record)=>props.onSaveModule('drivers',record)}/>} 
-    {tab==='contracts'&&<ModuleRecordsPage module="contracts" records={props.moduleData.contracts??[]} onSave={(record)=>props.onSaveModule('contracts',record)} onDelete={(id)=>props.onDeleteModule('contracts',id)} onWorkflow={props.onWorkflow} onNavigate={props.onRoute} user={props.user} assets={props.assets} projects={props.projects} drivers={props.drivers} moduleData={props.moduleData}/>} 
+    {tab==='contracts'&&<ContractsPage records={props.moduleData.contracts??[]} assets={props.assets} canEdit={canWriteModule('contracts',props.user.role)} onSave={(record)=>props.onSaveModule('contracts',record)} onDelete={(id)=>props.onDeleteModule('contracts',id)}/>} 
   </Workspace>
 }
 

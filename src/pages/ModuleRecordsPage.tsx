@@ -5,6 +5,7 @@ import type { Asset, Driver, Project, User, WorkOrder } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { displayReference, referenceOptions, type ReferenceLookups } from '../utils/referenceLabels'
 import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
+import { FormSection, OperationalSummaryStrip } from '../shared/ui'
 
 function valueText(v:unknown){if(v===null||v===undefined||v==='')return '—';if(typeof v==='object')return JSON.stringify(v);return String(v)}
 
@@ -43,6 +44,13 @@ export function ModuleRecordsPage({module,records,onSave,onDelete,onWorkflow,onN
       )}
     />
     {actionError&&<div className="global-error" role="alert">{actionError}</div>}
+    {workflow ? <WorkflowQueueBanner total={counts.all} pending={counts.pending} actionable={records.filter(record => availableActions(record).length > 0).length} label={cfg.title} /> : null}
+    <OperationalSummaryStrip items={[
+      { id:'all', label:'إجمالي السجلات', value:counts.all },
+      { id:'pending', label:'قيد الإجراء', value:counts.pending, tone:counts.pending?'alert':'default' },
+      { id:'approved', label:'معتمد / مكتمل', value:counts.approved, tone:'success' },
+      { id:'rejected', label:'مرفوض', value:counts.rejected, tone:counts.rejected?'alert':'default' },
+    ]} />
     <section className="space-y-4"><div className="flex flex-wrap gap-2" role="group" aria-label="تصفية حسب الحالة">{[{key:'all',label:`الكل (${counts.all})`},{key:'pending',label:`قيد الإجراء (${counts.pending})`},{key:'approved',label:`معتمد/مكتمل (${counts.approved})`},{key:'rejected',label:`مرفوض (${counts.rejected})`}].map(item=><button key={item.key} type="button" aria-pressed={statusFilter===item.key} className={`rounded-full border px-3 py-2 text-sm font-semibold transition ${statusFilter===item.key?'border-primary-600 bg-primary-700 text-white':'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}`} onClick={()=>setStatusFilter(item.key)}>{item.label}</button>)}</div>
       <DataTable
         rows={rows}
@@ -57,10 +65,13 @@ export function ModuleRecordsPage({module,records,onSave,onDelete,onWorkflow,onN
         onSearchChange={setQ}
         searchableText={r=>cfg.fields.map(f=>displayReference(f.key,r[f.key],lookups)).join(' ')+` ${String(r.id??'')}`}
         emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد بيانات مطابقة.</div>}
+        enableColumnVisibility
+        columnVisibilityStorageKey={`kemex.${module}.columns.v1`}
+        pageSizeOptions={[10, 25, 50]}
       />
     </section>
     {viewing&&<div className="modal-backdrop" onMouseDown={()=>!busy&&setViewing(null)}><section className="modal-card wide" role="dialog" aria-modal="true" aria-label={`تفاصيل ${cfg.title}`} onMouseDown={e=>e.stopPropagation()}><div className="modal-head"><div><h2>تفاصيل السجل</h2><p>{cfg.title} · <strong className="record-human-title">{recordHumanTitle(viewing, lookups)}</strong></p></div><button type="button" className="icon-button" disabled={busy} onClick={()=>!busy&&setViewing(null)} aria-label="إغلاق"><X size={18}/></button></div><div className="detail-grid">{cfg.fields.map(field=><div className="detail-item" key={field.key}><span>{field.label}</span><strong><ReferenceValue field={field.key} value={viewing[field.key]} lookups={lookups}/></strong></div>)}</div>{availableActions(viewing).length>0&&<div className="workflow-panel"><div className="workflow-panel-title"><span>الإجراء التالي</span><small>الدور الحالي: {user.name}</small></div><div className="workflow-actions">{availableActions(viewing).map(a=><WorkflowButton key={a.key} action={a} disabled={busy} onClick={()=>runWorkflow(viewing,a)}/>)}</div></div>}<div className="modal-actions"><button type="button" className="secondary-button" disabled={busy} onClick={()=>!busy&&setViewing(null)}>إغلاق</button>{canEdit&&<button type="button" className="primary-button" disabled={busy} onClick={()=>{setEditing({...viewing});setViewing(null)}}><Pencil size={15}/> تعديل السجل</button>}</div></section></div>}
-    {editing&&<div className="modal-backdrop" onMouseDown={()=>!busy&&setEditing(null)}><form className="modal-card wide form-modal-premium" onSubmit={submit} onMouseDown={e=>e.stopPropagation()}><div className="modal-head"><div><div className="form-kicker">{editing.id&&records.some(r=>r.id===editing.id)?'تعديل سجل':'إضافة سجل'}</div><h2>{cfg.title}</h2><p>{cfg.formIntro||cfg.description}</p></div><button type="button" className="icon-button" disabled={busy} onClick={()=>!busy&&setEditing(null)} aria-label="إغلاق"><X size={18}/></button></div>{actionError&&<div className="global-error" role="alert">{actionError}</div>}<div className="form-sections">{groupFields(cfg.fields).map(group=><section className="form-section" key={group.title}><div className="form-section-head"><div><strong>{group.title}</strong><span>{groupHint(group.title)}</span></div><Info size={16}/></div><div className="form-grid">{group.fields.map(f=>workflow&&f.key===(workflow.statusField??'status')?<StatusField key={f.key} label={f.label} value={editing[f.key]}/>:<Field key={f.key} field={f} value={editing[f.key]} lookups={lookups}/>)}</div></section>)}</div><div className="modal-actions"><button type="button" className="secondary-button" disabled={busy} onClick={()=>!busy&&setEditing(null)}>إلغاء</button><button className="primary-button" disabled={busy}>{busy?'جارٍ الحفظ...':'حفظ السجل'}</button></div></form></div>}
+    {editing&&<div className="modal-backdrop" onMouseDown={()=>!busy&&setEditing(null)}><form className="modal-card wide form-modal-premium" onSubmit={submit} onMouseDown={e=>e.stopPropagation()}><div className="modal-head"><div><div className="form-kicker">{editing.id&&records.some(r=>r.id===editing.id)?'تعديل سجل':'إضافة سجل'}</div><h2>{cfg.title}</h2><p>{cfg.formIntro||cfg.description}</p></div><button type="button" className="icon-button" disabled={busy} onClick={()=>!busy&&setEditing(null)} aria-label="إغلاق"><X size={18}/></button></div>{actionError&&<div className="global-error" role="alert">{actionError}</div>}<div className="form-sections">{groupFields(cfg.fields).map(group=><FormSection key={group.title} title={group.title} description={groupHint(group.title)}><>{group.fields.map(f=>workflow&&f.key===(workflow.statusField??'status')?<StatusField key={f.key} label={f.label} value={editing[f.key]}/>:<Field key={f.key} field={f} value={editing[f.key]} lookups={lookups}/>)}</></FormSection>)}</div><div className="modal-actions"><button type="button" className="secondary-button" disabled={busy} onClick={()=>!busy&&setEditing(null)}>إلغاء</button><button className="primary-button" disabled={busy}>{busy?'جارٍ الحفظ...':'حفظ السجل'}</button></div></form></div>}
   </div>
 }
 
@@ -88,3 +99,5 @@ function groupHint(title:string){const hints:Record<string,string>={'البيا�
 
 function StatusField({label,value}:{label:string;value:unknown}){return <div className="field"><span>{label}</span><div className="workflow-status-readonly"><strong>{valueText(value)}</strong><small>تتغير الحالة من أزرار دورة الاعتماد فقط</small></div></div>}
 function WorkflowButton({action,disabled,onClick}:{action:WorkflowAction;disabled:boolean;onClick:()=>void}){const icon=action.key==='approve'?<Check size={13}/>:action.key==='submit'?<Send size={13}/>:action.key==='return'?<RotateCcw size={13}/>:action.key==='reject'?<Ban size={13}/>:action.key==='po'?<ShoppingCart size={13}/>:<Flag size={13}/>;return <button type="button" className={`workflow-button ${action.tone??'secondary'}`} disabled={disabled} onClick={onClick}>{icon}{action.label}</button>}
+
+function WorkflowQueueBanner({total,pending,actionable,label}:{total:number;pending:number;actionable:number;label:string}){return <section className="workflow-queue-banner" aria-label={`ملخص مسار ${label}`}><div className="workflow-queue-stat"><span>إجمالي السجلات</span><strong>{total}</strong></div><div className="workflow-queue-stat"><span>قيد الإجراء</span><strong>{pending}</strong></div><div className="workflow-queue-stat"><span>ينتظر إجراءً منك</span><strong>{actionable}</strong></div><div className="workflow-queue-stat"><span>الهدف</span><strong>نفّذ الخطوة التالية</strong></div></section>}

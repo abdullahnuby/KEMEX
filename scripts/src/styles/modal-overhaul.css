@@ -1,0 +1,476 @@
+/* KEMEX v0.45 — Unified enterprise modal system.
+   The modal layer must sit above the sticky navbar and behave as a single,
+   self-contained surface. Content scrolls inside the body; header/footer stay visible. */
+:root{--modal-surface:#ffffff;
+  --modal-border:#dbe5ee;
+  --modal-muted:#64748b;
+  --modal-ink:#0f172a;
+  --modal-soft:#f8fafc;
+  --modal-accent:#087e86}
+
+.modal-backdrop,
+.ds-modal-backdrop{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:1000 !important;
+  isolation:isolate;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:20px !important;
+  overflow:auto !important;
+  background:rgba(15,23,42,.52) !important;
+  backdrop-filter:blur(6px) saturate(.92) !important;
+  -webkit-backdrop-filter:blur(6px) saturate(.92) !important;
+  overscroll-behavior:contain;
+}
+
+.modal-backdrop > .modal-card,
+.modal-backdrop > form.modal-card,
+.ds-modal-backdrop > .ds-confirm-modal{
+  position:relative !important;
+  z-index:1 !important;
+  width:min(980px,100%) !important;
+  max-width:980px !important;
+  max-height:calc(100dvh - 40px) !important;
+  min-height:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+  flex:0 1 auto !important;
+  margin:0 !important;
+  border:1px solid var(--modal-border) !important;
+  border-radius:18px !important;
+  background:var(--modal-surface) !important;
+  box-shadow:0 28px 90px rgba(15,23,42,.28),0 8px 28px rgba(15,23,42,.10) !important;
+}
+
+.modal-backdrop > .modal-card::before,
+.modal-backdrop > form.modal-card::before{
+  content:"";
+  position:absolute;
+  inset-inline:0;
+  top:0;
+  height:3px;
+  background:linear-gradient(90deg,#0a7680,#17a794);
+  pointer-events:none;
+}
+
+.modal-backdrop .modal-head,
+.ds-modal-backdrop .ds-confirm-modal > header{
+  position:relative !important;
+  flex:0 0 auto !important;
+  display:flex !important;
+  align-items:flex-start !important;
+  justify-content:space-between !important;
+  gap:16px !important;
+  padding:20px 22px 17px !important;
+  border-bottom:1px solid #e5ebf1 !important;
+  background:#fff !important;
+}
+
+.modal-backdrop .modal-head > div:first-child{
+  min-width:0;
+  flex:1 1 auto;
+}
+
+.modal-backdrop .modal-head h2,
+.ds-modal-backdrop .ds-confirm-modal h2{
+  margin:0 !important;
+  color:var(--modal-ink) !important;
+  font-size:17px !important;
+  line-height:1.5 !important;
+  font-weight:900 !important;
+  letter-spacing:-.01em;
+}
+
+.modal-backdrop .modal-head h2 svg{
+  color:var(--modal-accent) !important;
+  flex:0 0 auto;
+}
+
+.modal-backdrop .modal-head p{
+  margin:5px 0 0 !important;
+  color:var(--modal-muted) !important;
+  font-size:11px !important;
+  line-height:1.7 !important;
+  max-width:72ch;
+}
+
+.modal-backdrop .icon-button,
+.modal-backdrop .ui-icon-button{
+  flex:0 0 auto !important;
+  width:38px !important;
+  min-width:38px !important;
+  height:38px !important;
+  border-radius:10px !important;
+}
+
+.modal-backdrop .form-error{
+  flex:0 0 auto;
+  margin:12px 20px 0 !important;
+  padding:10px 12px !important;
+  border:1px solid #fecaca !important;
+  border-radius:10px !important;
+  background:#fff7f7 !important;
+  color:#b42318 !important;
+  font-size:11px !important;
+  line-height:1.7 !important;
+}
+
+.modal-backdrop > .modal-card > .form-sections,
+.modal-backdrop > form.modal-card > .form-sections,
+.modal-backdrop > .modal-card > .form-sections-core,
+.modal-backdrop > form.modal-card > .form-sections-core,
+.modal-backdrop > .modal-card > .form-modal-content,
+.modal-backdrop > form.modal-card > .form-modal-content,
+.modal-backdrop > .modal-card > .form-grid,
+.modal-backdrop > form.modal-card > .form-grid,
+.modal-backdrop > .modal-card > .detail-grid,
+.modal-backdrop > form.modal-card > .detail-grid{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+
+.modal-backdrop > .modal-card > .form-sections,
+.modal-backdrop > form.modal-card > .form-sections{
+  padding:18px 20px 20px !important;
+}
+
+.modal-backdrop .form-section{
+  border:1px solid #e0e7ef !important;
+  border-radius:12px !important;
+  background:#fff !important;
+  box-shadow:none !important;
+}
+
+.modal-backdrop .form-section + .form-section{margin-top:12px;}
+
+.modal-backdrop .form-section-head{
+  min-height:48px;
+  padding:11px 14px !important;
+  background:#f8fafc !important;
+  border-bottom:1px solid #e7edf3 !important;
+}
+
+.modal-backdrop .form-section-head strong{
+  color:#1e293b !important;
+  font-size:12px !important;
+  font-weight:900 !important;
+}
+
+.modal-backdrop .form-section-head span{
+  color:#64748b !important;
+  font-size:9.5px !important;
+}
+
+.modal-backdrop .form-section .form-grid{
+  padding:15px !important;
+  gap:13px !important;
+}
+
+.modal-backdrop .field{min-width:0;}
+.modal-backdrop .field > span{font-size:11px !important;font-weight:800 !important;color:#475569 !important;}
+.modal-backdrop .field input,
+.modal-backdrop .field select,
+.modal-backdrop .field textarea{
+  width:100%;
+  min-height:43px !important;
+  border:1px solid #cbd5e1 !important;
+  border-radius:9px !important;
+  background:#fff !important;
+  color:#0f172a !important;
+  font-size:12px !important;
+  line-height:1.5;
+}
+.modal-backdrop .field textarea{min-height:88px !important;padding-block:10px !important;}
+.modal-backdrop .field input:focus,
+.modal-backdrop .field select:focus,
+.modal-backdrop .field textarea:focus{
+  border-color:#61b8bd !important;
+  box-shadow:0 0 0 3px rgba(8,126,134,.10) !important;
+}
+
+.modal-backdrop .modal-actions{
+  position:relative !important;
+  inset:auto !important;
+  z-index:2 !important;
+  flex:0 0 auto !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:9px !important;
+  padding:13px 20px !important;
+  border-top:1px solid #e5ebf1 !important;
+  background:#f8fafc !important;
+}
+
+.modal-backdrop .modal-actions .primary-button,
+.modal-backdrop .modal-actions .secondary-button,
+.modal-backdrop .modal-actions .ui-button{
+  white-space:nowrap !important;
+  word-break:keep-all !important;
+  flex:0 0 auto !important;
+}
+
+.modal-backdrop .modal-actions .primary-button{min-height:43px !important;border-radius:10px !important;}
+.modal-backdrop .modal-actions .secondary-button{min-height:43px !important;border-radius:10px !important;}
+
+/* A compact context strip makes long forms easier to scan without another header. */
+.modal-context-strip{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+  padding:9px 11px;
+  border:1px solid #dce9ee;
+  border-radius:10px;
+  background:#f7fbfb;
+  color:#526a73;
+  font-size:10.5px;
+}
+.modal-context-strip strong{color:#173d48;font-weight:900;}
+.modal-context-strip .context-separator{color:#a5b4ba;}
+
+@media (max-width:760px){
+  .modal-backdrop,
+  .ds-modal-backdrop{
+    align-items:flex-end !important;
+    padding:8px !important;
+  }
+  .modal-backdrop > .modal-card,
+  .modal-backdrop > form.modal-card,
+  .ds-modal-backdrop > .ds-confirm-modal{
+    width:100% !important;
+    max-width:none !important;
+    max-height:calc(100dvh - 16px) !important;
+    border-radius:16px 16px 12px 12px !important;
+  }
+  .modal-backdrop .modal-head{padding:17px 16px 14px !important;}
+  .modal-backdrop .modal-head h2{font-size:15px !important;}
+  .modal-backdrop .modal-head p{font-size:10px !important;}
+  .modal-backdrop > .modal-card > .form-sections,
+  .modal-backdrop > form.modal-card > .form-sections{padding:13px !important;}
+  .modal-backdrop .form-section .form-grid{grid-template-columns:1fr !important;padding:12px !important;}
+  .modal-backdrop .form-grid .col-span-full{grid-column:1 !important;}
+  .modal-backdrop .modal-actions{padding:12px !important;}
+  .modal-backdrop .modal-actions > button{flex:1 1 0 !important;min-width:0;}
+}
+
+/* v0.46 — modal portal layer: rendered directly under <body> to escape all
+   page stacking contexts. This is the authoritative modal positioning layer. */
+html.modal-open,
+body.modal-open{overflow:hidden!important}
+.modal-portal-root{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  z-index:2147483000!important;
+  pointer-events:none!important;
+}
+.modal-portal-root > .modal-backdrop{
+  pointer-events:auto!important;
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:100%!important;
+  z-index:2147483001!important;
+}
+.trips-create-modal{
+  width:min(1080px,calc(100vw - 48px))!important;
+  max-height:calc(100dvh - 40px)!important;
+}
+.trips-create-modal-body{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+@media(max-width:760px){
+  .trips-create-modal{width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important}
+}
+
+/* v0.46 authoritative portal fix */
+.modal-portal-root{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:2147483647!important;pointer-events:none!important}
+.modal-portal-root>.modal-backdrop{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:24px!important;background:rgba(15,23,42,.58)!important;z-index:2147483647!important;pointer-events:auto!important}
+.modal-portal-root>.modal-backdrop>.modal-card{z-index:2147483647!important}
+body.modal-open{overflow:hidden!important}
+@media(max-width:760px){.modal-portal-root>.modal-backdrop{padding:8px!important;align-items:center!important}.modal-portal-root>.modal-backdrop>.modal-card{width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;border-radius:14px!important}}
+
+/* ============================================================
+ * NEW ENTERPRISE NAVBAR — approved visual direction.
+ * This block intentionally comes last in the CSS load order (see
+ * main.tsx) so it wins the cascade over every legacy .site-navbar /
+ * .navbar-* declaration scattered across global.css, frontend-overhaul.css
+ * and reference-overhaul.css (those were never deleted — see the
+ * frontend audit — so overriding here, in one clearly-labelled place,
+ * is the lower-risk move versus surgically editing ~10 old minified
+ * blocks). Restyles the EXISTING navbar behaviour (dropdown groups,
+ * mobile drawer, search) — no interaction/markup changes.
+ * ============================================================ */
+.site-navbar{
+  background:var(--nav-ink)!important; backdrop-filter:none!important;
+  border-bottom:1px solid #06171C!important; box-shadow:none!important;
+  padding-inline:26px!important;
+}
+.navbar-brand,.navbar-context{gap:10px!important}
+.navbar-brand .brand-mark,.navbar-context .brand-mark{
+  background:linear-gradient(155deg,var(--tfms-primary),var(--tfms-primary-dark))!important;
+  box-shadow:none!important; border-radius:9px!important;
+}
+.navbar-context-copy strong{color:#fff!important; font-size:14.5px!important}
+.navbar-context-copy span{color:var(--nav-text-dim)!important}
+
+.desktop-nav{
+  overflow-x:auto; scrollbar-width:none; gap:2px!important;
+}
+.desktop-nav::-webkit-scrollbar{display:none}
+.nav-direct,.nav-group-trigger{
+  color:var(--nav-text)!important; font-size:13px!important; font-weight:500!important;
+  border-radius:8px!important; white-space:nowrap; flex:none;
+}
+.nav-direct.active,.nav-group-trigger.active,.nav-group-trigger[aria-expanded="true"]{
+  background:rgba(255,255,255,.09)!important; color:#fff!important; font-weight:600!important;
+}
+.nav-direct:hover,.nav-group-trigger:hover{background:rgba(255,255,255,.06)!important; color:#fff!important}
+
+.nav-menu-panel{
+  background:var(--tfms-panel)!important; border:1px solid var(--tfms-line)!important;
+  border-radius:14px!important; box-shadow:0 18px 45px rgba(11,31,38,.18)!important;
+}
+.nav-menu-section-title{color:var(--tfms-muted)!important; font-weight:600!important}
+.nav-menu-item{border-radius:10px!important}
+.nav-menu-item.active{background:var(--tfms-accent-soft)!important; border-color:#c8e4e0!important; color:var(--tfms-primary-dark)!important}
+.nav-menu-icon{background:var(--tfms-accent-soft)!important; color:var(--tfms-primary)!important; border-radius:8px!important}
+
+.navbar-icon-btn{
+  background:rgba(255,255,255,.06)!important; border:1px solid rgba(255,255,255,.1)!important;
+  color:var(--nav-text)!important; border-radius:9px!important;
+}
+.navbar-icon-btn:hover{background:rgba(255,255,255,.12)!important; color:#fff!important}
+.navbar-icon-btn>span{background:var(--nav-danger)!important; border-color:var(--nav-ink)!important}
+.navbar-user{border-inline-start:1px solid rgba(255,255,255,.12)!important; padding-inline-start:14px!important}
+.navbar-user .avatar{background:rgba(255,255,255,.1)!important; color:#fff!important; border-radius:8px!important}
+.navbar-user-copy strong{color:#fff!important; font-size:12.5px!important}
+.navbar-user-copy small{color:var(--nav-text-dim)!important}
+.navbar-logout{color:var(--nav-text)!important}
+.navbar-logout:hover{background:rgba(255,255,255,.08)!important; color:#fff!important}
+.navbar-menu-btn{background:rgba(255,255,255,.06)!important; border:1px solid rgba(255,255,255,.1)!important; color:var(--nav-text)!important; border-radius:9px!important}
+.navbar-menu-btn:hover{background:rgba(255,255,255,.12)!important; color:#fff!important}
+
+/* the module list stays visible and scrollable for as long as possible —
+   it only collapses into the mobile drawer at genuine phone widths */
+@media(max-width:1150px){
+  .navbar-brand>div:last-child,.navbar-context-copy{display:none!important}
+}
+@media(max-width:900px){
+  .desktop-nav{display:flex!important}
+  .navbar-menu-btn{display:none!important}
+  .navbar-user-copy,.navbar-logout{display:none!important}
+}
+@media(max-width:560px){
+  .site-navbar{padding-inline:12px!important; gap:10px!important}
+  .desktop-nav{display:none!important}
+  .navbar-menu-btn{display:flex!important}
+}
+
+.mobile-nav-panel{background:var(--tfms-panel)!important; border:1px solid var(--tfms-line)!important; box-shadow:0 24px 55px rgba(11,31,38,.22)!important}
+.mobile-account-row{display:flex!important; align-items:center!important; justify-content:space-between!important; padding:6px 4px 12px!important; border-bottom:1px solid var(--tfms-line)!important; margin-bottom:8px!important}
+.mobile-account-identity{display:flex!important; align-items:center!important; gap:10px!important}
+.mobile-account-identity .avatar{background:var(--tfms-accent-soft)!important; color:var(--tfms-primary-dark)!important; border-radius:9px!important}
+.mobile-logout-button{display:inline-flex!important; align-items:center!important; gap:6px!important; font-size:11.5px!important; color:var(--tfms-muted)!important; border-radius:8px!important; padding:7px 9px!important}
+.mobile-nav-search{background:var(--tfms-surface)!important; border-color:var(--tfms-line)!important}
+.mobile-group-title{color:var(--tfms-text-strong)!important; font-weight:700!important}
+.mobile-group-title.open{color:var(--tfms-primary)!important}
+.mobile-nav-item.active{background:var(--tfms-accent-soft)!important; color:var(--tfms-primary-dark)!important}
+
+/* ---- MetricCard (shared/ui/components — used by Dashboard + 5 other pages) ---- */
+.ui-metric-card,.metric-card{
+  border:1px solid var(--tfms-line)!important; box-shadow:none!important; border-radius:14px!important;
+  display:flex!important; align-items:flex-start!important; justify-content:space-between!important; gap:12px!important;
+}
+.ui-metric-card::before,.metric-card::before{display:none!important}
+.ui-metric-card__copy span,.metric-body span{color:var(--tfms-muted)!important; font-weight:500!important}
+.ui-metric-card__copy strong,.metric-body strong{font-size:25px!important; font-weight:700!important; color:var(--tfms-text-strong)!important}
+.ui-metric-card__copy small,.metric-body small{color:var(--tfms-text-soft)!important; font-weight:500!important}
+.ui-metric-card__icon,.metric-icon,.ui-metric-icon{
+  width:34px!important; height:34px!important; border-radius:9px!important; box-shadow:none!important;
+  background:var(--tfms-accent-soft)!important; color:var(--tfms-primary)!important;
+}
+.ui-metric-card--green .ui-metric-card__icon{background:var(--ds-success-soft)!important; color:var(--ds-success)!important}
+.ui-metric-card--amber .ui-metric-card__icon{background:var(--ds-warning-soft)!important; color:var(--ds-warning)!important}
+.ui-metric-card--rose .ui-metric-card__icon{background:var(--ds-danger-soft)!important; color:var(--ds-danger)!important}
+.ui-metric-card--blue .ui-metric-card__icon{background:var(--ds-info-soft)!important; color:var(--ds-info)!important}
+
+/* ============================================================
+ * NEW ENTERPRISE UI KIT — approved visual direction, phase 2.
+ * Restyles the shared primitives in src/components/ui/* (Card, Button,
+ * PageHeader, StatusBadge, EmptyState, FilterBar, DataTable, ModalPortal).
+ * Because every page is composed from these, this one block reaches
+ * every screen in the app without editing 30+ page files individually.
+ * Same reasoning as the navbar block above: appended last in the CSS
+ * load order so it safely wins over the old scattered declarations.
+ * ============================================================ */
+
+/* ---- Card ---- */
+.ui-card{border:1px solid var(--tfms-line)!important; border-radius:14px!important; box-shadow:none!important; background:var(--tfms-surface)!important}
+.ui-card__header{border-bottom:1px solid var(--tfms-line)!important}
+.ui-stat-card__icon{background:var(--tfms-accent-soft)!important; color:var(--tfms-primary)!important; border-radius:9px!important; box-shadow:none!important}
+.ui-stat-card__trend--up{color:var(--ds-success)!important; background:var(--ds-success-soft)!important}
+.ui-stat-card__trend--down{color:var(--ds-danger)!important; background:var(--ds-danger-soft)!important}
+
+/* ---- Button ---- */
+.ui-button{border-radius:9px!important; font-weight:600!important; box-shadow:none!important}
+.ui-button--primary{background:var(--tfms-primary)!important; border-color:var(--tfms-primary)!important; color:#fff!important}
+.ui-button--primary:hover{background:var(--tfms-primary-dark)!important; border-color:var(--tfms-primary-dark)!important}
+.ui-button--secondary{background:var(--tfms-surface)!important; border:1px solid var(--tfms-line-strong)!important; color:var(--tfms-text-strong)!important}
+.ui-button--ghost{color:var(--tfms-primary-dark)!important; font-weight:600!important}
+.ui-icon-button{border-radius:9px!important; border:1px solid var(--tfms-line-strong)!important; background:var(--tfms-surface)!important; color:var(--tfms-muted)!important; box-shadow:none!important}
+
+/* ---- PageHeader ---- */
+.ui-page-title{font-weight:700!important; color:var(--tfms-text-strong)!important}
+.ui-page-header__meta{color:var(--tfms-muted)!important}
+
+/* ---- StatusBadge — pill with a solid dot, tone mapped to the shared
+   success/warning/danger/info tokens instead of five near-duplicate hexes ---- */
+.ui-status-badge{border-radius:20px!important; font-weight:600!important; display:inline-flex!important; align-items:center!important; gap:5px!important}
+.ui-status-badge--emerald{background:var(--ds-success-soft)!important; color:var(--ds-success)!important; border-color:transparent!important}
+.ui-status-badge--emerald .ui-status-badge__dot{background:var(--ds-success)!important}
+.ui-status-badge--amber{background:var(--ds-warning-soft)!important; color:var(--ds-warning)!important; border-color:transparent!important}
+.ui-status-badge--amber .ui-status-badge__dot{background:var(--ds-warning)!important}
+.ui-status-badge--red{background:var(--ds-danger-soft)!important; color:var(--ds-danger)!important; border-color:transparent!important}
+.ui-status-badge--red .ui-status-badge__dot{background:var(--ds-danger)!important}
+.ui-status-badge--blue{background:var(--ds-info-soft)!important; color:var(--ds-info)!important; border-color:transparent!important}
+.ui-status-badge--blue .ui-status-badge__dot{background:var(--ds-info)!important}
+.ui-status-badge--gray{background:var(--tfms-line-soft)!important; color:var(--tfms-muted)!important; border-color:transparent!important}
+.ui-status-badge--gray .ui-status-badge__dot{background:var(--tfms-muted)!important}
+
+/* ---- EmptyState ---- */
+.ui-empty-state{border:1px dashed var(--tfms-line-strong)!important; border-radius:14px!important; background:var(--tfms-surface)!important}
+.ui-empty-state__icon{background:var(--tfms-accent-soft)!important; color:var(--tfms-primary)!important; border-radius:12px!important}
+
+/* ---- FilterBar ---- */
+.ui-filter-bar{border:1px solid var(--tfms-line)!important; border-radius:14px!important; box-shadow:none!important; background:var(--tfms-surface)!important}
+.ui-filter-bar__control{border:1px solid var(--tfms-line-strong)!important; border-radius:9px!important; background:var(--tfms-surface)!important; color:var(--tfms-text)!important; font-weight:500!important}
+
+/* ---- DataTable ---- */
+.ui-data-table__toolbar{background:var(--tfms-surface)!important; border-bottom:1px solid var(--tfms-line)!important}
+.ui-data-table__search,.ui-data-table__filter{border:1px solid var(--tfms-line-strong)!important; border-radius:9px!important; background:var(--tfms-surface)!important}
+.ui-data-table__count{color:var(--tfms-muted)!important; font-weight:600!important}
+.ui-data-table__footer{background:var(--tfms-surface)!important; border-top:1px solid var(--tfms-line)!important; color:var(--tfms-muted)!important}
+.ui-data-table__th,thead th{color:var(--tfms-muted)!important; font-weight:600!important; background:var(--tfms-surface)!important}
+.ui-data-table__td{border-color:var(--tfms-line)!important}
+.ui-data-table__empty{color:var(--tfms-muted)!important}
+
+/* ---- ModalPortal ---- */
+.modal-portal-root{background:rgba(11,31,38,.5)!important}

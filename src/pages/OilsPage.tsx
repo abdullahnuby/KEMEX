@@ -167,7 +167,8 @@ export function OilsPage({ plans, changes, assets, workOrders = [], moduleData =
           { id:'lastMeter', header:'العداد', render:plan=>fmt(Number(plan.lastMeter||0)), sortValue:plan=>Number(plan.lastMeter||0) },
           { id:'due', header:'الاستحقاق', render:plan=>{const due=dueFor(plan,assets);return <StatusBadge tone={due.tone==='green'?'emerald':due.tone==='red'?'red':'amber'}>{due.label}</StatusBadge>}, sortValue:plan=>{const due=dueFor(plan,assets);return due.tone==='red'?2:due.tone==='amber'?1:0} },
         ]}
-        rowKey={plan=>String(plan.id)}
+        enableColumnVisibility columnVisibilityStorageKey="kemex.oils.plans.columns.v1" exportable exportFileName="KEMEX-oils"
+      rowKey={plan=>String(plan.id)}
         searchable
         search={query}
         onSearchChange={setQuery}
@@ -189,7 +190,8 @@ export function OilsPage({ plans, changes, assets, workOrders = [], moduleData =
           { id:'by', header:'المنفذ', render:change=>String(change.by??'—'), sortValue:change=>String(change.by??'') },
           { id:'wo', header:'أمر العمل', render:change=><ReferenceValue field="wo" value={change.wo} lookups={{assets,workOrders,records:{}}} /> },
         ]}
-        rowKey={change=>String(change.id)}
+        enableColumnVisibility columnVisibilityStorageKey="kemex.oils.changes.columns.v1" exportable exportFileName="KEMEX-oils"
+      rowKey={change=>String(change.id)}
         searchableText={change=>Object.values(change).map(value=>String(value??'')).join(' ')}
         emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد عمليات تغيير مسجلة.</div>}
       />

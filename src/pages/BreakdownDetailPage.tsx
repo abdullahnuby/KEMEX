@@ -48,11 +48,13 @@ import { calculateBreakdownCost } from '../services/breakdownService'
 import {
   DetailTabs,
   ConfirmModal,
+  WorkflowActionCard,
+  WorkflowTimeline,
   useToast,
 } from '../shared/ui'
 import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
 import { CostSummaryCard } from '../components/CostSummaryCard'
-import { BreakdownStatusFlow } from '../components/BreakdownStatusFlow'
+import { MAINTENANCE_WORKFLOW, maintenanceStageForStatus } from '../shared/workflows/workflowDefinitions'
 import { TransportFormModal } from '../components/TransportFormModal'
 import { CostItemFormModal } from '../components/CostItemFormModal'
 import { DowntimeFormModal } from '../components/DowntimeFormModal'
@@ -265,11 +267,27 @@ export function BreakdownDetailPage({
         </div>
       )}
 
-      {/* Visual Status Stepper */}
-      <BreakdownStatusFlow
-        currentStatus={breakdown.status}
-        onTransition={canEdit ? handleStatusTransition : undefined}
-        busy={updateStatusMut.isPending}
+      {/* Visual maintenance workflow */}
+      <WorkflowTimeline
+        label={MAINTENANCE_WORKFLOW.label}
+        stages={MAINTENANCE_WORKFLOW.stages}
+        currentStageId={maintenanceStageForStatus(breakdown.status)}
+        currentStatus={BREAKDOWN_STATUS_LABELS[breakdown.status]}
+        cancelled={false}
+        busy={updateStatusMut.isPending || closeBreakdownMut.isPending}
+        nextActions={canEdit ? allowedNext.map(nextStatus => ({
+          label: `انتقال: ${BREAKDOWN_STATUS_LABELS[nextStatus]}`,
+          onClick: () => void handleStatusTransition(nextStatus),
+          tone: nextStatus === 'closed' ? 'secondary' as const : 'primary' as const,
+        })) : []}
+      />
+
+      <WorkflowActionCard
+        title={linkedWorkOrder ? 'أمر العمل مرتبط بالعطل' : isClosed ? 'العطل مغلق' : 'الإجراء التشغيلي التالي'}
+        description={linkedWorkOrder ? `أمر العمل ${linkedWorkOrder.id} مرتبط بهذا البلاغ؛ استكمل التشخيص والإصلاح والتكلفة من دورة الصيانة.` : isClosed ? 'تم إنهاء العطل ويمكن الرجوع إلى سجل الأصل للتأكد من الحالة بعد الإصلاح.' : 'قبل إغلاق العطل، تأكد من وجود أمر عمل عند الحاجة وتوثيق النقل والتوقف وبنود التكلفة.'}
+        status={<StatusBadge tone={isClosed ? 'emerald' : isCriticalDowntime ? 'red' : 'blue'}>{BREAKDOWN_STATUS_LABELS[breakdown.status]}</StatusBadge>}
+        action={!linkedWorkOrder && !isClosed && canEdit && onCreateWorkOrder ? <button type="button" className="primary-button" disabled={updateBreakdownMut.isPending} onClick={() => void handleCreateWorkOrder()}><Wrench size={15}/> إنشاء أمر عمل</button> : undefined}
+        secondary={!isClosed ? <button type="button" className="secondary-button" onClick={() => setCostModalOpen(true)}>إضافة تكلفة</button> : <button type="button" className="secondary-button" onClick={onBack}>العودة للأعطال</button>}
       />
 
       {/* Main Content Layout: Tabs + Sidebar */}

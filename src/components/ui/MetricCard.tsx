@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 const toneClasses: Record<string, string> = {
   teal: 'ui-metric-card--teal',
   green: 'ui-metric-card--green',
-  purple: 'ui-metric-card--blue',
+  purple: 'ui-metric-card--purple',
   amber: 'ui-metric-card--amber',
   rose: 'ui-metric-card--rose',
   blue: 'ui-metric-card--blue',

@@ -1,3 +1,4 @@
+import { OperationalSummaryStrip } from '../shared/ui'
 import { Ban, CheckCircle2, ClipboardCheck, Pencil, Plus, ShoppingCart, X, type LucideIcon } from 'lucide-react'
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import type { InventoryItem, Project, StockMovement, User, Warehouse } from '../types/tfms'
@@ -132,6 +133,12 @@ export function PurchasesPage({records,user,projects,inventoryItems=[],warehouse
       <Metric icon={ShoppingCart} label="أوامر شراء" value={orders}/>
       <Metric icon={ShoppingCart} label="القيمة غير المرفوضة" value={formatMoney(total)}/>
     </div>
+    <OperationalSummaryStrip items={[
+      { id:'pending', label:'قيد الاعتماد', value:pending, tone:pending?'alert':'default' },
+      { id:'approved', label:'معتمدة', value:approved, tone:'success' },
+      { id:'orders', label:'أوامر شراء', value:orders },
+      { id:'value', label:'القيمة غير المرفوضة', value:formatMoney(total) },
+    ]} />
     <DataTable
       rows={rows}
       columns={[
@@ -156,6 +163,11 @@ export function PurchasesPage({records,user,projects,inventoryItems=[],warehouse
       onSearchChange={setQ}
       searchableText={r=>Object.values(r).map(v=>String(v??'')).join(' ')}
       emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد طلبات مطابقة.</div>}
+      enableColumnVisibility
+      columnVisibilityStorageKey="kemex.purchases.columns.v1"
+      exportable
+      exportFileName="KEMEX-purchases"
+      pageSizeOptions={[15, 30, 60]}
     />
 
     {editing&&<div className="modal-backdrop" onMouseDown={()=>!busy&&setEditing(null)}><form className="modal-card wide form-modal-premium" onSubmit={saveNew} onMouseDown={e=>e.stopPropagation()}><div className="modal-head"><div><h2>طلب شراء جديد</h2><p>يبدأ الطلب بحالة «قيد الاعتماد».</p></div><button type="button" className="icon-button" onClick={()=>setEditing(null)} aria-label="إغلاق"><X size={18}/></button></div>

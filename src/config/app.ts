@@ -14,6 +14,8 @@ export type NavigationItem = {
   route: string
   hint: string
   report?: boolean
+  permissionModule?: string
+  section?: string
 }
 
 export type NavigationGroup = {
@@ -57,7 +59,7 @@ export const NAVIGATION_GROUPS: readonly NavigationGroup[] = [
   {
     group: 'النقل', icon: 'Truck', items: [
       {key:'trips', label:'رحلات النقل', icon:'Truck', route:'trips', hint:'الرحلات والمسافات وقيمة النقل'},
-      {key:'trips-dispatch', label:'لوحة الإرسال والتوزيع', icon:'ArrowLeftRight', route:'trips/dispatch', hint:'توزيع الرحلات ومتابعة التنفيذ'},
+      {key:'trips-dispatch', label:'لوحة الإرسال والتوزيع', icon:'ArrowLeftRight', route:'trips/dispatch', hint:'توزيع الرحلات ومتابعة التنفيذ', permissionModule:'trips'},
     ]
   },
   {
@@ -88,21 +90,21 @@ export const NAVIGATION_GROUPS: readonly NavigationGroup[] = [
 
 export type ReportNavigationItem = NavigationItem & { section: string }
 
-export const REPORT_NAV_ITEMS: readonly NavigationItem[] = [
-  {key:'all',label:'التقرير الشامل لجميع الأصول',hint:'التشغيل والتكلفة والاستخدام',section:'الأصول والتكلفة',route:'reports/all',icon:'Gauge',report:true} as ReportNavigationItem,
-  {key:'owned',label:'الأصول المملوكة والإهلاك',hint:'القيمة الرأسمالية والقيمة الدفترية',section:'الأصول والتكلفة',route:'reports/owned',icon:'FileBarChart',report:true} as ReportNavigationItem,
-  {key:'rented',label:'الأصول المستأجرة والعقود',hint:'المدد والتكلفة والاستخدام',section:'الأصول والتكلفة',route:'reports/rented',icon:'ReceiptText',report:true} as ReportNavigationItem,
-  {key:'veh',label:'السيارات والمركبات',hint:'الاستهلاك والمسافة والتكلفة',section:'الأصول والتكلفة',route:'reports/veh',icon:'Truck',report:true} as ReportNavigationItem,
-  {key:'eq',label:'المعدات والمولدات',hint:'ساعات التشغيل وتكلفة الساعة',section:'الأصول والتكلفة',route:'reports/eq',icon:'Wrench',report:true} as ReportNavigationItem,
-  {key:'contracts',label:'عقود الإيجار',hint:'الالتزامات والمدد والموردون',section:'الأصول والتكلفة',route:'reports/contracts',icon:'ReceiptText',report:true} as ReportNavigationItem,
-  {key:'fuel',label:'الوقود والاستهلاك',hint:'الكميات والتكلفة الفعلية',section:'التشغيل والنقل',route:'reports/fuel',icon:'Fuel',report:true} as ReportNavigationItem,
-  {key:'drivers',label:'أداء السائقين والمشغلين',hint:'الرحلات والتشغيل والاستخدام',section:'التشغيل والنقل',route:'reports/drivers',icon:'Users',report:true} as ReportNavigationItem,
-  {key:'trip-profitability',label:'ربحية عمليات النقل',hint:'قيمة النقل والتكلفة والهامش',section:'التشغيل والنقل',route:'reports/trip-profitability',icon:'ChartNoAxesCombined',report:true} as ReportNavigationItem,
-  {key:'unbilled',label:'النقل غير المفوتر',hint:'العمليات الجاهزة للفوترة',section:'التشغيل والنقل',route:'reports/unbilled',icon:'ReceiptText',report:true} as ReportNavigationItem,
-  {key:'due',label:'الاستحقاقات',hint:'الصيانة والزيوت والفلاتر',section:'المتابعة والمخزون',route:'reports/due',icon:'CalendarClock',report:true} as ReportNavigationItem,
-  {key:'invn',label:'المخزون وقطع الغيار',hint:'الرصيد والحد الأدنى والقيمة',section:'المتابعة والمخزون',route:'reports/invn',icon:'PackageCheck',report:true} as ReportNavigationItem,
-  {key:'appr',label:'الموافقات المعلقة',hint:'السجلات التي تحتاج إجراء',section:'المتابعة والمخزون',route:'reports/appr',icon:'ClipboardCheck',report:true} as ReportNavigationItem,
-  {key:'true-cost',label:'تحليل التكلفة الحقيقية',hint:'ساعات التوقف والتكلفة الكاملة',section:'تحليلات متقدمة',route:'true-cost',icon:'ChartNoAxesCombined',report:true} as ReportNavigationItem,
+export const REPORT_NAV_ITEMS: readonly ReportNavigationItem[] = [
+  { key: 'all', label: 'التقرير الشامل لجميع الأصول', hint: 'التشغيل والتكلفة والاستخدام', section: 'الأصول والتكلفة', route: 'reports/all', icon: 'Gauge', report: true },
+  { key: 'owned', label: 'الأصول المملوكة والإهلاك', hint: 'القيمة الرأسمالية والقيمة الدفترية', section: 'الأصول والتكلفة', route: 'reports/owned', icon: 'FileBarChart', report: true },
+  { key: 'rented', label: 'الأصول المستأجرة والعقود', hint: 'المدد والتكلفة والاستخدام', section: 'الأصول والتكلفة', route: 'reports/rented', icon: 'ReceiptText', report: true },
+  { key: 'veh', label: 'السيارات والمركبات', hint: 'الاستهلاك والمسافة والتكلفة', section: 'الأصول والتكلفة', route: 'reports/veh', icon: 'Truck', report: true },
+  { key: 'eq', label: 'المعدات والمولدات', hint: 'ساعات التشغيل وتكلفة الساعة', section: 'الأصول والتكلفة', route: 'reports/eq', icon: 'Wrench', report: true },
+  { key: 'contracts', label: 'عقود الإيجار', hint: 'الالتزامات والمدد والموردون', section: 'الأصول والتكلفة', route: 'reports/contracts', icon: 'ReceiptText', report: true },
+  { key: 'fuel', label: 'الوقود والاستهلاك', hint: 'الكميات والتكلفة الفعلية', section: 'التشغيل والنقل', route: 'reports/fuel', icon: 'Fuel', report: true },
+  { key: 'drivers', label: 'أداء السائقين والمشغلين', hint: 'الرحلات والتشغيل والاستخدام', section: 'التشغيل والنقل', route: 'reports/drivers', icon: 'Users', report: true },
+  { key: 'trip-profitability', label: 'ربحية عمليات النقل', hint: 'قيمة النقل والتكلفة والهامش', section: 'التشغيل والنقل', route: 'reports/trip-profitability', icon: 'ChartNoAxesCombined', report: true },
+  { key: 'unbilled', label: 'النقل غير المفوتر', hint: 'العمليات الجاهزة للفوترة', section: 'التشغيل والنقل', route: 'reports/unbilled', icon: 'ReceiptText', report: true },
+  { key: 'due', label: 'الاستحقاقات', hint: 'الصيانة والزيوت والفلاتر', section: 'المتابعة والمخزون', route: 'reports/due', icon: 'CalendarClock', report: true },
+  { key: 'invn', label: 'المخزون وقطع الغيار', hint: 'الرصيد والحد الأدنى والقيمة', section: 'المتابعة والمخزون', route: 'reports/invn', icon: 'PackageCheck', report: true },
+  { key: 'appr', label: 'الموافقات المعلقة', hint: 'السجلات التي تحتاج إجراء', section: 'المتابعة والمخزون', route: 'reports/appr', icon: 'ClipboardCheck', report: true },
+  { key: 'true-cost', label: 'تحليل التكلفة الحقيقية', hint: 'ساعات التوقف والتكلفة الكاملة', section: 'تحليلات متقدمة', route: 'true-cost', icon: 'ChartNoAxesCombined', report: true },
 ]
 
 export const ROLE_LABELS: Record<string, string> = {
@@ -114,17 +116,6 @@ export const ROLE_LABELS: Record<string, string> = {
  * Main navigation is intentionally organized by business domain. Detail routes remain available
  * as child screens but do not appear as duplicate top-level entries.
  */
-export const MODULES = [
-  { key: 'dashboard', label: 'الرئيسية', icon: 'LayoutDashboard', group: 'الرئيسية' },
-  { key: 'assets', label: 'الأسطول', icon: 'Container', group: 'الأسطول', section: 'مساحة الأسطول' },
-  { key: 'maintenance', label: 'الصيانة', icon: 'Wrench', group: 'الصيانة', section: 'مساحة الصيانة' },
-  { key: 'operations', label: 'التشغيل', icon: 'Gauge', group: 'التشغيل', section: 'مساحة التشغيل' },
-  { key: 'trips', label: 'النقل', icon: 'Truck', group: 'النقل', section: 'مساحة النقل' },
-  { key: 'inventory', label: 'المخازن', icon: 'Boxes', group: 'المخازن', section: 'مساحة المخازن' },
-  { key: 'costs', label: 'المالية', icon: 'Coins', group: 'المالية', section: 'مساحة المالية' },
-  { key: 'reports', label: 'التقارير', icon: 'ChartNoAxesCombined', group: 'التقارير', section: 'مركز التقارير' },
-  { key: 'users', label: 'الإدارة', icon: 'Settings2', group: 'الإدارة', section: 'الإدارة والحوكمة' },
-] as const
 
 export type RoleKey = 'admin' | 'mgmt' | 'fleet' | 'pm' | 'eng' | 'maint' | 'acct'
 export const ROLE_MODULES: Record<RoleKey, readonly string[] | '*'> = {
