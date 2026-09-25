@@ -14,7 +14,7 @@ type Props = {
 
 type DriverForm = Driver & Record<string, unknown>
 
-type LicenseHealth = 'sارية' | 'تجديد قريب' | 'منتهية' | 'غير محددة'
+type LicenseHealth = 'سارية' | 'تجديد قريب' | 'منتهية' | 'غير محددة'
 
 const EMPTY_DRIVER: Driver = {
   id: '',
