@@ -35,10 +35,11 @@ export function ModuleRecordsPage({module,records,onSave,onDelete,onWorkflow,onN
   async function runWorkflow(record:Record<string,unknown>,action:WorkflowAction){if(busy)return;if(action.kind==='navigate'&&action.route&&onNavigate){onNavigate(`${action.route}/${encodeURIComponent(String(record.id))}`);setViewing(null);return}const statusField=workflow?.statusField??'status';const current=String(record[statusField]??'');if(!action.from.includes(current)){setActionError('حالة السجل تغيّرت؛ أعد تحميل الصفحة قبل تنفيذ الإجراء.');return}if(action.tone==='danger'&&!window.confirm(`هل تريد تنفيذ «${action.label}» على هذا السجل؟`))return;setActionError('');setBusy(true);const next={...record,[statusField]:action.to};const trail=Array.isArray(record.apprs)?record.apprs:[];next.apprs=[...trail,{by:user.name,act:action.label}];if(module==='requests'&&action.key==='reject')next.reason=`رفض بواسطة ${user.name}`;if(module==='purchases'&&action.key==='po'&&!String(next.po??'').trim())next.po=`PO-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;try{if(onWorkflow)await onWorkflow(next,record,action);else await onSave(next);setViewing(null)}catch(err){setActionError(err instanceof Error?err.message:'تعذر تنفيذ الإجراء. حاول مرة أخرى.')}finally{setBusy(false)}}
   function exportCsv(){const headers=cfg.fields.map(c=>c.label);const escape=(value:unknown)=>{let text=String(value??'').replace(/\r?\n/g,' ');if(/^[=+@\-\t\r]/.test(text))text="'"+text;return `"${text.replace(/"/g,'""')}"`};const csv='\uFEFF'+[headers.map(escape).join(','),...rows.map(row=>cfg.fields.map(c=>escape(displayReference(c.key,row[c.key],lookups))).join(','))].join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`KEMEX-${module}-${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();a.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1000)}
 
-  return <div className="space-y-6">
+  return <div className="space-y-6 enterprise-module-page">
     <PageHeader
       title={cfg.title}
       description={cfg.description}
+      meta={<span className="enterprise-page-count">{counts.all} سجل</span>}
       action={(
         <>
           <Button variant="secondary" icon={<Download size={16}/>} onClick={exportCsv} disabled={!rows.length || !canExportModule(module,user.role)}>تصدير CSV</Button>
@@ -94,6 +95,8 @@ export function ModuleRecordsPage({module,records,onSave,onDelete,onWorkflow,onN
         enableColumnVisibility
         columnVisibilityStorageKey={`kemex.${module}.columns.v1`}
         pageSizeOptions={[10, 25, 50]}
+        mobilePresentation="auto"
+        printTitle={cfg.title}
       />
     </section>
     {viewing&&<div className="modal-backdrop" onMouseDown={()=>!busy&&setViewing(null)}><section className="modal-card wide" role="dialog" aria-modal="true" aria-label={`تفاصيل ${cfg.title}`} onMouseDown={e=>e.stopPropagation()}><div className="modal-head"><div><h2>تفاصيل السجل</h2><p>{cfg.title} · <strong className="record-human-title">{recordHumanTitle(viewing, lookups)}</strong></p></div><button type="button" className="icon-button" disabled={busy} onClick={()=>!busy&&setViewing(null)} aria-label="إغلاق"><X size={18}/></button></div><div className="detail-grid">{cfg.fields.map(field=><div className="detail-item" key={field.key}><span>{field.label}</span><strong><ReferenceValue field={field.key} value={viewing[field.key]} lookups={lookups}/></strong></div>)}</div>{availableActions(viewing).length>0&&<div className="workflow-panel"><div className="workflow-panel-title"><span>الإجراء التالي</span><small>الدور الحالي: {user.name}</small></div><div className="workflow-actions">{availableActions(viewing).map(a=><WorkflowButton key={a.key} action={a} disabled={busy} onClick={()=>runWorkflow(viewing,a)}/>)}</div></div>}<div className="modal-actions"><button type="button" className="secondary-button" disabled={busy} onClick={()=>!busy&&setViewing(null)}>إغلاق</button>{canEdit&&<button type="button" className="primary-button" disabled={busy} onClick={()=>{setEditing({...viewing});setViewing(null)}}><Pencil size={15}/> تعديل السجل</button>}</div></section></div>}

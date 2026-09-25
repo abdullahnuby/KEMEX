@@ -1,0 +1,262 @@
+/*
+ * KEMEX Enterprise Sprint 03 — cross-page UX layer.
+ * Scope: shared page composition, density, mobile behavior, tables,
+ * forms, and empty/error states. No business rules or data contracts.
+ */
+
+.enterprise-page,
+.enterprise-module-page {
+  min-width: 0;
+  width: 100%;
+}
+
+.enterprise-page > .space-y-6,
+.enterprise-module-page {
+  min-width: 0;
+}
+
+/* Consistent page hierarchy across all remaining modules. */
+.ui-page-header {
+  position: relative;
+  align-items: flex-start !important;
+  padding: 0 0 16px !important;
+  margin-bottom: 20px !important;
+  border-bottom: 1px solid var(--ds-border) !important;
+}
+.ui-page-header::after {
+  content: '';
+  position: absolute;
+  inset-inline-end: 0;
+  bottom: -1px;
+  width: 64px;
+  height: 3px;
+  border-radius: 999px 0 0 999px;
+  background: var(--ds-primary);
+}
+.ui-page-header__copy {
+  min-width: 0;
+  max-width: min(760px, 100%);
+}
+.ui-page-title {
+  overflow-wrap: anywhere;
+}
+.ui-page-header__copy p {
+  display: block !important;
+  max-width: 720px;
+}
+.ui-page-header__meta,
+.enterprise-page-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid var(--ds-border);
+  border-radius: 999px;
+  background: var(--ds-color-gray-50);
+  color: var(--ds-text-soft);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* Keep filters/action rows visually separate from data content. */
+.ui-filter-bar {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 13px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface-muted);
+}
+.ui-filter-bar > * { min-width: 0; }
+.ui-filter-bar__control { background: var(--ds-surface); }
+
+/* Mobile-friendly status/filter chips without letting them force a wide page. */
+.enterprise-module-page [role='group'][aria-label*='الحالة'],
+.contracts-filter-bar {
+  display: flex;
+  max-width: 100%;
+  overflow-x: auto;
+  gap: 7px;
+  padding: 2px 0 4px;
+  scrollbar-width: none;
+}
+.enterprise-module-page [role='group'][aria-label*='الحالة']::-webkit-scrollbar,
+.contracts-filter-bar::-webkit-scrollbar { display: none; }
+.enterprise-module-page [role='group'][aria-label*='الحالة'] > button,
+.contracts-filter-bar > button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-weight: 800;
+}
+
+/* All data surfaces use one depth language. */
+.enterprise-page .panel,
+.enterprise-page .ui-card,
+.enterprise-module-page .ui-data-table {
+  box-shadow: var(--ds-shadow-sm) !important;
+}
+.enterprise-page .panel + .panel,
+.enterprise-page .ui-card + .ui-card { margin-top: 0; }
+
+/* Dense action clusters should wrap instead of creating page overflow. */
+.enterprise-page .flex.flex-wrap,
+.enterprise-module-page .flex.flex-wrap {
+  min-width: 0;
+}
+.enterprise-page .ui-page-header__action,
+.enterprise-module-page .ui-page-header__action {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Mobile presentation of DataTable is intentionally card-first. */
+.ui-data-table__mobile-card {
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-xs);
+  padding: 14px;
+}
+.ui-data-table__mobile-card + .ui-data-table__mobile-card { margin-top: 8px; }
+.ui-data-table__mobile-card.is-clickable { cursor: pointer; }
+.ui-data-table__mobile-card.is-clickable:active { transform: translateY(1px); }
+.ui-data-table__mobile-heading {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--ds-color-gray-100);
+}
+.ui-data-table__mobile-title {
+  min-width: 0;
+  flex: 1;
+  color: var(--ds-text-strong);
+  font-size: 13px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+.ui-data-table__mobile-field {
+  min-width: 0;
+  padding: 7px 0;
+}
+.ui-data-table__mobile-label {
+  color: var(--ds-text-muted);
+  font-size: 10.5px;
+  font-weight: 800;
+}
+.ui-data-table__mobile-value {
+  margin-top: 3px;
+  color: var(--ds-text-strong);
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* Forms: clear visual separation without adding more nested cards than needed. */
+.form-sections,
+.form-sections-core {
+  min-width: 0;
+}
+.form-section,
+.ds-form-section {
+  border-radius: var(--ds-radius-lg) !important;
+  border-color: var(--ds-border) !important;
+}
+.modal-card.wide {
+  width: min(1000px, 100%);
+}
+
+/* Error / info strips become readable on phones and never widen the viewport. */
+.global-error,
+.enterprise-section-note,
+.workflow-queue-banner {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* Avoid title/action collisions on medium screens. */
+@media (max-width: 980px) {
+  .ui-page-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .ui-page-header__copy { max-width: 100%; }
+  .ui-page-header__action {
+    justify-content: flex-start !important;
+    width: 100%;
+  }
+  .ui-page-header__action > * { max-width: 100%; }
+  .ui-page-header__title-row { justify-content: flex-start; }
+}
+
+@media (max-width: 900px) {
+  .enterprise-page .page-body,
+  .enterprise-module-page .page-body { min-width: 0; }
+  .ui-page-title { font-size: 21px !important; }
+  .ui-page-header__copy p { font-size: 12px !important; }
+  .enterprise-page-count { font-size: 10.5px; }
+  .ui-page-header__action > .ui-button,
+  .ui-page-header__action > .primary-button,
+  .ui-page-header__action > .secondary-button {
+    min-height: 42px;
+  }
+  .ui-filter-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .ui-filter-bar > label,
+  .ui-filter-bar > div { width: 100%; }
+  .ui-filter-bar .ui-filter-bar__control { min-height: 44px; }
+  .ui-card__header,
+  .panel-head,
+  .panel-heading { padding: 13px 14px; }
+  .ui-card__body { padding: 14px; }
+  .enterprise-page .grid,
+  .enterprise-module-page .grid { min-width: 0; }
+}
+
+@media (max-width: 640px) {
+  .ui-page-header { margin-bottom: 15px !important; padding-bottom: 12px !important; }
+  .ui-page-title { font-size: 19px !important; letter-spacing: -.015em !important; }
+  .ui-page-header__title-row { gap: 6px; }
+  .ui-page-header__meta,
+  .enterprise-page-count { min-height: 25px; }
+  .ui-page-header__action {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 7px !important;
+  }
+  .ui-page-header__action > *,
+  .ui-page-header__action .ui-button,
+  .ui-page-header__action .primary-button,
+  .ui-page-header__action .secondary-button { width: 100%; }
+  .ui-data-table__toolbar { padding: 10px !important; }
+  .ui-data-table__mobile-card { padding: 12px; }
+  .modal-card,
+  .modal-card.wide { max-height: calc(100dvh - 46px) !important; }
+  .detail-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+/* Print surface: hide interactive controls and keep data readable. */
+@media print {
+  .enterprise-page,
+  .enterprise-module-page { width: 100%; }
+  .ui-page-header { border-bottom-color: #bbb !important; }
+  .ui-page-header::after { display: none; }
+  .ui-page-header__action,
+  .ui-filter-bar,
+  .contracts-filter-bar,
+  .workflow-button,
+  .ui-data-table__toolbar { display: none !important; }
+  .panel,
+  .ui-card,
+  .ui-data-table { box-shadow: none !important; }
+}

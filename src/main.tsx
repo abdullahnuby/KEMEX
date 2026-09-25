@@ -7,7 +7,7 @@ import './index.css'
 import './styles/global.css'
 import './shared/ui/design-system.css'
 import './styles/compact-final.css'
-import './styles/dashboard-page.css'
+import './styles/enterprise-sprint03.css'
 import { markPerformance, measurePerformance } from './utils/performance'
 import { reportClientError } from './services/telemetry'
 

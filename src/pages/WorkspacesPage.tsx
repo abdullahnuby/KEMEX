@@ -25,7 +25,7 @@ import { ModuleRecordsPage } from './ModuleRecordsPage'
 import { ContractsPage } from './ContractsPage'
 
 function Workspace({ children }: { children: ReactNode }) {
-  return <div className="workspace-contentless" dir="rtl">{children}</div>
+  return <main className="workspace-contentless enterprise-page" dir="rtl">{children}</main>
 }
 
 export function FleetWorkspacePage(props:{assets:Asset[];projects:Project[];drivers:Driver[];moduleData:Record<string,Record<string,unknown>[]>;onSaveAsset:(asset:Asset)=>Promise<void>;onRoute:(route:string)=>void;canEditAssets:boolean;user:User;onSaveModule:(module:string,record:Record<string,unknown>)=>Promise<void>;onDeleteModule:(module:string,id:string)=>Promise<void>;onWorkflow:(record:Record<string,unknown>,previous:Record<string,unknown>,action:WorkflowAction)=>Promise<void>;initialTab?:'assets'|'drivers'|'contracts'}) {
