@@ -53,6 +53,8 @@ export interface DataTableProps<T> {
   exportable?: boolean
   exportFileName?: string
   onRowClick?: (row: T) => void
+  /** Mobile presentation: auto uses a compact card for narrow datasets and a horizontal table for wide ones. */
+  mobilePresentation?: 'auto' | 'cards' | 'table'
 }
 
 function normalize(value: unknown): string {
@@ -166,6 +168,7 @@ export function DataTable<T>({
   exportable = false,
   exportFileName = 'kemex-export',
   onRowClick,
+  mobilePresentation = 'auto',
 }: DataTableProps<T>) {
   const [internalQuery, setInternalQuery] = useState('')
   const query = search ?? internalQuery
@@ -192,6 +195,8 @@ export function DataTable<T>({
   }, [columnVisibilityStorageKey, visibleMap])
 
   const visibleColumns = useMemo(() => columns.filter(column => visibleMap[columnId(column)] !== false), [columns, visibleMap])
+  const mobileColumns = useMemo(() => visibleColumns.filter(column => column.mobileVisible !== false && !column.hideOnMobile), [visibleColumns])
+  const useMobileTable = mobilePresentation === 'table' || (mobilePresentation === 'auto' && mobileColumns.length > 5)
 
   const filteredRows = useMemo(() => {
     const searchFields = visibleColumns.filter(column => column.searchable !== false)
@@ -309,7 +314,7 @@ export function DataTable<T>({
 
       {visibleRows.length ? (
         <>
-          <div className="ui-data-table__desktop hidden overflow-x-auto md:block">
+          <div className="ui-data-table__desktop overflow-x-auto">
             <table aria-label="جدول البيانات" className={`ui-data-table__table w-full text-right ${stickyHeader ? 'is-sticky-header' : ''}`.trim()}>
               <thead className="ui-data-table__thead">
                 <tr className="divide-x divide-x-reverse divide-gray-100">
@@ -338,9 +343,38 @@ export function DataTable<T>({
             </table>
           </div>
 
-          <div className="ui-data-table__mobile grid gap-3 md:hidden">
-            {visibleRows.map(row => <MobileRow key={rowKey(row)} row={row} columns={visibleColumns} rowKey={rowKey} selected={selectedSet.has(rowKey(row))} onToggle={enableSelection ? toggleRow : undefined} onClick={onRowClick} />)}
-          </div>
+          {useMobileTable ? (
+            <div className="ui-data-table__mobile ui-data-table__mobile--table">
+              <div className="ui-data-table__mobile-table-wrap">
+                <table aria-label="جدول البيانات على الهاتف" className="ui-data-table__mobile-table">
+                  <thead>
+                    <tr>
+                      {enableSelection && <th className="ui-data-table__selection-col"><span className="sr-only">تحديد</span></th>}
+                      {visibleColumns.map(column => <th key={columnId(column)} scope="col">{column.header}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleRows.map(row => {
+                      const key = rowKey(row)
+                      const selected = selectedSet.has(key)
+                      return <tr key={key} className={`${selected ? 'is-selected' : ''} ${onRowClick ? 'is-clickable' : ''}`.trim()} onClick={event => {
+                        const target = event.target as HTMLElement
+                        if (target.closest('button,a,input,select,textarea')) return
+                        onRowClick?.(row)
+                      }} onKeyDown={event => { if (onRowClick && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); onRowClick(row) } }} tabIndex={onRowClick ? 0 : undefined}>
+                        {enableSelection && <td className="ui-data-table__selection-col" onClick={event => event.stopPropagation()}><button type="button" className="ui-data-table__selection-button" aria-label={selected ? 'إلغاء تحديد السجل' : 'تحديد السجل'} aria-pressed={selected} onClick={() => toggleRow(row)}>{selected ? <Check size={14} /> : null}</button></td>}
+                        {mobileColumns.map((column, index) => <td key={columnId(column)} className={index === 0 ? 'ui-data-table__mobile-sticky-cell' : undefined}>{renderColumn(row, column)}</td>)}
+                      </tr>
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="ui-data-table__mobile ui-data-table__mobile--cards grid gap-3">
+              {visibleRows.map(row => <MobileRow key={rowKey(row)} row={row} columns={visibleColumns} rowKey={rowKey} selected={selectedSet.has(rowKey(row))} onToggle={enableSelection ? toggleRow : undefined} onClick={onRowClick} />)}
+            </div>
+          )}
         </>
       ) : emptyState ?? <div className="ui-data-table__empty">لا توجد سجلات مطابقة.</div>}
 

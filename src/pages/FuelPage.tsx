@@ -165,11 +165,11 @@ export function FuelPage({ fuelOps, assets, projects, onSave, defaultPrices = { 
 
       {editing && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-0 sm:items-center sm:p-4"
           onMouseDown={() => !busy && setEditing(null)}
         >
           <form
-            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-elevated"
+            className="w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto bg-white rounded-t-2xl sm:rounded-2xl shadow-elevated"
             onSubmit={submit}
             onMouseDown={(e) => e.stopPropagation()}
           >

@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'mgmt' | 'fleet' | 'pm' | 'eng' | 'maint' | 'acct'
+export type Role = 'admin' | 'mgmt' | 'fleet' | 'pm' | 'eng' | 'maint' | 'acct' | 'driver'
 
 export type AssetStatus = 'متاح' | 'محجوز' | 'مخصص لمشروع' | 'يعمل' | 'تحت الصيانة' | 'خارج الخدمة' | 'متوقف مؤقتًا' | 'موقوف' | 'غير نشط' | 'مستبعد'
 export type AssetCondition = 'سليم' | 'جيد' | 'يحتاج فحص' | 'يحتاج صيانة' | 'يحتاج إصلاح' | 'تالف' | 'حرج'
@@ -12,6 +12,7 @@ export type User = {
   role: Role
   active?: boolean
   mustChangePassword?: boolean
+  driverId?: string | null
   pass?: string
 }
 

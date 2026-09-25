@@ -57,6 +57,13 @@ export async function listAttachments(entityType: string, entityId: string) {
   return (data ?? []).map(mapAttachment)
 }
 
+export async function createAttachmentSignedUrl(storagePath: string, expiresInSeconds = 900) {
+  const db = requireSupabase()
+  const { data, error } = await db.storage.from(BUCKET).createSignedUrl(storagePath, expiresInSeconds)
+  if (error) throw error
+  return data.signedUrl
+}
+
 export async function deleteAttachment(id: string, storagePath: string) {
   const db = requireSupabase()
   const { error: storageError } = await db.storage.from(BUCKET).remove([storagePath])

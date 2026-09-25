@@ -38,6 +38,9 @@ before(async () => {
     insert into projects(id,code,name) values('P0','PRJ-TEST','مشروع اختبار');
     insert into assets(id,code,name,category,asset_type) values('A0','AST-TEST','أصل اختبار','مركبات','شاحنة');
     insert into operations(id,asset_id,project_id,operation_date,status) values('OP-SEED','A0','P0',current_date,'مقدمة');
+    -- Canonical application storage for the operations module is tfms_module_records.
+    -- Keep the legacy operations fixture above only for the explicit legacy-table smoke check.
+    insert into tfms_module_records(module_name,record_id,payload) values('operations','OP-SEED-CANON','{"asset":"A0","status":"مقدمة"}');
     insert into tfms_module_records(module_name,record_id,payload) values('oilChanges','OC-SEED','{"asset":"A0"}');
   `)
   for (const [k, id] of Object.entries(U)) await db.exec(`update profiles set role='${ROLE[k]}' where id='${id}'`)
@@ -46,7 +49,9 @@ before(async () => {
 test('قاعدة Production تبدأ بدون بيانات تشغيلية خارج Fixtures الاختبار', async () => {
   await as(null)
   const c = Object.fromEntries((await rows(`select 'assets' t,count(*)::int n from assets union all select 'projects',count(*)::int from projects union all select 'operations',count(*)::int from operations`)).map(r => [r.t, r.n]))
+  const canonicalOperations = (await rows(`select count(*)::int n from tfms_module_records where module_name='operations'`))[0].n
   assert.deepEqual(c, { assets: 1, projects: 1, operations: 1 })
+  assert.equal(canonicalOperations, 1)
 })
 
 test('mgmt: قراءة كل شيء وكتابة لا شيء', async () => {

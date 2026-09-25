@@ -12,11 +12,11 @@ export interface Repository {
   signIn(username: string, password: string): Promise<User>
   changePassword(newPassword: string): Promise<void>
   signOut(): Promise<void>
-  createUserAccount(input: { email: string; full_name: string; role: User['role']; initial_password: string }): Promise<{ id:string; email:string; name:string; role:User['role']; active:boolean; mustChangePassword:boolean }>
+  createUserAccount(input: { email: string; full_name: string; role: User['role']; initial_password: string; driver_id?: string | null }): Promise<{ id:string; email:string; name:string; role:User['role']; active:boolean; mustChangePassword:boolean; driver_id?: string | null }>
   listUsers(): Promise<User[]>
-  updateUserProfile(id: string, patch: { full_name?: string; role?: User['role']; active?: boolean }): Promise<User>
+  updateUserProfile(id: string, patch: { full_name?: string; role?: User['role']; active?: boolean; driver_id?: string | null }): Promise<User>
   getSettings(): Promise<Record<string, unknown>>
-  saveSettings(settings: { company_name: string; group_name: string; currency_code: string; vat: number; diesel: number; petrol: number; alert_days: number; alert_km: number; alert_hours: number }): Promise<void>
+  saveSettings(settings: { company_name: string; group_name: string; currency_code: string; vat: number; diesel: number; petrol: number; alert_days: number; alert_km: number; alert_hours: number; trip_geofence_radius_m?: number }): Promise<void>
   listClients(): Promise<Customer[]>
   saveClient(client: Customer): Promise<void>
   listCostCenters(): Promise<Array<{ id: string; code: string; name: string; active: boolean }>>

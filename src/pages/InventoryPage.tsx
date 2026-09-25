@@ -191,7 +191,6 @@ export function InventoryPage({
     <div className="space-y-6">
       <PageHeader
         title="المخازن وقطع الغيار"
-        description="رصيد حي يعتمد على حركات المخزون الفعلية، مع إعادة الطلب والتكلفة المترابطة."
         action={<><Button variant="secondary" icon={<Boxes size={15} />} onClick={() => setWarehouseOpen(true)}>إدارة المخازن</Button><Button icon={<Plus size={16} />} onClick={beginCreate}>صنف جديد</Button></>}
       />
 
@@ -202,13 +201,6 @@ export function InventoryPage({
         <Metric icon={AlertTriangle} label="تحت حد إعادة الطلب" value={lowStockCount} />
         <Metric icon={ShoppingCart} label="قيمة المخزون" value={formatMoney(inventoryValue)} />
       </div>
-
-      <OperationalSummaryStrip items={[
-        { id:'items', label:'الأصناف', value:items.length },
-        { id:'low', label:'تحت حد إعادة الطلب', value:lowStockCount, tone:lowStockCount?'alert':'default' },
-        { id:'warehouses', label:'المخازن', value:warehouses.length },
-        { id:'value', label:'قيمة المخزون', value:formatMoney(inventoryValue) },
-      ]} />
 
       <DataTable
         rows={filteredItems}

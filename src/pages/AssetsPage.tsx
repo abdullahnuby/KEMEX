@@ -1,9 +1,9 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
-import { Eye, Pencil, Plus, Truck, X } from 'lucide-react'
+import { CheckCircle2, Eye, Gauge, Pencil, Plus, Truck, Wrench, X } from 'lucide-react'
 import type { Asset, AssetCondition, AssetOwnership, AssetStatus, Project } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { Button, DataTable, EmptyState, IconButton, PageHeader, StatusBadge, useToast } from '../components/ui'
-import { FormSection, OperationalSummaryStrip } from '../shared/ui'
+import { FormSection } from '../shared/ui'
 
 import { APP_LOCALE } from '../shared/formatters/locale'
 export function AssetsPage({assets, projects, onSave, onRoute, canEdit=true, focusAssetId}: {assets:Asset[]; projects:Project[]; onSave:(asset:Asset)=>Promise<void>; onRoute:(r:string)=>void; canEdit?:boolean; focusAssetId?:string}) {
@@ -80,20 +80,19 @@ export function AssetsPage({assets, projects, onSave, onRoute, canEdit=true, foc
   return <div className="space-y-6">
     <PageHeader
       title="الأصول والأسطول والمعدات"
-      description="سجل مركزي للأصول مع الحالة والتخصيص والعداد."
-      action={<Button onClick={()=>setEditing({id:`NEW-${Date.now()}`,code:'',name:'',cat:'',type:'',own:'مملوك',status:'متاح',cond:'سليم',mfr:'',model:'',year:new Date().getFullYear(),fuel:'ديزل',mt:'كم',meter:0,std:0,capex:0,life:5,resid:0,proj:'',drv:'',cust:'',plate:'',buy:'',lic:'',ins:'',contract:'',notes:''})}><Plus size={16}/> إضافة أصل</Button>}
+      action={<Button className="compact-page-action" onClick={()=>setEditing({id:`NEW-${Date.now()}`,code:'',name:'',cat:'',type:'',own:'مملوك',status:'متاح',cond:'سليم',mfr:'',model:'',year:new Date().getFullYear(),fuel:'ديزل',mt:'كم',meter:0,std:0,capex:0,life:5,resid:0,proj:'',drv:'',cust:'',plate:'',buy:'',lic:'',ins:'',contract:'',notes:''})}><Plus size={16}/> إضافة أصل</Button>}
     />
-    <OperationalSummaryStrip items={[
-      { id: 'total', label: 'إجمالي الأصول', value: statusCounts.total },
-      { id: 'available', label: 'متاح للتخصيص', value: statusCounts.available, tone: statusCounts.available ? 'success' : 'default' },
-      { id: 'active', label: 'قيد التشغيل', value: statusCounts.active },
-      { id: 'maintenance', label: 'تحت الصيانة', value: statusCounts.maintenance, tone: statusCounts.maintenance ? 'alert' : 'default' },
-    ]} />
-    <div className="enterprise-section-note"><span>الأصول المستأجرة: <strong>{statusCounts.rented}</strong></span><span>العمليات الجماعية غير مفعّلة على حالة الأصل لحماية دورة الاعتماد والتخصيص.</span></div>
+    <div className="metric-grid compact">
+      <Metric icon={Truck} label="إجمالي الأصول" value={statusCounts.total} />
+      <Metric icon={CheckCircle2} label="متاح" value={statusCounts.available} />
+      <Metric icon={Gauge} label="يعمل" value={statusCounts.active} />
+      <Metric icon={Wrench} label="تحت الصيانة" value={statusCounts.maintenance} />
+    </div>
     <DataTable
       rows={assets}
       columns={assetColumns}
       rowKey={row=>row.id}
+      mobilePresentation="table"
       searchPlaceholder="بحث بالكود أو الاسم أو النوع أو اللوحة..."
       enableColumnVisibility
       columnVisibilityStorageKey="kemex.assets.columns.v1"
@@ -113,6 +112,9 @@ export function AssetsPage({assets, projects, onSave, onRoute, canEdit=true, foc
 function Field({name,label,defaultValue,type='text',required=false}:{name:string;label:string;defaultValue:string;type?:string;required?:boolean}){return <label className="field"><span>{label}{required&&<em className="required-mark"> *</em>}</span><input name={name} type={type} defaultValue={defaultValue} required={required} min={type==='number'?0:undefined} step={type==='number'?'any':undefined}/></label>}
 function Select({name,label,value,options}:{name:string;label:string;value:string;options:Array<string|{v:string;l:string}>}){return <label className="field"><span>{label}</span><select name={name} defaultValue={value}>{options.map(o=>typeof o==='string'?<option key={o} value={o}>{o}</option>:<option key={o.v} value={o.v}>{o.l}</option>)}</select></label>}
 function Detail({label,value}:{label:string;value:ReactNode}){return <div className="detail-item"><span>{label}</span><strong>{value}</strong></div>}
+function Metric({ icon: Icon, label, value }: { icon: typeof Truck; label: string; value: string | number }) {
+  return <article className="metric-card"><div className="metric-icon"><Icon size={18} /></div><div className="metric-body"><span>{label}</span><strong>{value}</strong></div></article>
+}
 const normalizeAssetStatus = (value: string): AssetStatus => ['متاح','محجوز','مخصص لمشروع','يعمل','تحت الصيانة','خارج الخدمة','متوقف مؤقتًا','موقوف','غير نشط','مستبعد'].includes(value as AssetStatus) ? (value as AssetStatus) : 'متاح'
 const normalizeAssetCondition = (value: string): AssetCondition => ['سليم','جيد','يحتاج فحص','يحتاج صيانة','يحتاج إصلاح','تالف','حرج'].includes(value as AssetCondition) ? (value as AssetCondition) : 'سليم'
 const normalizeAssetOwnership = (value: string): AssetOwnership => ['مملوك','مستأجر','مؤجر','مشترك'].includes(value as AssetOwnership) ? (value as AssetOwnership) : 'مملوك'

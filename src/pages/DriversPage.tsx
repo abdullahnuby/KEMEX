@@ -1,8 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import { Plus, ShieldCheck, X } from 'lucide-react'
+import { AlertTriangle, CheckCheck, Plus, ShieldCheck, Users, X } from 'lucide-react'
 import type { Asset, Driver } from '../types/tfms'
 import { Button, DataTable, EmptyState, PageHeader, StatusBadge } from '../components/ui'
-import { FormSection, OperationalSummaryStrip } from '../shared/ui'
+import { FormSection } from '../shared/ui'
 
 type Props = {
   drivers: Driver[]
@@ -20,6 +20,13 @@ export function DriversPage({ drivers, assets, canEdit, onSave }: Props) {
     currentAsset: assets.find(asset => asset.drv === driver.id)?.name ?? driver.cur ?? '',
     currentAssetId: assets.find(asset => asset.drv === driver.id)?.code ?? '',
   })), [drivers, assets])
+
+  const driverCounts = useMemo(() => ({
+    total: rows.length,
+    active: rows.filter(row => row.status === 'نشط').length,
+    assigned: rows.filter(row => Boolean(row.currentAsset)).length,
+    expiring: rows.filter(row => row.licExp && ((new Date(row.licExp).getTime() - Date.now()) / 86400000) <= 30).length,
+  }), [rows])
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -46,13 +53,6 @@ export function DriversPage({ drivers, assets, canEdit, onSave }: Props) {
     try { await onSave(next); setEditing(null) } finally { setBusy(false) }
   }
 
-  const driverCounts = useMemo(() => ({
-    total: rows.length,
-    active: rows.filter(row => row.status === 'نشط').length,
-    assigned: rows.filter(row => Boolean(row.currentAsset)).length,
-    expiring: rows.filter(row => row.licExp && ((new Date(row.licExp).getTime() - Date.now()) / 86400000) <= 30).length,
-  }), [rows])
-
   const columns = [
     { id:'code', header:'الكود', sortValue:(row:typeof rows[number])=>row.code, render:(row:typeof rows[number])=><strong>{row.code}</strong> },
     { id:'name', header:'الاسم', sortValue:(row:typeof rows[number])=>row.name, render:(row:typeof rows[number])=>row.name },
@@ -64,15 +64,14 @@ export function DriversPage({ drivers, assets, canEdit, onSave }: Props) {
   ]
 
   return <div className="space-y-6">
-    <PageHeader title="السائقون والمشغلون" description="سجل العاملين التشغيليين والرخص والتكليفات الحالية مع ربط مباشر بالأصول." action={canEdit ? <Button onClick={()=>setEditing({id:`DRV-${Date.now()}`,code:'',name:'',phone:'',kind:'',licNo:'',licExp:'',cur:'',status:'نشط'})}><Plus size={16}/> إضافة سائق / مشغل</Button> : undefined}/>
-    <OperationalSummaryStrip items={[
-      { id: 'total', label: 'إجمالي السائقين والمشغلين', value: driverCounts.total },
-      { id: 'active', label: 'نشط', value: driverCounts.active, tone: 'success' },
-      { id: 'assigned', label: 'مرتبط بأصل', value: driverCounts.assigned },
-      { id: 'expiring', label: 'رخصة خلال 30 يوم', value: driverCounts.expiring, tone: driverCounts.expiring ? 'alert' : 'default' },
-    ]} />
+    <PageHeader title="السائقون والمشغلون" action={canEdit ? <Button className="compact-page-action" onClick={()=>setEditing({id:`DRV-${Date.now()}`,code:'',name:'',phone:'',kind:'',licNo:'',licExp:'',cur:'',status:'نشط'})}><Plus size={16}/> إضافة سائق / مشغل</Button> : undefined}/>
+    <div className="metric-grid compact">
+      <Metric icon={Users} label="إجمالي السائقين" value={driverCounts.total} />
+      <Metric icon={CheckCheck} label="نشط" value={driverCounts.active} />
+      <Metric icon={ShieldCheck} label="مكلفون" value={driverCounts.assigned} />
+      <Metric icon={AlertTriangle} label="تجديد قريب" value={driverCounts.expiring} />
+    </div>
     {!rows.length ? <EmptyState title="لا توجد سجلات سائقين ومشغلين" description="لم يتم تسجيل أي سائق أو مشغل فعلي في قاعدة البيانات حتى الآن." action={canEdit ? <Button variant="secondary" onClick={()=>setEditing({id:`DRV-${Date.now()}`,code:'',name:'',phone:'',kind:'',licNo:'',licExp:'',cur:'',status:'نشط'})}>إضافة أول سجل</Button> : undefined}/> : <DataTable rows={rows} columns={columns} rowKey={row=>row.id} pageSize={12} pageSizeOptions={[12, 24, 48]} searchPlaceholder="بحث بالاسم أو الكود أو التخصص..." enableColumnVisibility columnVisibilityStorageKey="kemex.drivers.columns.v1" exportable exportFileName="KEMEX-drivers" filters={[{id:'status',label:'الحالة',options:[{value:'نشط',label:'نشط'},{value:'غير نشط',label:'غير نشط'},{value:'إجازة',label:'إجازة'},{value:'موقوف',label:'موقوف'}],getValue:row=>String(row.status??'نشط')}]}/>}
-    {rows.length>0 && <div className="ds-context-strip"><ShieldCheck size={16}/><span>انتهاء الرخصة والكشف الطبي تتم متابعتهما من محرك التنبيهات المركزي.</span></div>}
     {editing&&<div className="modal-backdrop" onMouseDown={()=>!busy&&setEditing(null)}><form className="modal-card wide form-modal-premium" onSubmit={submit} onMouseDown={e=>e.stopPropagation()}>
       <div className="modal-head"><div><div className="form-kicker">ملف تشغيلي</div><h2>{drivers.some(item=>item.id===editing.id)?'تعديل سائق / مشغل':'إضافة سائق / مشغل'}</h2><p>البيانات الوظيفية والرخصة والتكليف الحالي.</p></div><button type="button" className="icon-button" onClick={()=>!busy&&setEditing(null)} aria-label="إغلاق"><X size={18}/></button></div>
       <div className="form-sections"><FormSection title="البيانات الأساسية"><Field name="code" label="الكود" value={editing.code} required/><Field name="name" label="الاسم" value={editing.name} required/><Field name="phone" label="الهاتف" value={editing.phone ?? ''}/><Field name="kind" label="التخصص" value={editing.kind ?? ''}/></FormSection>
@@ -89,6 +88,9 @@ function expiryStatus(value:string){
   if (days < 0) return 'منتهية'
   if (days <= 30) return `متبقي ${days} يوم`
   return 'سارية'
+}
+function Metric({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: string | number }) {
+  return <article className="metric-card"><div className="metric-icon"><Icon size={18} /></div><div className="metric-body"><span>{label}</span><strong>{value}</strong></div></article>
 }
 function Field({name,label,value,type='text',required}:{name:string;label:string;value:string;type?:string;required?:boolean}){return <label className="field"><span>{label}{required&&' *'}</span><input name={name} type={type} defaultValue={value} required={required} /></label>}
 function Select({name,label,value,options}:{name:string;label:string;value:string;options:string[]}){return <label className="field"><span>{label}</span><select name={name} defaultValue={value}>{options.map(v=><option key={v}>{v}</option>)}</select></label>}

@@ -79,13 +79,13 @@ export class LocalStorageRepository implements Repository {
     localStorage.setItem(SESSION_KEY, JSON.stringify(updated))
   }
 
-  async createUserAccount(input:{email:string;full_name:string;role:Role;initial_password:string}) {
+  async createUserAccount(input:{email:string;full_name:string;role:Role;initial_password:string;driver_id?:string|null}) {
     const users = read<User[]>('users', [])
     const email = input.email.trim().toLowerCase()
     if (users.some(user => user.username.toLowerCase() === email)) throw new Error('يوجد حساب محلي بهذا البريد بالفعل.')
-    const user: User = { id:`local-${Date.now()}`, username:email, name:input.full_name.trim(), role:input.role, active:true, mustChangePassword:true, pass:input.initial_password }
+    const user: User = { id:`local-${Date.now()}`, username:email, name:input.full_name.trim(), role:input.role, active:true, mustChangePassword:true, driverId:input.driver_id ?? null, pass:input.initial_password }
     write('users', replaceById(users, user))
-    return {id:user.id,email:user.username,name:user.name,role:user.role,active:true,mustChangePassword:true}
+    return {id:user.id,email:user.username,name:user.name,role:user.role,active:true,mustChangePassword:true,driver_id:user.driverId ?? null}
   }
 
   async signOut(): Promise<void> {
@@ -97,22 +97,22 @@ export class LocalStorageRepository implements Repository {
     return clone(read<User[]>('users', []))
   }
 
-  async updateUserProfile(id: string, patch: { full_name?: string; role?: Role; active?: boolean }): Promise<User> {
+  async updateUserProfile(id: string, patch: { full_name?: string; role?: Role; active?: boolean; driver_id?: string | null }): Promise<User> {
     const users = read<User[]>('users', [])
     const current = users.find(user => user.id === id)
     if (!current) throw new Error('المستخدم غير موجود في الوضع المحلي.')
-    const updated: User = { ...current, name: patch.full_name ?? current.name, role: patch.role ?? current.role, active: patch.active ?? current.active }
+    const updated: User = { ...current, name: patch.full_name ?? current.name, role: patch.role ?? current.role, active: patch.active ?? current.active, driverId: patch.driver_id === undefined ? current.driverId ?? null : patch.driver_id }
     write('users', replaceById(users, updated))
     return clone(updated)
   }
 
   async getSettings(): Promise<Record<string, unknown>> {
     return clone(read<Record<string, unknown>>('settings', {
-      company_name: '', group_name: '', currency_code: 'EGP', vat: 0, diesel: 0, petrol: 0, alert_days: 30, alert_km: 1500, alert_hours: 80,
+      company_name: '', group_name: '', currency_code: 'EGP', vat: 0, diesel: 0, petrol: 0, alert_days: 30, alert_km: 1500, alert_hours: 80, trip_geofence_radius_m: 1000,
     }))
   }
 
-  async saveSettings(settings: { company_name: string; group_name: string; currency_code: string; vat: number; diesel: number; petrol: number; alert_days: number; alert_km: number; alert_hours: number }): Promise<void> {
+  async saveSettings(settings: { company_name: string; group_name: string; currency_code: string; vat: number; diesel: number; petrol: number; alert_days: number; alert_km: number; alert_hours: number; trip_geofence_radius_m?: number }): Promise<void> {
     write('settings', settings)
   }
 

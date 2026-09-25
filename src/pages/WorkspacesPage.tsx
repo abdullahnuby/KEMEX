@@ -85,7 +85,7 @@ export function FinanceWorkspacePage(props:{assets:Asset[];projects:Project[];wo
 export function AdminWorkspacePage(props:{user:User;repository:Repository;moduleData:Record<string,Record<string,unknown>[]>;assets:Asset[];projects:Project[];drivers:Driver[];workOrders:WorkOrder[];onSaved:()=>Promise<void>}){
  const tab = 'users' as 'users'|'audit'|'settings'
  return <Workspace>
-  {tab==='users'&&<UsersPage user={props.user} repository={props.repository}/>} 
+  {tab==='users'&&<UsersPage user={props.user} repository={props.repository} drivers={props.drivers}/>} 
   {tab==='audit'&&<AuditPage records={props.moduleData.audit??[]} assets={props.assets} projects={props.projects} drivers={props.drivers} workOrders={props.workOrders} moduleData={props.moduleData}/>} 
   {tab==='settings'&&<SettingsPage user={props.user} repository={props.repository} onSaved={props.onSaved}/>} 
  </Workspace>

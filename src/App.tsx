@@ -9,6 +9,7 @@ import { useAuth } from './features/auth'
 import { CurrencyProvider } from './features/settings'
 import { useKemexBootstrap } from './features/app/hooks/useKemexBootstrap'
 import { useKemexMutations } from './features/app/hooks/useKemexMutations'
+import { DriverPortal } from './pages/driver/DriverPortal'
 import { AppRoutes } from './app/routing/AppRoutes'
 import { ROUTE_DESCRIPTIONS } from './app/routing/routeRegistry'
 import type { Driver, Operation } from './types/tfms'
@@ -27,7 +28,8 @@ function AppInner() {
   const routerNavigate = useNavigate()
   const route = location.pathname.replace(/^\//, '') || 'dashboard'
 
-  const bootstrapQuery = useKemexBootstrap(user?.id && !user.mustChangePassword ? user.id : undefined, route)
+  const bootstrapUserId = user?.role === 'driver' ? undefined : user?.id && !user.mustChangePassword ? user.id : undefined
+  const bootstrapQuery = useKemexBootstrap(bootstrapUserId, route)
   const assets = bootstrapQuery.data?.assets ?? []
   const projects = bootstrapQuery.data?.projects ?? []
   const workOrders = bootstrapQuery.data?.workOrders ?? []
@@ -117,6 +119,7 @@ function AppInner() {
   if (authLoading) return <div className="loading-page"><div className="spinner" /><strong>جارٍ التحقق من جلسة المستخدم...</strong></div>
   if (!user) return <LoginPage onLogin={handleLogin} />
   if (user.mustChangePassword) return <ChangePasswordPage user={user} onChangePassword={changePassword} onLogout={handleLogout} />
+  if (user.role === 'driver') return <DriverPortal user={user} onLogout={handleLogout} />
   if (bootstrapQuery.isPending) return <div className="loading-page"><div className="spinner" /><strong>جارٍ تحميل بيانات KEMEX...</strong></div>
 
   const drivers = (moduleData.drivers as Driver[]) || []

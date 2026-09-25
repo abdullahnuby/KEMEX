@@ -37,7 +37,7 @@ export class TfmsRepository implements Repository {
 
     const { data: profile, error } = await db.from('profiles').select('*').eq('id', authUser.id).single()
     if (error || !profile) return null
-    const allowedRoles: Role[] = ['admin','mgmt','fleet','pm','eng','maint','acct']
+    const allowedRoles: Role[] = ['admin','mgmt','fleet','pm','eng','maint','acct','driver']
     if (profile.active !== true || !allowedRoles.includes(profile.role as Role)) {
       await db.auth.signOut()
       return null
@@ -49,21 +49,22 @@ export class TfmsRepository implements Repository {
       role: profile.role as Role,
       active: profile.active,
       mustChangePassword: profile.must_change_password === true,
+      driverId: profile.driver_id ?? null,
     }
   }
 
   async listUsers(): Promise<User[]> {
     const db = requireSupabase()
-    const { data, error } = await db.from('profiles').select('id,email,full_name,role,active,must_change_password').order('full_name')
+    const { data, error } = await db.from('profiles').select('id,email,full_name,role,active,must_change_password,driver_id').order('full_name')
     if (error) throw error
-    return (data ?? []).map(x => ({ id:x.id, username:x.email ?? '', name:x.full_name ?? '', role:x.role as Role, active:x.active, mustChangePassword:x.must_change_password === true }))
+    return (data ?? []).map(x => ({ id:x.id, username:x.email ?? '', name:x.full_name ?? '', role:x.role as Role, active:x.active, mustChangePassword:x.must_change_password === true, driverId:x.driver_id ?? null }))
   }
 
-  async updateUserProfile(id:string, patch:{full_name?:string;role?:Role;active?:boolean}):Promise<User> {
+  async updateUserProfile(id:string, patch:{full_name?:string;role?:Role;active?:boolean;driver_id?:string|null}):Promise<User> {
     const db = requireSupabase()
-    const { data, error } = await db.from('profiles').update(patch).eq('id',id).select('id,email,full_name,role,active,must_change_password').single()
+    const { data, error } = await db.from('profiles').update(patch).eq('id',id).select('id,email,full_name,role,active,must_change_password,driver_id').single()
     if (error) throw error
-    return { id:data.id, username:data.email ?? '', name:data.full_name ?? '', role:data.role as Role, active:data.active, mustChangePassword:data.must_change_password === true }
+    return { id:data.id, username:data.email ?? '', name:data.full_name ?? '', role:data.role as Role, active:data.active, mustChangePassword:data.must_change_password === true, driverId:data.driver_id ?? null }
   }
 
   async changePassword(newPassword: string): Promise<void> {
@@ -75,13 +76,26 @@ export class TfmsRepository implements Repository {
     if (flagError) throw flagError
   }
 
-  async createUserAccount(input:{email:string;full_name:string;role:Role;initial_password:string}): Promise<{id:string;email:string;name:string;role:Role;active:boolean;mustChangePassword:boolean}> {
+  async createUserAccount(input:{email:string;full_name:string;role:Role;initial_password:string;driver_id?:string|null}): Promise<{id:string;email:string;name:string;role:Role;active:boolean;mustChangePassword:boolean;driver_id?:string|null}> {
     const db = requireSupabase()
     const { data, error } = await db.functions.invoke('admin-create-user', { body: input })
-    if (error) throw new Error(error.message || 'تعذر إنشاء حساب المستخدم. تأكد من نشر وظيفة إنشاء الحسابات في Supabase.')
+    if (error) {
+      // Supabase wraps non-2xx function responses in FunctionsHttpError; read
+      // the JSON body so the administrator sees the actual validation/server error.
+      let detail = ''
+      const context = (error as { context?: unknown }).context
+      if (context && typeof context === 'object' && 'json' in context && typeof (context as { json?: unknown }).json === 'function') {
+        try {
+          const payload = await (context as { json: () => Promise<{ error?: string; message?: string; error_code?: string }> }).json()
+          detail = String(payload?.error ?? payload?.message ?? (payload?.error_code ? `خطأ: ${payload.error_code}` : ''))
+        } catch { /* response body may be empty or non-JSON */ }
+      }
+      if (!detail && error.message && error.message !== 'Edge Function returned a non-2xx status code') detail = error.message
+      throw new Error(detail || 'تعذر إنشاء الحساب. راجع سجل وظيفة admin-create-user في Supabase لمعرفة سبب الرفض.')
+    }
     const user = data?.user
     if (!user) throw new Error('استجابة إنشاء المستخدم غير مكتملة.')
-    return { id:String(user.id), email:String(user.email), name:String(user.full_name ?? user.name ?? ''), role:user.role as Role, active:user.active !== false, mustChangePassword:user.must_change_password === true }
+    return { id:String(user.id), email:String(user.email), name:String(user.full_name ?? user.name ?? ''), role:user.role as Role, active:user.active !== false, mustChangePassword:user.must_change_password === true, driver_id:user.driver_id == null ? null : String(user.driver_id) }
   }
 
   async getSettings(){
@@ -92,7 +106,7 @@ export class TfmsRepository implements Repository {
     return data
   }
 
-  async saveSettings(settings:{company_name:string;group_name:string;currency_code:string;vat:number;diesel:number;petrol:number;alert_days:number;alert_km:number;alert_hours:number}){
+  async saveSettings(settings:{company_name:string;group_name:string;currency_code:string;vat:number;diesel:number;petrol:number;alert_days:number;alert_km:number;alert_hours:number;trip_geofence_radius_m?:number}){
     const db = requireSupabase()
     const { error } = await db.from('organization_settings').upsert({id:true,...settings,currency_code:String(settings.currency_code||'EGP').toUpperCase()})
     if (error) throw error
@@ -130,12 +144,12 @@ export class TfmsRepository implements Repository {
       await db.auth.signOut()
       throw profileError
     }
-    const allowedRoles: Role[] = ['admin','mgmt','fleet','pm','eng','maint','acct']
+    const allowedRoles: Role[] = ['admin','mgmt','fleet','pm','eng','maint','acct','driver']
     if (profile.active !== true || !allowedRoles.includes(profile.role as Role)) {
       await db.auth.signOut()
       throw new Error('هذا المستخدم غير نشط أو لا يملك دورًا صالحًا.')
     }
-    return { id: profile.id, username: profile.email ?? username, name: profile.full_name ?? '', role: profile.role as Role, active: profile.active, mustChangePassword: profile.must_change_password === true }
+    return { id: profile.id, username: profile.email ?? username, name: profile.full_name ?? '', role: profile.role as Role, active: profile.active, mustChangePassword: profile.must_change_password === true, driverId: profile.driver_id ?? null }
   }
 
   async signOut() {

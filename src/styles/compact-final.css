@@ -1,273 +1,424 @@
-/* Final compact override layer - loaded last to neutralize legacy font-size rules. */
-:root {
-  --kemex-final-font: 10.5px;
-}
+/*
+ * Final layout/typography override layer -- loaded last.
+ *
+ * REPLACES an earlier version of this file that forced
+ * html { font-size: 10.5px !important } globally, shrinking every rem-based
+ * size in the app to roughly 65% of normal, plus explicit 7px-12px font
+ * sizes on navbar/table/badge text. That is what made the desktop UI read
+ * as cramped and low-quality. This version restores a normal root font
+ * size and comfortable, consistent sizes, and adds a max-width container
+ * so wide desktop screens don't stretch cards edge-to-edge with empty gaps.
+ *
+ * Scope: typography, spacing and layout width only. No component logic,
+ * no markup, no business rules touched.
+ */
 
-html,
-body,
-#root,
-button,
-input,
-select,
-textarea {
-  font-size: var(--kemex-final-font) !important;
-}
-
-html {
-  font-size: var(--kemex-final-font) !important;
-}
-
+html { font-size: 13px; }
 body {
-  font-size: var(--kemex-final-font) !important;
-  line-height: 1.45 !important;
-}
-
-.site-navbar,
-.navbar-brand,
-.navbar-context-copy,
-.desktop-nav,
-.nav-direct,
-.nav-group-trigger,
-.nav-menu-item,
-.navbar-actions,
-.navbar-icon-btn,
-.navbar-user,
-.navbar-user-copy,
-.navbar-logout,
-.navbar-menu-btn,
-.page-head,
-.page-head h1,
-.page-head p,
-.primary-button,
-.secondary-button,
-.text-button,
-.icon-button,
-.workflow-button,
-.ui-button,
-.workspace-tab,
-.metric-card,
-.metric-body,
-.metric-body span,
-.metric-body strong,
-.metric-body small,
-.panel,
-.panel-head,
-.panel-head h2,
-.panel-head p,
-.table-wrap,
-.table-wrap th,
-.table-wrap td,
-.ui-data-table,
-.ui-data-table thead th,
-.ui-data-table tbody td,
-.field,
-.field > span,
-.field input,
-.field select,
-.field textarea,
-.search-field,
-.search-field input,
-.modal-head,
-.modal-head h2,
-.modal-head p,
-.report-section-head,
-.report-section-head h2,
-.report-result-head,
-.report-result-head h2,
-.report-hint,
-.nav-menu-section-title,
-.nav-menu-item strong,
-.nav-menu-item small,
-.metric-grid,
-.metric-grid.compact {
-  font-size: inherit !important;
-}
-
-.site-navbar {
-  height: 42px !important;
-  gap: 5px !important;
-  padding: 0 10px !important;
-  border-bottom-width: 1px !important;
-  box-shadow: 0 2px 12px rgba(17, 52, 62, 0.04) !important;
-}
-
-.navbar-brand {
-  min-width: 0 !important;
-  max-width: 165px !important;
-  gap: 7px !important;
-  padding: 3px 5px !important;
-}
-
-.brand-mark {
-  width: 26px !important;
-  height: 26px !important;
-  border-radius: 8px !important;
-  flex: 0 0 26px !important;
-}
-
-.navbar-brand strong,
-.navbar-context-copy strong {
-  font-size: 10.5px !important;
-  line-height: 1.2 !important;
-}
-
-.navbar-brand span,
-.navbar-context-copy span,
-.nav-menu-item small,
-.navbar-user-copy small,
-.navbar-logout,
-.page-head p,
-.ui-page-header__copy p,
-.report-section-head p,
-.report-result-head p,
-.panel-head p,
-.ui-card__header p,
-.page-description,
-.page-subtitle,
-.field-help,
-.form-help,
-.field-error,
-.form-error,
-.report-filter-note,
-.report-hint {
-  font-size: 8.2px !important;
-}
-
-.nav-direct,
-.nav-group-trigger,
-.nav-menu-item strong,
-.navbar-user-copy strong,
-.workspace-tab,
-.primary-button,
-.secondary-button,
-.text-button,
-.workflow-button,
-.ui-button,
-button,
-input,
-select,
-textarea {
-  font-size: 8.8px !important;
-}
-
-.desktop-nav {
-  gap: 1px !important;
-}
-
-.nav-direct,
-.nav-group-trigger {
-  height: 27px !important;
-  padding: 0 7px !important;
-  border-radius: 7px !important;
-}
-
-.nav-menu-panel {
-  min-width: 250px !important;
-  max-width: 380px !important;
-  padding: 7px !important;
-}
-
-.nav-menu-item {
-  min-height: 40px !important;
-  padding: 7px !important;
-  border-radius: 8px !important;
-}
-
-.nav-menu-item strong {
-  font-size: 8.4px !important;
-}
-
-.nav-menu-item small {
-  font-size: 7px !important;
-}
-
-.navbar-actions {
-  gap: 5px !important;
-}
-
-.navbar-icon-btn {
-  width: 28px !important;
-  height: 28px !important;
-  border-radius: 8px !important;
-}
-
-.navbar-user {
-  gap: 6px !important;
-  padding-inline: 3px !important;
-}
-
-.avatar {
-  width: 24px !important;
-  height: 24px !important;
-  border-radius: 8px !important;
-}
-
-.navbar-user-copy strong {
-  font-size: 8.4px !important;
-}
-
-.navbar-user-copy small {
-  font-size: 6.8px !important;
-}
-
-.navbar-logout {
-  height: 27px !important;
-  padding: 0 8px !important;
-  border-radius: 7px !important;
-  font-size: 8px !important;
-}
-
-.page-head h1,
-.ui-page-title,
-.ds-page-header h1 {
-  font-size: 17px !important;
-  line-height: 1.2 !important;
-  letter-spacing: -0.2px !important;
-}
-
-.metric-body strong,
-.ui-metric-card__copy > strong,
-.ui-stat-card__copy > strong {
-  font-size: 15px !important;
-  line-height: 1.2 !important;
-}
-
-.metric-body span,
-.ui-metric-card__copy > span,
-.ui-stat-card__copy > p {
-  font-size: 8px !important;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .page-body {
-  padding: 12px 14px 18px !important;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding: 24px 20px 36px !important;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.nav-menu-item strong {
-  font-size: 11px !important;
+.page-head h1, .ui-page-title, .ds-page-header h1 {
+  font-size: 24px !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.02em !important;
+}
+.page-head p, .ui-page-header__copy p, .page-description, .page-subtitle {
+  font-size: 12.5px !important;
+  line-height: 1.6 !important;
 }
 
-.nav-menu-item small {
-  font-size: 9px !important;
+.metric-body strong, .ui-metric-card__copy > strong, .ui-stat-card__copy > strong {
+  font-size: 22px !important;
+  line-height: 1.25 !important;
+}
+.metric-body span, .ui-metric-card__copy > span, .ui-stat-card__copy > p { font-size: 12px !important; }
+.metric-body small, .ui-metric-card__copy > small { font-size: 11px !important; }
+
+.ui-card__header h2, .panel-head h2, .report-section-head h2, .report-result-head h2, .section-title, .modal-head h2 {
+  font-size: 15px !important;
+}
+.ui-card__header p, .panel-head p, .report-section-head p, .report-result-head p, .report-hint, .report-filter-note {
+  font-size: 12px !important;
 }
 
+.field > span, .field > label, .field-label, .ds-form-field__label, .form-section-head strong, .ds-form-section__head h3 {
+  font-size: 12px !important;
+}
+.field input, .field select, .field textarea, .ds-form-field input, .ds-form-field select, .ds-form-field textarea,
+.form-control, .enterprise-control, .search-field input, .ui-data-table__search, .ui-data-table__filter {
+  font-size: 13px !important;
+}
+.field-help, .form-help, .field-error, .form-error { font-size: 11.5px !important; }
+
+.table-wrap th, .ui-data-table thead th { font-size: 11px !important; }
+.table-wrap td, .ui-data-table tbody td { font-size: 12px !important; }
+
+.ui-status-badge, .badge, .status-badge { font-size: 11px !important; }
+
+.primary-button, .secondary-button, .text-button, .workflow-button, .ui-button, .workspace-tab {
+  font-size: 13px !important;
+}
+
+.site-navbar {
+  height: 58px !important;
+  gap: 8px !important;
+  padding: 0 16px !important;
+}
+.navbar-brand { min-width: 0 !important; max-width: 220px !important; gap: 8px !important; }
+.navbar-brand strong, .navbar-context-copy strong { font-size: 14px !important; line-height: 1.3 !important; }
+.navbar-brand span, .navbar-context-copy span { font-size: 11px !important; }
+.brand-mark { width: 32px !important; height: 32px !important; border-radius: 9px !important; }
+.nav-direct, .nav-group-trigger { height: 34px !important; padding: 0 10px !important; border-radius: 8px !important; font-size: 12px !important; }
+.nav-menu-panel { min-width: 260px !important; max-width: 380px !important; padding: 10px !important; }
+.nav-menu-item { min-height: 42px !important; padding: 9px !important; }
+.nav-menu-item strong { font-size: 12px !important; }
+.nav-menu-item small { font-size: 10px !important; }
+.navbar-actions { gap: 8px !important; }
+.navbar-icon-btn { width: 32px !important; height: 32px !important; border-radius: 8px !important; }
+.navbar-user { gap: 8px !important; }
+.avatar { width: 28px !important; height: 28px !important; border-radius: 8px !important; }
+.navbar-user-copy strong { font-size: 12px !important; }
+.navbar-user-copy small { font-size: 10px !important; }
+.navbar-logout { height: 32px !important; padding: 0 10px !important; border-radius: 8px !important; font-size: 12px !important; }
+
+/* =====================================================================
+ * MOBILE APP SHELL — single canonical layer.
+ * This is the ONLY place that should define mobile nav-panel/scrim/
+ * modal-backdrop mobile behavior. Earlier conflicting rules in
+ * global.css / design-system.css (dropdown-style mobile-nav-panel,
+ * centered modal-backdrop at 760px) are superseded here because this
+ * file loads last. Do not add a 5th override layer on top of this —
+ * edit these rules directly instead.
+ * ===================================================================== */
+
+/* Bottom tab bar (mobile only) */
+.mobile-tab-bar { display: none; }
+
+@media (max-width: 900px) {
+  .mobile-tab-bar {
+    display: flex;
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 60;
+    background: #fff;
+    border-top: 1px solid #e6e8ec;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -4px 16px rgba(17, 52, 62, 0.06);
+  }
+  .mobile-tab-item {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    border: 0;
+    background: transparent;
+    color: #8a97ab;
+    padding: 6px 2px;
+    border-radius: 10px;
+    font-family: inherit;
+  }
+  .mobile-tab-item span { font-size: 10.5px; font-weight: 600; }
+  .mobile-tab-item.active { color: #1e5f5c; }
+  .mobile-tab-more-icon { position: relative; display: inline-flex; }
+  .mobile-tab-dot { position: absolute; top: -2px; left: -2px; width: 8px; height: 8px; border-radius: 99px; background: #d1483c; border: 2px solid #fff; }
+
+  /* Room for the fixed tab bar so content isn't hidden behind it */
+  .page-body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important; }
+
+  /* Mobile nav panel becomes a real bottom sheet, not a floating dropdown.
+     This is now the ONLY declaration for these two classes in the whole
+     project — the conflicting !important rules previously in global.css
+     and design-system.css (position:absolute + z-index:110 fighting this
+     file's position:fixed) were removed at the source. */
+  .mobile-nav-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: rgba(7, 28, 35, 0.45);
+    z-index: 150;
+  }
+  .mobile-nav-panel {
+    display: block;
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 78vh;
+    border-radius: 18px 18px 0 0;
+    padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    background: #fff;
+    border: 1px solid #e6e8ec;
+    box-shadow: 0 -8px 30px rgba(17, 52, 62, 0.16);
+    z-index: 160;
+    animation: mobileSheetUp .18s ease;
+  }
+  @keyframes mobileSheetUp {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* Modal / dialog: always a bottom sheet on mobile, one canonical rule */
+  .modal-backdrop {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+  .modal-card, .modal-card.wide,
+  .modal-backdrop > .modal-card, .modal-backdrop > form.modal-card,
+  .modal-backdrop > .modal-card.wide, .modal-backdrop > form.modal-card.wide {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 18px 18px 0 0 !important;
+    max-height: calc(100dvh - 56px) !important;
+  }
+}
+
+/* Module sub-nav — horizontal sibling-page tabs inside a module, mobile only */
+.module-sub-nav { display: none; }
+
+@media (max-width: 900px) {
+  .module-sub-nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 10px 14px;
+    background: #fff;
+    border-bottom: 1px solid #e6e8ec;
+    position: sticky;
+    top: 60px; /* right below the navbar */
+    z-index: 40;
+  }
+  .module-sub-nav::-webkit-scrollbar { display: none; }
+  .module-sub-nav-item {
+    flex: 0 0 auto;
+    border: 1px solid #e0e3e8;
+    background: #f6f7f9;
+    color: #4a5568;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  .module-sub-nav-item.active {
+    background: #1e5f5c;
+    border-color: #1e5f5c;
+    color: #fff;
+  }
+}
+
+/* Navbar restore — keep the global application navigation visible on desktop. */
+@media (min-width: 901px) {
+  .site-navbar {
+    display: grid !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  .desktop-nav {
+    display: flex !important;
+    visibility: visible !important;
+  }
+}
+
+/* =====================================================================
+ * Latest desktop shell polish
+ * - Prevents the global navbar from creating horizontal overflow.
+ * - Gives the navbar center lane enough flexible room at desktop widths.
+ * - Slightly reduces large page titles, section headings, navbar labels,
+ *   and dropdown item text so the UI matches the supplied references.
+ * ===================================================================== */
+html, body, #root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.main-shell {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 1081px) {
+  .site-navbar {
+    width: 100% !important;
+    max-width: 100% !important;
+    grid-template-columns: minmax(175px, 205px) minmax(0, 1fr) minmax(235px, 260px) !important;
+    gap: 8px !important;
+    padding-inline: 12px !important;
+  }
+
+  .desktop-nav {
+    min-width: 0 !important;
+    width: 100% !important;
+    justify-content: center !important;
+    gap: 1px !important;
+    overflow: visible !important;
+  }
+
+  .nav-direct,
+  .nav-group-trigger {
+    min-height: 36px !important;
+    height: 36px !important;
+    padding-inline: 7px !important;
+    border-radius: 8px !important;
+    gap: 4px !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+  }
+
+  .nav-direct svg,
+  .nav-group-trigger svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .nav-menu-panel {
+    width: min(560px, calc(100vw - 24px)) !important;
+    min-width: 340px !important;
+    padding: 7px !important;
+    border-radius: 11px !important;
+  }
+
+  .nav-menu-section-title {
+    padding: 3px 5px 6px !important;
+    font-size: 10px !important;
+  }
+
+  .nav-menu-section-grid {
+    gap: 4px !important;
+  }
+
+  .nav-menu-item {
+    min-height: 48px !important;
+    gap: 7px !important;
+    padding: 7px !important;
+    border-radius: 9px !important;
+  }
+
+  .nav-menu-icon {
+    width: 29px !important;
+    height: 29px !important;
+    border-radius: 8px !important;
+  }
+
+  .nav-menu-item strong {
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+  }
+
+  .nav-menu-item small {
+    font-size: 9px !important;
+  }
+
+  .navbar-brand {
+    max-width: 205px !important;
+    gap: 8px !important;
+    padding-inline: 5px !important;
+  }
+
+  .brand-mark {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 9px !important;
+  }
+
+  .navbar-context-copy strong {
+    font-size: 13px !important;
+  }
+
+  .navbar-context-copy span {
+    font-size: 10px !important;
+  }
+
+  .navbar-actions {
+    gap: 5px !important;
+  }
+
+  .navbar-search-btn {
+    min-height: 36px !important;
+    padding-inline: 9px !important;
+    font-size: 11px !important;
+  }
+
+  .navbar-icon-btn,
+  .navbar-menu-btn {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .navbar-user {
+    min-height: 36px !important;
+    gap: 6px !important;
+  }
+
+  .navbar-user-copy strong {
+    font-size: 11px !important;
+  }
+
+  .navbar-user-copy small {
+    font-size: 9px !important;
+  }
+
+  .navbar-logout {
+    min-height: 36px !important;
+    padding-inline: 8px !important;
+    font-size: 11px !important;
+  }
+}
+
+@media (min-width: 1081px) and (max-width: 1280px) {
+  .site-navbar {
+    grid-template-columns: minmax(155px, 180px) minmax(0, 1fr) minmax(215px, 230px) !important;
+    gap: 5px !important;
+    padding-inline: 9px !important;
+  }
+
+  .nav-direct,
+  .nav-group-trigger {
+    padding-inline: 5px !important;
+    font-size: 10px !important;
+    gap: 3px !important;
+  }
+
+  .navbar-brand {
+    max-width: 180px !important;
+  }
+
+  .navbar-context-copy strong {
+    font-size: 12px !important;
+  }
+
+  .navbar-context-copy span {
+    font-size: 9px !important;
+  }
+}
+
+/* Page titles / tabs: closer to the supplied compact reference screens. */
 .page-head h1,
 .ui-page-title,
 .ds-page-header h1 {
   font-size: 21px !important;
-  line-height: 1.25 !important;
-}
-
-.metric-body strong,
-.ui-metric-card__copy > strong,
-.ui-stat-card__copy > strong {
-  font-size: 18px !important;
-  line-height: 1.25 !important;
-}
-
-.metric-body span,
-.ui-metric-card__copy > span,
-.ui-stat-card__copy > p {
-  font-size: 10px !important;
+  line-height: 1.28 !important;
 }
 
 .ui-card__header h2,
@@ -276,53 +427,437 @@ textarea {
 .report-result-head h2,
 .section-title,
 .modal-head h2 {
-  font-size: 13px !important;
+  font-size: 14px !important;
+  line-height: 1.35 !important;
 }
 
-.field > span,
-.field > label,
-.field-label,
-.ds-form-field__label,
-.modal-backdrop .field > span,
-.form-section-head strong,
-.ds-form-section__head h3 {
-  font-size: 11px !important;
-}
-
-.field input,
-.field select,
-.field textarea,
-.ds-form-field input,
-.ds-form-field select,
-.ds-form-field textarea,
-.form-control,
-.enterprise-control,
-.search-field input,
-.ui-data-table__search,
-.ui-data-table__filter {
+.primary-button,
+.secondary-button,
+.text-button,
+.workflow-button,
+.ui-button,
+.workspace-tab {
   font-size: 12px !important;
 }
 
-.table-wrap th,
-.ui-data-table thead th {
-  font-size: 10px !important;
+.nav-menu-item,
+.nav-menu-item strong,
+.module-sub-nav-item {
+  letter-spacing: 0 !important;
 }
 
-.table-wrap td,
-.ui-data-table tbody td {
-  font-size: 11px !important;
-}
+/* ======================================================================
+ * Mobile stability + map picker layering repair
+ * ====================================================================== */
+html, body, #root { max-width: 100%; overflow-x: clip; }
+.page-body, .dashboard-page, .enterprise-page { min-width: 0; max-width: 100%; }
+.dashboard-page > *, .dashboard-page .ui-card, .dashboard-page .analytics-panel { min-width: 0; }
 
-.ui-status-badge,
-.badge,
-.status-badge {
-  font-size: 9.5px !important;
+.location-map-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(9, 33, 42, .58);
+  backdrop-filter: blur(5px);
+}
+.location-map-picker-card {
+  width: min(100%, 1080px);
+  height: min(94dvh, 820px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #d6e4e7;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 30px 90px rgba(8, 34, 41, .28);
+}
+.location-map-picker-map-wrap {
+  position: relative;
+  min-height: 0;
+  flex: 1 1 auto;
+  background: #eef3f4;
+}
+.location-map-picker-map {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
 @media (max-width: 900px) {
-  .page-head h1,
-  .ui-page-title,
-  .ds-page-header h1 {
-    font-size: 18px !important;
+  /* Keep the compact mobile shell inside the viewport. */
+  .site-navbar {
+    width: 100% !important;
+    max-width: 100% !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 6px !important;
+    padding-inline: 10px !important;
+  }
+  .navbar-brand { min-width: 0 !important; max-width: 100% !important; }
+  .navbar-brand .navbar-context-copy { min-width: 0 !important; overflow: hidden !important; }
+  .navbar-context-copy strong { max-width: 96px !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+  .navbar-actions { min-width: 0 !important; max-width: 100% !important; flex-wrap: nowrap !important; }
+  .navbar-search-btn, .navbar-icon-btn, .navbar-menu-btn { flex: 0 0 36px !important; }
+  .navbar-user { flex: 0 0 auto !important; min-width: 0 !important; }
+
+  /* All dashboard grids must collapse before they can create horizontal scroll. */
+  .dashboard-page .dashboard-hero,
+  .dashboard-page .dashboard-analytics-grid,
+  .dashboard-page .dashboard-secondary-grid,
+  .dashboard-page .dashboard-operational-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .metric-grid.dashboard-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .dashboard-page .ui-page-header { min-width: 0 !important; flex-wrap: wrap !important; }
+  .page-head h1, .ui-page-title, .ds-page-header h1 {
+    font-size: 1.3rem !important;
+    line-height: 1.3 !important;
+    max-width: 100% !important;
+  }
+  .dashboard-page .ui-page-title {
+    font-size: 1.35rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: -.02em !important;
+    max-width: 100% !important;
+  }
+  .dashboard-page .ui-page-header__copy p { max-width: 100% !important; }
+  .dashboard-hero-main h3 { font-size: 1rem !important; }
+  .dashboard-hero-main p { font-size: .62rem !important; }
+  .analytics-panel { min-width: 0 !important; }
+  .analytics-panel-body { min-width: 0 !important; overflow-x: auto !important; }
+
+  /* Forms become single-column and never force the sheet wider than the phone. */
+  .form-grid,
+  .form-section .form-grid,
+  .detail-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .form-grid .field-full { grid-column: auto !important; }
+  .field, .field input, .field select, .field textarea { min-width: 0 !important; max-width: 100% !important; }
+  .form-section-head { min-width: 0 !important; }
+  .form-section-head > div { min-width: 0 !important; }
+
+  /* Shell popovers use the viewport, not the narrow control that opened them. */
+  .shell-search-popover,
+  .shell-popover,
+  .shell-notification-popover,
+  .shell-user-popover {
+    position: fixed !important;
+    top: 72px !important;
+    inset-inline: 10px !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: calc(100dvh - 86px) !important;
+    overflow-y: auto !important;
+    z-index: 120 !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .site-navbar { height: 64px !important; }
+  .navbar-brand { padding-inline: 2px !important; gap: 7px !important; }
+  .brand-mark { width: 35px !important; height: 35px !important; border-radius: 10px !important; }
+  .navbar-context-copy strong { font-size: .78rem !important; }
+  .navbar-actions { gap: 3px !important; }
+  .navbar-search-btn, .navbar-icon-btn, .navbar-menu-btn { width: 35px !important; height: 35px !important; min-height: 35px !important; }
+  .navbar-user { padding-inline: 2px !important; }
+  .navbar-user .avatar { width: 29px !important; height: 29px !important; border-radius: 8px !important; }
+  .shell-search-popover,
+  .shell-popover,
+  .shell-notification-popover,
+  .shell-user-popover { top: 68px !important; inset-inline: 8px !important; }
+
+  .metric-grid.dashboard-metrics { grid-template-columns: 1fr !important; }
+  .dashboard-page .ui-page-title { font-size: 1.22rem !important; }
+  .dashboard-hero { padding: 10px !important; border-radius: 14px !important; }
+  .dashboard-mini-stats { grid-template-columns: 1fr !important; }
+
+  .location-map-picker-backdrop {
+    align-items: stretch;
+    padding: 0;
+  }
+  .location-map-picker-card {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+  .location-map-picker-head {
+    min-height: 56px;
+    padding: 10px 12px !important;
+  }
+  .location-map-picker-head h2 { font-size: 14px !important; }
+  .location-map-picker-head p { font-size: 10px !important; line-height: 1.45 !important; }
+  .location-map-picker-toolbar {
+    padding: 8px !important;
+  }
+  .location-map-picker-toolbar > div:first-child {
+    gap: 6px !important;
+  }
+  .location-map-picker-toolbar input {
+    min-height: 42px !important;
+    font-size: 12px !important;
+  }
+  .location-map-picker-toolbar button {
+    min-height: 42px !important;
+    font-size: 11px !important;
+  }
+  .location-map-picker-actions {
+    padding: 9px 10px !important;
+    gap: 8px !important;
+  }
+  .location-map-picker-actions > div:last-child {
+    width: 100%;
+  }
+  .location-map-picker-actions > div:last-child button {
+    flex: 1 1 0;
+  }
+  .location-map-picker-map-wrap { min-height: 0; }
+  .location-map-picker-map { min-height: 0; }
+}
+
+
+/* KEMEX mobile layout correction — align content and table breakpoints with the
+   mobile navigation (which switches below 1040px), including iPad/iPhone
+   landscape and browser "desktop site" widths. */
+@media (max-width: 1039px) {
+  .ui-data-table__desktop { display: none !important; }
+  .ui-data-table__mobile { display: grid !important; min-width: 0; }
+  .ui-data-table__mobile-card {
+    width: 100%;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--ds-border, #dbe5e9);
+    border-radius: 14px;
+    background: var(--ds-surface, #fff);
+    box-shadow: 0 2px 8px rgba(15, 45, 55, .035);
+    overflow-wrap: anywhere;
+  }
+  .ui-data-table__mobile-title { min-width: 0; width: 100%; }
+  .ui-data-table__mobile-field { min-width: 0; }
+  .ui-data-table__mobile-value { margin: 4px 0 0; overflow-wrap: anywhere; }
+  .ui-data-table__toolbar { min-width: 0; }
+  .ui-data-table__toolbar-actions { flex-wrap: wrap; }
+  .ds-form-section__grid, .ds-form-section__grid.cols-2,
+  .ds-form-section__grid.cols-3, .ds-form-section__grid.cols-4 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .form-sections, .form-sections-core { grid-template-columns: minmax(0, 1fr) !important; }
+  .page-body, .main-shell, .app-shell { min-width: 0; max-width: 100%; }
+  .page-body { overflow-x: clip; }
+  .panel, .ui-card, .reference-detail-box, .workflow-action-card { min-width: 0; max-width: 100%; }
+  .ui-data-table__footer-controls { flex-wrap: wrap; }
+}
+@media (max-width: 620px) {
+  .ui-data-table__mobile-card { padding: 12px; border-radius: 12px; }
+  .ui-data-table__mobile-card dl { grid-template-columns: minmax(0, 1fr) !important; }
+  .page-head, .ui-page-header, .ds-page-header { gap: 10px; margin-bottom: 14px; }
+  .page-actions, .head-actions, .ui-page-header__action, .ds-page-header-action {
+    align-items: stretch; flex-wrap: wrap; width: 100%;
+  }
+  .page-actions > *, .head-actions > *, .ui-page-header__action > *, .ds-page-header-action > * { max-width: 100%; }
+}
+
+
+/* KEMEX mobile data-table correction v2
+   The desktop toolbar uses flex-basis values that become vertical heights
+   inside a mobile flex-column. Reset those bases on phones and give each
+   control its natural height. Wide datasets use a real horizontally
+   scrollable table instead of oversized stacked cards. */
+.ui-data-table__mobile { display: none; }
+.ui-data-table__mobile-table-wrap {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  background: #fff;
+}
+.ui-data-table__mobile-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  font-size: .72rem;
+  direction: rtl;
+}
+.ui-data-table__mobile-table th,
+.ui-data-table__mobile-table td {
+  min-width: 112px;
+  padding: 10px 11px;
+  border-bottom: 1px solid #e5edef;
+  border-inline-start: 1px solid #edf2f3;
+  color: #344c55;
+  text-align: right;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.ui-data-table__mobile-table th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #f7fafb;
+  color: #526b73;
+  font-size: .65rem;
+  font-weight: 900;
+}
+.ui-data-table__mobile-table tbody tr:nth-child(even) td { background: #fcfefe; }
+.ui-data-table__mobile-table tbody tr:hover td { background: #f6fbfa; }
+.ui-data-table__mobile-table .ui-data-table__mobile-sticky-cell {
+  position: sticky;
+  inset-inline-end: 0;
+  z-index: 2;
+  min-width: 150px;
+  background: #fff;
+  box-shadow: -5px 0 10px rgba(25, 55, 62, .06);
+}
+.ui-data-table__mobile-table thead th:first-child {
+  inset-inline-end: 0;
+  z-index: 4;
+  min-width: 150px;
+  background: #f7fafb;
+}
+.ui-data-table__mobile-table .ui-data-table__selection-col {
+  position: static;
+  min-width: 40px;
+  width: 40px !important;
+  padding-inline: 8px !important;
+  box-shadow: none;
+}
+.ui-data-table__mobile-table .ui-data-table__selection-col button {
+  margin-inline: auto;
+}
+
+@media (max-width: 1039px) {
+  .ui-data-table__toolbar {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: end !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 10px 12px !important;
+  }
+  .ui-data-table__toolbar > * {
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+  .ui-data-table__search-wrap {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    flex: 0 0 auto !important;
+    align-self: auto !important;
+  }
+  .ui-data-table__search-wrap .ui-data-table__search {
+    display: block !important;
+    height: 42px !important;
+    min-height: 42px !important;
+  }
+  .ui-data-table__filter-wrap {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    flex: 0 0 auto !important;
+    gap: 3px !important;
+    align-self: end !important;
+  }
+  .ui-data-table__filter-label {
+    min-height: 15px !important;
+    line-height: 1.25 !important;
+  }
+  .ui-data-table__filter {
+    height: 40px !important;
+    min-height: 40px !important;
+  }
+  .ui-data-table__toolbar-actions {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+    gap: 7px !important;
+  }
+  .ui-data-table__mobile {
+    min-width: 0 !important;
+  }
+  .ui-data-table__mobile--table {
+    display: block !important;
+    overflow: hidden !important;
+    border-top: 1px solid #e5edef;
+  }
+  .ui-data-table__mobile--cards {
+    display: grid !important;
+    gap: 10px !important;
+    padding: 10px !important;
+  }
+  .ui-data-table__mobile-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 12px !important;
+    border: 1px solid #dfe9ec !important;
+    border-radius: 13px !important;
+    background: #fff !important;
+    box-shadow: 0 5px 16px rgba(15, 45, 55, .035) !important;
+    overflow-wrap: anywhere !important;
+  }
+  .ui-data-table__mobile-card dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+    margin-top: 10px !important;
+  }
+  .ui-data-table__mobile-field {
+    min-width: 0 !important;
+    padding: 7px 8px !important;
+    border: 1px solid #edf2f3;
+    border-radius: 9px;
+    background: #fbfdfd;
+  }
+}
+
+@media (max-width: 520px) {
+  .ui-data-table__toolbar {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 7px !important;
+  }
+  .ui-data-table__filter-wrap,
+  .ui-data-table__search-wrap,
+  .ui-data-table__toolbar-actions {
+    grid-column: 1 / -1 !important;
+  }
+  .ui-data-table__toolbar-actions {
+    justify-content: flex-start !important;
+  }
+  .ui-data-table__tool-button {
+    min-height: 36px !important;
+  }
+  .ui-data-table__mobile-table th,
+  .ui-data-table__mobile-table td {
+    min-width: 105px;
+    padding: 9px 10px;
+    font-size: .68rem;
+  }
+  .ui-data-table__mobile-table .ui-data-table__mobile-sticky-cell,
+  .ui-data-table__mobile-table thead th:first-child {
+    min-width: 132px;
+  }
+  .ui-data-table__mobile-card dl {
+    grid-template-columns: 1fr !important;
   }
 }

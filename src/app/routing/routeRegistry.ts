@@ -47,6 +47,8 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
   { path: 'users', module: 'users', title: 'المستخدمون والصلاحيات', description: 'الحسابات والأدوار والصلاحيات.', kind: 'page' },
   { path: 'audit', module: 'audit', title: 'سجل التدقيق', description: 'العمليات الحساسة والسجل الرقابي.', kind: 'page' },
   { path: 'settings', module: 'settings', title: 'الإعدادات', description: 'بيانات المؤسسة والأسعار والتنبيهات.', kind: 'page' },
+  { path: 'data-management', module: 'data-management', title: 'إدارة البيانات', description: 'استيراد وتصدير Excel والنسخ الاحتياطي واستعادة البيانات.', kind: 'page' },
+  { path: 'tracking', module: 'tracking', title: 'تتبع المركبات', description: 'الموقع المباشر وحالة أجهزة GPS ومسار المركبات.', kind: 'page' },
   { path: 'trips', module: 'trips', title: 'رحلات النقل', description: 'الرحلات والمسافات وقيمة النقل.', kind: 'page' },
   { path: 'trips/dispatch', module: 'trips', title: 'لوحة الإرسال والتوزيع', description: 'توزيع الرحلات ومتابعة التنفيذ.', kind: 'page' },
   { path: 'trips/:id', module: 'trips', title: 'تفاصيل الرحلة', description: 'تفاصيل الرحلة والسائق والأصل.', kind: 'detail' },

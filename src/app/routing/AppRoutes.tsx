@@ -1,6 +1,6 @@
 import { lazy, type ComponentProps, type ReactNode } from 'react'
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
-import { LayoutDashboard, Bell, ClipboardList, FileCheck2, Gauge, Truck, Building2, Container, UserRound, BriefcaseBusiness, CalendarClock, Wrench, Droplets, CircleDot, Fuel, Boxes, ArrowLeftRight, ShoppingCart, Coins, ChartColumn, ReceiptText, ChartNoAxesCombined, Users, ClipboardPenLine, Settings2, AlertTriangle, TrendingUp, Wallet } from 'lucide-react'
+import { LayoutDashboard, Bell, ClipboardList, FileCheck2, Gauge, Truck, Building2, Container, UserRound, BriefcaseBusiness, CalendarClock, Wrench, Droplets, CircleDot, Fuel, Boxes, ArrowLeftRight, ShoppingCart, Coins, ChartColumn, ReceiptText, ChartNoAxesCombined, Users, ClipboardPenLine, Settings2, DatabaseBackup, AlertTriangle, TrendingUp, Wallet } from 'lucide-react'
 import type { Asset, Customer, Driver, FuelOperation, InventoryItem, MaintenanceTechnician, Project, StockMovement, Warehouse, WorkOrder, User, Operation } from '../../types/tfms'
 import type { Repository } from '../../core/repository/types'
 import type { ReportKey } from '../../pages/ReportsPage'
@@ -34,13 +34,15 @@ const AdminWorkspacePage = lazy(() => import('../../pages/WorkspacesPage').then(
 
 const AuditPage = lazy(() => import('../../pages/AuditPage').then(m => ({ default: m.AuditPage })))
 const SettingsPage = lazy(() => import('../../pages/SettingsPage').then(m => ({ default: m.SettingsPage })))
+const DataManagementPage = lazy(() => import('../../pages/DataManagementPage').then(m => ({ default: m.DataManagementPage })))
+const GpsTrackingPage = lazy(() => import('../../pages/GpsTrackingPage').then(m => ({ default: m.GpsTrackingPage })))
 const ReportsPage = lazy(() => import('../../pages/ReportsPage').then(m => ({ default: m.ReportsPage })))
 const TrueCostReportPage = lazy(() => import('../../pages/TrueCostReportPage').then(m => ({ default: m.TrueCostReportPage })))
 
 registerModuleIcons({
   LayoutDashboard, Bell, ClipboardList, FileCheck2, Gauge, Truck, Building2, Container, UserRound,
   BriefcaseBusiness, CalendarClock, Wrench, Droplets, CircleDot, Fuel, Boxes, ArrowLeftRight,
-  ShoppingCart, Coins, ChartColumn, ReceiptText, ChartNoAxesCombined, Users, ClipboardPenLine, Settings2,
+  ShoppingCart, Coins, ChartColumn, ReceiptText, ChartNoAxesCombined, Users, ClipboardPenLine, Settings2, DatabaseBackup,
   AlertTriangle, TrendingUp, Wallet,
 })
 
@@ -269,6 +271,7 @@ export function AppRoutes({
     <Route path="dashboard" element={guard('dashboard', <DashboardPage assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} onRoute={navigate} />)} />
     <Route path="alerts" element={guard('alerts', <AlertsPage assets={assets} workOrders={workOrders} fuelOps={fuelOps} drivers={drivers as any} contracts={contracts} onRoute={navigate} alertDays={systemSettings.alertDays} alertKm={systemSettings.alertKm} alertHours={systemSettings.alertHours} plans={moduleData.plans ?? []} oils={moduleData.oils ?? []} />)} />
     <Route path="operations" element={guard('operations', <OperationsWorkspacePage {...operationsWorkspaceProps} />)} />
+    <Route path="tracking" element={guard('tracking', <GpsTrackingPage user={user} />)} />
     <Route path="assets" element={guard('assets', <FleetWorkspacePage {...fleetWorkspaceProps} />)} />
     <Route path="assets/edit/:id" element={guard('assets', <AssetEditRoute assets={assets} projects={projects} onSave={saveAsset} onRoute={navigate} canEdit={assetsCanEdit} />)} />
     <Route path="asset/:id" element={guard('assets', <AssetDetailRoute assets={assets} projects={projects} operations={operations} fuelOps={fuelOps} workOrders={workOrders} trips={trips} moduleData={moduleData} onRoute={navigate} />)} />
@@ -298,6 +301,7 @@ export function AppRoutes({
     <Route path="users" element={guard('users', <AdminWorkspacePage user={user} repository={repository} moduleData={moduleData} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} onSaved={invalidateData} />)} />
     <Route path="audit" element={guard('audit', <AuditPage records={moduleData.audit ?? []} approvalEvents={approvalEvents} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} moduleData={moduleData} />)} />
     <Route path="settings" element={guard('settings', <SettingsPage user={user} repository={repository} onSaved={invalidateData} />)} />
+    <Route path="data-management" element={guard('data-management', <DataManagementPage user={user} />)} />
     <Route path="trips" element={guard('trips', <TripsPage assets={assets} drivers={drivers} projects={projects} clients={clients} onRoute={navigate} initialView="list" currencyCode={systemSettings.currencyCode} />)} />
     <Route path="trips/dispatch" element={guard('trips', <TripsPage assets={assets} drivers={drivers} projects={projects} clients={clients} onRoute={navigate} initialView="board" currencyCode={systemSettings.currencyCode} />)} />
     <Route path="trips/:id" element={guard('trips', <TripDetailRoute assets={assets} drivers={drivers} projects={projects} currencyCode={systemSettings.currencyCode} onRoute={navigate} />)} />

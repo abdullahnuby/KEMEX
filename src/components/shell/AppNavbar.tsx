@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BarChart3, Bell, ChevronDown, LayoutDashboard, LogOut, Menu, Search, Truck, X, type LucideIcon } from 'lucide-react'
+import { BarChart3, Bell, ChevronDown, Gauge, LayoutDashboard, LogOut, Menu, MoreHorizontal, Search, Truck, Wrench, X, type LucideIcon } from 'lucide-react'
 import { APP, NAVIGATION_GROUPS, REPORT_NAV_ITEMS, ROLE_LABELS, canViewModule, type NavigationGroup, type NavigationItem, type ReportNavigationItem } from '../../config/app'
 import type { Role, User } from '../../types/tfms'
 import { GlobalSearchPanel, NotificationPopover, UserMenu } from './ShellPopovers'
@@ -7,6 +7,10 @@ import { GlobalSearchPanel, NotificationPopover, UserMenu } from './ShellPopover
 const ICONS: Record<string, LucideIcon> = {}
 export function registerModuleIcons(icons: Record<string, LucideIcon>) { Object.assign(ICONS, icons) }
 function iconFor(name: string, fallback?: LucideIcon) { return ICONS[name] ?? fallback }
+
+// Groups already reachable directly from the mobile bottom tab bar — hidden
+// from the "المزيد" sheet by default to avoid listing the same destination twice.
+const PRIMARY_TAB_GROUPS = new Set(['الأسطول', 'الصيانة', 'التشغيل'])
 
 export function AppNavbar({ user, route, onRoute, onLogout, alertCount }: {
   user: User
@@ -27,11 +31,9 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount }: {
 
   const groups = useMemo(() => {
     const canSee = (item: NavigationItem) => canViewModule(user.role, permissionKeyForNavItem(item))
-    return NAVIGATION_GROUPS.map(group => ({
+    return NAVIGATION_GROUPS.filter(group => group.group !== 'التقارير').map(group => ({
       ...group,
-      items: group.group === 'التقارير'
-        ? REPORT_NAV_ITEMS.filter(item => canViewModule(user.role, 'reports') && matchesQuery(item, q))
-        : group.items.filter(item => canSee(item) && matchesQuery(item, q)),
+      items: group.items.filter(item => canSee(item) && matchesQuery(item, q)),
     })).filter(group => group.items.length)
   }, [user.role, q])
 
@@ -100,17 +102,19 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount }: {
         <button type="button" className={`nav-direct ${routeModule === 'dashboard' ? 'active' : ''}`} onClick={() => navigate('dashboard')}>
           {HomeIcon && <HomeIcon size={15} />}<span>الرئيسية</span>
         </button>
+        <button type="button" className={`nav-direct ${routeModule === 'reports' ? 'active' : ''}`} onClick={() => navigate('reports')}>
+          <BarChart3 size={15} /><span>التقارير</span>
+        </button>
         {groups.map(group => {
           const GroupIcon = iconFor(group.icon)
           const active = currentGroup === group.group
           const isOpen = openGroup === group.group
-          const isReports = group.group === 'التقارير'
           return <div className="nav-dropdown" key={group.group}>
             <button type="button" className={`nav-group-trigger ${active ? 'active' : ''}`} aria-haspopup="menu" aria-expanded={isOpen} onClick={() => { setPopover(null); setOpenGroup(isOpen ? null : group.group) }}>
               {GroupIcon && <GroupIcon size={15} />}<span>{group.group}</span><ChevronDown size={14} className={isOpen ? 'rotate' : ''} />
             </button>
-            {isOpen && <div className={`nav-menu-panel ${isReports ? 'nav-reports-panel' : 'nav-domain-panel'}`}>
-              {isReports ? renderReportMenu(group.items as unknown as readonly ReportNavigationItem[], route, navigate) : renderDomainMenu(group.items, routeModule, navigate)}
+            {isOpen && <div className="nav-menu-panel nav-domain-panel">
+              {renderDomainMenu(group.items, routeModule, navigate)}
             </div>}
           </div>
         })}
@@ -141,9 +145,38 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount }: {
         <button type="button" className="navbar-menu-btn" onClick={() => { setPopover(null); setMobileOpen(value => !value) }} aria-label="فتح قائمة النظام" aria-expanded={mobileOpen}>{mobileOpen ? <X size={20} /> : <Menu size={20} />}</button>
       </div>
 
-      {mobileOpen && <MobileNavigation groups={groups} route={route} query={query} onQueryChange={setQuery} onNavigate={navigate} user={user} onLogout={onLogout} />}
     </header>
+    {mobileOpen && <MobileNavigation groups={groups} route={route} query={query} onQueryChange={setQuery} onNavigate={navigate} user={user} onLogout={onLogout} />}
+    <MobileTabBar routeModule={routeModule} onNavigate={navigate} onOpenMore={() => { setMobileOpen(value => !value) }} moreOpen={mobileOpen} alertCount={alertCount} />
   </>
+}
+
+function MobileTabBar({ routeModule, onNavigate, onOpenMore, moreOpen, alertCount }: {
+  routeModule: string
+  onNavigate: (route: string) => void
+  onOpenMore: () => void
+  moreOpen: boolean
+  alertCount: number
+}) {
+  const tabs: { key: string; label: string; icon: LucideIcon; route: string }[] = [
+    { key: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard, route: 'dashboard' },
+    { key: 'operations', label: 'التشغيل', icon: Gauge, route: 'operations' },
+    { key: 'assets', label: 'الأسطول', icon: Truck, route: 'assets' },
+    { key: 'maintenance', label: 'الصيانة', icon: Wrench, route: 'maintenance' },
+  ]
+  return <nav className="mobile-tab-bar" aria-label="التنقل السريع">
+    {tabs.map(tab => {
+      const Icon = tab.icon
+      const active = routeModule === tab.key && !moreOpen
+      return <button key={tab.key} type="button" className={`mobile-tab-item ${active ? 'active' : ''}`} onClick={() => onNavigate(tab.route)}>
+        <Icon size={20} /><span>{tab.label}</span>
+      </button>
+    })}
+    <button type="button" className={`mobile-tab-item ${moreOpen ? 'active' : ''}`} onClick={onOpenMore} aria-expanded={moreOpen}>
+      <span className="mobile-tab-more-icon"><MoreHorizontal size={20} />{alertCount > 0 && !moreOpen && <span className="mobile-tab-dot" />}</span>
+      <span>المزيد</span>
+    </button>
+  </nav>
 }
 
 function MobileNavigation({ groups, route, query, onQueryChange, onNavigate, user, onLogout }: {
@@ -163,8 +196,12 @@ function MobileNavigation({ groups, route, query, onQueryChange, onNavigate, use
       <button type="button" className="mobile-logout-button" onClick={onLogout}><LogOut size={16} /> تسجيل الخروج</button>
     </div>
     <div className="mobile-nav-search"><Search size={16} /><input value={query} onChange={event => onQueryChange(event.target.value)} placeholder="بحث في وحدات النظام..." aria-label="بحث في وحدات النظام" /></div>
-    <button type="button" className={`mobile-group-title ${routeModule === 'dashboard' ? 'open' : ''}`} onClick={() => onNavigate('dashboard')}><span>الرئيسية</span><LayoutDashboard size={15} /></button>
-    {groups.map(group => <section className="mobile-nav-group" key={group.group}>
+    <button type="button" className={`mobile-group-title ${routeModule === 'reports' ? 'open' : ''}`} onClick={() => onNavigate('reports')}><span>التقارير</span><BarChart3 size={15} /></button>
+    {/* "الرئيسية" و"الأسطول" و"الصيانة" و"التشغيل" لهم وصول مباشر من الشريط
+       السفلي بالفعل — بيتعرضوا هنا بس وقت البحث عشان ميتكررش نفس الاختيار
+       مرتين، مع فضل الاختيارات الثانوية (النقل، المخازن...) ظاهرة دايمًا. */}
+    {query.trim() && <button type="button" className={`mobile-group-title ${routeModule === 'dashboard' ? 'open' : ''}`} onClick={() => onNavigate('dashboard')}><span>الرئيسية</span><LayoutDashboard size={15} /></button>}
+    {groups.filter(group => query.trim() || !PRIMARY_TAB_GROUPS.has(group.group)).map(group => <section className="mobile-nav-group" key={group.group}>
       <button type="button" className={`mobile-group-title ${openGroup === group.group ? 'open' : ''}`} onClick={() => setOpenGroup(openGroup === group.group ? null : group.group)}><span>{group.group}</span><ChevronDown size={15} className={openGroup === group.group ? 'rotate' : ''} /></button>
       {openGroup === group.group && <div className="mobile-group-items">
         {group.group === 'التقارير'
@@ -176,11 +213,11 @@ function MobileNavigation({ groups, route, query, onQueryChange, onNavigate, use
 }
 
 function renderDomainMenu(items: readonly NavigationItem[], routeModule: string, navigate: (route: string) => void) {
-  return <div className="nav-menu-section"><div className="nav-menu-section-title">الوحدات</div><div className="nav-menu-section-grid">{items.map(item => { const Icon = iconFor(item.icon); const active = routeModule === item.key || (item.key === 'trips' && routeModule === 'trips'); return <button type="button" key={item.key} className={`nav-menu-item ${active ? 'active' : ''}`} onClick={() => navigate(item.route)}><span className="nav-menu-icon">{Icon && <Icon size={16} />}</span><span><strong>{item.label}</strong><small>{item.hint}</small></span></button> })}</div></div>
+  return <div className="nav-menu-section"><div className="nav-menu-section-title">الوحدات</div><div className="nav-menu-section-grid">{items.map(item => { const Icon = iconFor(item.icon); const active = routeModule === item.key || (item.key === 'trips' && routeModule === 'trips'); return <button type="button" key={item.key} className={`nav-menu-item ${active ? 'active' : ''}`} onClick={() => navigate(item.route)}><span className="nav-menu-icon">{Icon && <Icon size={16} />}</span><span><strong>{item.label}</strong></span></button> })}</div></div>
 }
 
 function renderReportMenu(items: readonly ReportNavigationItem[], route: string, navigate: (route: string) => void) {
-  return <>{Array.from(new Set(items.map(x => x.section))).map(section => <div className="nav-menu-section" key={section}><div className="nav-menu-section-title">{section}</div><div className="nav-menu-section-grid">{items.filter(x => x.section === section).map(item => { const Icon = iconFor(item.icon, BarChart3); const active = route === item.route || (item.key === 'true-cost' && route === 'true-cost'); return <button type="button" key={item.key} className={`nav-menu-item ${active ? 'active' : ''}`} onClick={() => navigate(item.route)}><span className="nav-menu-icon">{Icon && <Icon size={16} />}</span><span><strong>{item.label}</strong><small>{item.hint}</small></span></button> })}</div></div>)}</>
+  return <>{Array.from(new Set(items.map(x => x.section))).map(section => <div className="nav-menu-section" key={section}><div className="nav-menu-section-title">{section}</div><div className="nav-menu-section-grid">{items.filter(x => x.section === section).map(item => { const Icon = iconFor(item.icon, BarChart3); const active = route === item.route || (item.key === 'true-cost' && route === 'true-cost'); return <button type="button" key={item.key} className={`nav-menu-item ${active ? 'active' : ''}`} onClick={() => navigate(item.route)}><span className="nav-menu-icon">{Icon && <Icon size={16} />}</span><span><strong>{item.label}</strong></span></button> })}</div></div>)}</>
 }
 
 function renderMobileReports(items: readonly ReportNavigationItem[], route: string, navigate: (route: string) => void) {

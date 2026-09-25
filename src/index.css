@@ -14,9 +14,10 @@
   }
 
   body {
-    @apply min-h-screen bg-slate-50 text-base font-sans text-slate-900;
+    @apply min-h-screen bg-slate-50 font-sans text-slate-900;
     direction: rtl;
-    line-height: 1.7;
+    font-size: 13px;
+    line-height: 1.55;
   }
 
   #root { @apply min-h-screen; }

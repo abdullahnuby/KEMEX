@@ -76,6 +76,11 @@ export const NAVIGATION_GROUPS: readonly NavigationGroup[] = [
       {key:'customers', label:'العملاء', icon:'Users', route:'customers', hint:'العملاء والخدمات الخارجية'},
     ]
   },
+    {
+    group: 'المراقبة', icon: 'Gauge', items: [
+      {key:'tracking', label:'تتبع المركبات', icon:'Gauge', route:'tracking', hint:'الموقع المباشر وحالة اتصال أجهزة GPS ومسار المركبة'},
+    ]
+  },
   {
     group: 'التقارير', icon: 'ChartNoAxesCombined', items: [],
   },
@@ -84,6 +89,7 @@ export const NAVIGATION_GROUPS: readonly NavigationGroup[] = [
       {key:'users', label:'المستخدمون والصلاحيات', icon:'Users', route:'users', hint:'الحسابات والأدوار والصلاحيات'},
       {key:'audit', label:'سجل التدقيق', icon:'ClipboardPenLine', route:'audit', hint:'العمليات الحساسة والسجل الرقابي'},
       {key:'settings', label:'الإعدادات', icon:'Settings2', route:'settings', hint:'بيانات المؤسسة والأسعار والتنبيهات'},
+      {key:'data-management', label:'إدارة البيانات', icon:'DatabaseBackup', route:'data-management', hint:'استيراد وتصدير Excel والنسخ الاحتياطي والاستعادة'},
     ]
   },
 ]
@@ -109,7 +115,7 @@ export const REPORT_NAV_ITEMS: readonly ReportNavigationItem[] = [
 
 export const ROLE_LABELS: Record<string, string> = {
   admin: 'مدير النظام', mgmt: 'الإدارة العليا', fleet: 'مدير النقل والمعدات', pm: 'مدير مشروع',
-  eng: 'مهندس موقع', maint: 'مدير الصيانة', acct: 'محاسب',
+  eng: 'مهندس موقع', maint: 'مدير الصيانة', acct: 'محاسب', driver: 'سائق',
 }
 
 /**
@@ -117,15 +123,16 @@ export const ROLE_LABELS: Record<string, string> = {
  * as child screens but do not appear as duplicate top-level entries.
  */
 
-export type RoleKey = 'admin' | 'mgmt' | 'fleet' | 'pm' | 'eng' | 'maint' | 'acct'
+export type RoleKey = 'admin' | 'mgmt' | 'fleet' | 'pm' | 'eng' | 'maint' | 'acct' | 'driver'
 export const ROLE_MODULES: Record<RoleKey, readonly string[] | '*'> = {
   admin: '*',
   mgmt: '*',
-  fleet: ['dashboard','alerts','assets','maintenance','operations','trips','inventory','costs','reports','projects','contracts','requests','assignments','drivers','fuel','charging','invoices','customers','breakdowns','plans','oils','tires','audit','true-cost'],
-  pm: ['dashboard','alerts','assets','operations','trips','costs','reports','projects','requests','assignments','drivers','breakdowns','charging','customers','invoices','true-cost'],
+  fleet: ['dashboard','alerts','assets','maintenance','operations','trips','inventory','costs','reports','projects','contracts','requests','assignments','drivers','fuel','charging','invoices','customers','breakdowns','plans','oils','tires','audit','true-cost','tracking'],
+  pm: ['dashboard','alerts','assets','operations','trips','costs','reports','projects','requests','assignments','drivers','breakdowns','charging','customers','invoices','true-cost','tracking'],
   eng: ['dashboard','alerts','assets','operations','reports','projects','requests','drivers','breakdowns'],
   maint: ['dashboard','alerts','assets','maintenance','inventory','reports','requests','purchases','drivers','breakdowns','plans','oils','tires','audit','operations'],
   acct: ['dashboard','alerts','assets','trips','costs','reports','projects','contracts','charging','invoices','customers','fuel','breakdowns','true-cost'],
+  driver: ['driver','driver-home','driver-trips','driver-history','driver-profile'],
 }
 export function canViewModule(role:string, module:string){
   const list=ROLE_MODULES[role as RoleKey]
@@ -159,7 +166,16 @@ export const ACTION_PERMISSIONS: Record<string, readonly RoleKey[]> = {
   'invoices:approve': ['admin','acct'],
   'invoices:pay': ['admin','acct'],
   'attachments:write': ['admin','fleet','pm','eng','maint','acct'],
-  'observability:write': ['admin','mgmt','fleet','pm','eng','maint','acct'],
+  'observability:write': ['admin','mgmt','fleet','pm','eng','maint','acct','driver'],
+  'trips:driver_execute': ['admin','driver'],
+  'trips:driver_receipt': ['admin','driver'],
+  'trips:driver_exception': ['admin','driver'],
+  'trips:monitor': ['admin','mgmt','fleet','pm'],
+  'gps:manage_devices': ['admin','fleet'],
+  'trips:exception_view': ['admin','mgmt','fleet','pm'],
+  'trips:exception_manage': ['admin','fleet','pm'],
+  'trips:exception_report': ['admin','driver','fleet','pm'],
+  'trips:override_geofence': ['admin','fleet','pm'],
 }
 
 export function canAction(module: string, action: string, role: string): boolean {

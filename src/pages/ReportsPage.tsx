@@ -16,72 +16,100 @@ type Filters = { from:string; to:string; cat:string; own:string; status:string; 
 const emptyFilters:Filters={from:'',to:'',cat:'',own:'',status:'',proj:''}
 
 export function ReportsPage({assets,projects,workOrders,fuelOps,operations,moduleData,trips,tripCosts,onRoute,initialKind}:{assets:Asset[];projects:Project[];workOrders:WorkOrder[];fuelOps:FuelOperation[];operations:Operation[];moduleData:Record<string,Record<string,unknown>[]>;trips:Trip[];tripCosts:TripCost[];onRoute?:(route:string)=>void;initialKind?:ReportKey}) {
-  const {formatMoney}=useCurrency()
   const [kind,setKind]=useState<ReportKey>(initialKind ?? 'all')
   useEffect(()=>{if(initialKind && REPORTS.some(r=>r.key===initialKind)) setKind(initialKind)},[initialKind])
   const [filters,setFilters]=useState<Filters>(emptyFilters)
   const data=useMemo(()=>build(kind,assets,projects,workOrders,fuelOps,operations,moduleData,filters,trips,tripCosts),[kind,assets,projects,workOrders,fuelOps,operations,moduleData,filters,trips,tripCosts])
   const categories=useMemo(()=>Array.from(new Set(assets.map(a=>a.cat).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'ar')),[assets])
   const statuses=useMemo(()=>Array.from(new Set(assets.map(a=>a.status).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'ar')),[assets])
-  const selectedReport=REPORTS.find(x=>x.key===kind)??REPORTS[0]
-  const totalCost=useMemo(()=>sumNumericColumn(data,'إجمالي التكلفة'),[data])
-  const totalFuel=useMemo(()=>sumNumericColumn(data,'تكلفة الوقود')||sumNumericColumn(data,'وقود'),[data])
-  const insights=useMemo(()=>buildReportInsights(kind,data,assets,projects,fuelOps,workOrders,operations),[kind,data,assets,projects,fuelOps,workOrders,operations])
+
   function download(){
     const csv=toCsv(data.columns,data.rows)
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([`\ufeff${csv}`],{type:'text/csv;charset=utf-8'}));a.download=`KEMEX-${kind}-${new Date().toISOString().slice(0,10)}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),700)
   }
-  return <div className="report-page space-y-5">
-    <PageHeader
-      title="مركز التقارير والتحليلات"
-      description="اختر التقرير، عدّل المرشحات، وشاهد المؤشرات والرسوم والنتيجة مباشرة في نفس الشاشة — بدون زر تشغيل أو نزول متكرر."
-      meta={<div className="eyebrow"><BarChart3 size={14}/> مركز التحليلات والتقارير</div>}
-      action={<div className="reference-header-actions"><Button variant="secondary" icon={<Printer size={16} />} onClick={()=>window.print()}>طباعة</Button><Button icon={<Download size={16} />} onClick={download} disabled={!data.rows.length}>تصدير CSV</Button></div>}
-    />
 
-    <section className="report-workbench">
-      <div className="report-selection-strip">
-        <div className="report-selection-main">
-          <span className="report-selection-icon"><BarChart3 size={16}/></span>
-          <div><span>التقرير المحدد</span><strong>{selectedReport.title}</strong><small>{selectedReport.subtitle}</small></div>
-        </div>
-        <div className="report-selection-meta"><StatusBadge tone="blue">RPT-{String(REPORTS.findIndex(x=>x.key===kind)+1).padStart(2,'0')}</StatusBadge><strong>{new Intl.NumberFormat(APP_LOCALE).format(data.rows.length)}</strong><span>سجل</span></div>
+  return <div className="report-page">
+    <header className="report-page-banner">
+      <div className="report-page-banner__copy">
+        <h1>مركز التقارير</h1>
+        <p>تقارير إجمالية وتحليلية قابلة للتصفية — الانتقال للتفاصيل والتصدير إلى Excel وطباعتها PDF</p>
       </div>
+      <div className="report-page-banner__mark"><BarChart3 size={20}/></div>
+    </header>
 
-      <div className="report-filter-inline">
-        <label className="field"><span>من تاريخ</span><input type="date" value={filters.from} onChange={e=>setFilters(f=>({...f,from:e.target.value}))}/></label>
-        <label className="field"><span>إلى تاريخ</span><input type="date" value={filters.to} onChange={e=>setFilters(f=>({...f,to:e.target.value}))}/></label>
-        <label className="field"><span>الفئة</span><select value={filters.cat} onChange={e=>setFilters(f=>({...f,cat:e.target.value}))}><option value="">كل الفئات</option>{categories.map(x=><option key={x}>{x}</option>)}</select></label>
-        <label className="field"><span>الملكية</span><select value={filters.own} onChange={e=>setFilters(f=>({...f,own:e.target.value}))}><option value="">الكل</option><option value="مملوك">مملوك</option><option value="مستأجر">مستأجر</option></select></label>
-        <label className="field"><span>الحالة</span><select value={filters.status} onChange={e=>setFilters(f=>({...f,status:e.target.value}))}><option value="">كل الحالات</option>{statuses.map(x=><option key={x}>{x}</option>)}</select></label>
-        <label className="field"><span>المشروع</span><select value={filters.proj} onChange={e=>setFilters(f=>({...f,proj:e.target.value}))}><option value="">كل المشروعات</option>{projects.map(p=><option key={p.id} value={p.id}>{p.name} — {p.code}</option>)}</select></label>
-        <div className="report-filter-actions"><Button variant="secondary" icon={<RotateCcw size={14}/>} onClick={()=>setFilters(emptyFilters)}>إعادة ضبط</Button><span className="report-filter-status"><CheckCircle2 size={13}/> تحديث مباشر</span></div>
-      </div>
+    <section className="report-control-panel" aria-label="مرشحات التقرير">
+      <div className="report-control-row">
+        <label className="report-control report-control--report">
+          <span>التقرير</span>
+          <select value={kind} onChange={e=>setKind(e.target.value as ReportKey)}>
+            {REPORTS.map(item=><option key={item.key} value={item.key}>{item.title}</option>)}
+          </select>
+        </label>
 
-      <section className="report-live-grid">
-        <ChartShell title="التحليل الرئيسي" description={insights.description}>
-          {insights.kind==='dual' ? <AnalyticsDualBars points={insights.points} firstLabel={insights.firstLabel} secondLabel={insights.secondLabel}/> : <AnalyticsBarChart points={insights.points} valueSuffix={insights.valueSuffix} limit={8}/>} 
-        </ChartShell>
-        <div className="report-live-kpis">
-          <div className="report-live-kpi"><span><Search size={16}/></span><div><small>السجلات الناتجة</small><strong>{new Intl.NumberFormat(APP_LOCALE).format(data.rows.length)}</strong></div></div>
-          <div className="report-live-kpi"><span><Truck size={16}/></span><div><small>الأصول المعنية</small><strong>{new Intl.NumberFormat(APP_LOCALE).format(insights.assetCount)}</strong></div></div>
-          <div className="report-live-kpi"><span><Fuel size={16}/></span><div><small>تكلفة الوقود</small><strong>{formatMoney(totalFuel)}</strong></div></div>
-          <div className="report-live-kpi"><span><Gauge size={16}/></span><div><small>المؤشر المالي</small><strong>{formatMoney(totalCost || insights.primaryTotal)}</strong></div></div>
-          {insights.donut.length>0 && <div className="report-donut-mini"><AnalyticsDonut segments={insights.donut} centerValue={new Intl.NumberFormat(APP_LOCALE).format(data.rows.length)} centerLabel="سجل"/></div>}
+        <div className="report-date-control">
+          <span>من</span>
+          <label><input type="date" aria-label="من تاريخ" value={filters.from} onChange={e=>setFilters(f=>({...f,from:e.target.value}))}/></label>
+          <span>إلى</span>
+          <label><input type="date" aria-label="إلى تاريخ" value={filters.to} onChange={e=>setFilters(f=>({...f,to:e.target.value}))}/></label>
         </div>
-      </section>
+
+        <label className="report-control">
+          <span>الفئة</span>
+          <select value={filters.cat} onChange={e=>setFilters(f=>({...f,cat:e.target.value}))}>
+            <option value="">كل الفئات</option>
+            {categories.map(x=><option key={x}>{x}</option>)}
+          </select>
+        </label>
+
+        <label className="report-control">
+          <span>الملكية</span>
+          <select value={filters.own} onChange={e=>setFilters(f=>({...f,own:e.target.value}))}>
+            <option value="">الكل</option>
+            <option value="مملوك">مملوك</option>
+            <option value="مستأجر">مستأجر</option>
+          </select>
+        </label>
+
+        <label className="report-control">
+          <span>الحالة</span>
+          <select value={filters.status} onChange={e=>setFilters(f=>({...f,status:e.target.value}))}>
+            <option value="">كل الحالات</option>
+            {statuses.map(x=><option key={x}>{x}</option>)}
+          </select>
+        </label>
+
+        <label className="report-control report-control--project">
+          <span>المشروع</span>
+          <select value={filters.proj} onChange={e=>setFilters(f=>({...f,proj:e.target.value}))}>
+            <option value="">كل المشروعات</option>
+            {projects.map(p=><option key={p.id} value={p.id}>{p.name} — {p.code}</option>)}
+          </select>
+        </label>
+
+        <div className="report-control-actions">
+          <Button icon={<BarChart3 size={15}/>} onClick={()=>setFilters(f=>({...f}))}>تشغيل التقرير</Button>
+          <Button variant="secondary" icon={<Download size={15}/>} onClick={download} disabled={!data.rows.length}>تصدير CSV</Button>
+          <Button variant="secondary" icon={<Printer size={15}/>} onClick={()=>window.print()}>طباعة</Button>
+        </div>
+      </div>
     </section>
 
-    <section className="report-results">
-      <div className="report-results-head"><div><h2>النتيجة التفصيلية</h2><p>البيانات المطابقة للمرشحات الحالية · يتم تحديثها مباشرة</p></div><StatusBadge tone="emerald">بيانات محدثة</StatusBadge></div>
-      <div className="report-result-meta"><span>{data.columns.length} أعمدة</span><span>{new Intl.NumberFormat(APP_LOCALE).format(data.rows.length)} سجل</span><span>{filters.cat||'كل الفئات'}</span><span>{filters.own||'كل الملكيات'}</span><span>{filters.status||'كل الحالات'}</span><span>{filters.proj?projects.find(p=>p.id===filters.proj)?.name??'مشروع محدد':'كل المشروعات'}</span></div>
+    <section className="report-table-panel">
+      <div className="report-table-panel__head">
+        <div>
+          <h2>{REPORTS.find(x=>x.key===kind)?.title ?? 'التقرير'}</h2>
+          <span>{new Intl.NumberFormat(APP_LOCALE).format(data.rows.length)} سجل</span>
+        </div>
+        <div className="report-table-panel__meta">{REPORTS.find(x=>x.key===kind)?.subtitle}</div>
+      </div>
       <DataTable<ReportCell[]>
         rows={data.rows}
         rowKey={(row) => `${kind}-${JSON.stringify(row)}`}
         pageSize={15}
-        searchPlaceholder="بحث داخل النتيجة..."
+        searchPlaceholder="بحث..."
         searchableText={(row: ReportCell[]) => row.map(value => typeof value === 'object' ? `${value.label} ${value.code ?? ''}` : String(value ?? '')).join(' ')}
         emptyState={<div className="analytics-empty"><FileBarChart size={22}/> لا توجد بيانات مطابقة للمرشحات الحالية.</div>}
+        className="report-data-table"
         columns={data.columns.map((column, index) => ({
           id: `report-${index}`,
           header: column,
@@ -93,6 +121,7 @@ export function ReportsPage({assets,projects,workOrders,fuelOps,operations,modul
     </section>
   </div>
 }
+
 
 type ReportInsights = {
   description:string

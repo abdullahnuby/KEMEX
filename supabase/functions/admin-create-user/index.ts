@@ -7,7 +7,17 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 }
 
-const ROLES = new Set(["admin", "mgmt", "fleet", "pm", "eng", "maint", "acct"])
+const ROLES = new Set(["admin", "mgmt", "fleet", "pm", "eng", "maint", "acct", "driver"])
+
+type ErrorCode =
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
+  | "VALIDATION_ERROR"
+  | "USER_EXISTS"
+  | "AUTH_CREATE_FAILED"
+  | "DRIVER_INVALID"
+  | "PROFILE_INIT_FAILED"
+  | "INTERNAL_ERROR"
 
 function response(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -16,44 +26,69 @@ function response(body: unknown, status = 200) {
   })
 }
 
+function errorResponse(code: ErrorCode, message: string, status: number) {
+  return response({ error_code: code, error: message }, status)
+}
+
+function getPublishableKey() {
+  const raw = Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw) as Record<string, string>
+      if (parsed.default) return parsed.default
+    } catch { /* fall through to legacy names */ }
+  }
+  return Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? ""
+}
+
 function getSecretKey() {
   const raw = Deno.env.get("SUPABASE_SECRET_KEYS")
   if (raw) {
     try {
       const parsed = JSON.parse(raw) as Record<string, string>
       if (parsed.default) return parsed.default
-    } catch { /* legacy fallback below */ }
+    } catch { /* fall through to legacy name */ }
   }
   return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 }
 
+function looksLikeDuplicateUser(message: string, code?: string) {
+  const haystack = `${code ?? ""} ${message}`.toLowerCase()
+  return /already registered|already exists|user.*exists|email.*exists|duplicate|unique/.test(haystack)
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
-  if (req.method !== "POST") return response({ error: "الطريقة غير مسموحة." }, 405)
+  if (req.method !== "POST") return errorResponse("VALIDATION_ERROR", "الطريقة غير مسموحة.", 405)
 
   try {
     const authorization = req.headers.get("Authorization")
-    if (!authorization) return response({ error: "يجب تسجيل الدخول بحساب إداري." }, 401)
+    if (!authorization) return errorResponse("UNAUTHORIZED", "يجب تسجيل الدخول بحساب إداري.", 401)
 
     const url = Deno.env.get("SUPABASE_URL") ?? ""
-    const publishableKey = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? ""
+    const publishableKey = getPublishableKey()
     const secretKey = getSecretKey()
-    if (!url || !publishableKey || !secretKey) return response({ error: "إعدادات وظيفة إنشاء الحسابات غير مكتملة." }, 500)
+    if (!url || !publishableKey || !secretKey) {
+      console.error("admin-create-user configuration_missing")
+      return errorResponse("INTERNAL_ERROR", "إعدادات وظيفة إنشاء الحسابات غير مكتملة.", 500)
+    }
 
+    const token = authorization.replace(/^Bearer\s+/i, "")
     const userClient = createClient(url, publishableKey, {
       global: { headers: { Authorization: authorization } },
     })
-    const token = authorization.replace(/^Bearer\s+/i, "")
+
     const { data: authData, error: authError } = await userClient.auth.getUser(token)
-    if (authError || !authData.user) return response({ error: "جلسة المستخدم غير صالحة." }, 401)
+    if (authError || !authData.user) return errorResponse("UNAUTHORIZED", "جلسة المستخدم غير صالحة.", 401)
 
     const { data: actor, error: actorError } = await userClient
       .from("profiles")
       .select("role,active")
       .eq("id", authData.user.id)
       .single()
+
     if (actorError || !actor || actor.active !== true || actor.role !== "admin") {
-      return response({ error: "إنشاء الحسابات متاح لمدير النظام فقط." }, 403)
+      return errorResponse("FORBIDDEN", "إنشاء الحسابات متاح لمدير النظام فقط.", 403)
     }
 
     const body = await req.json() as Record<string, unknown>
@@ -61,31 +96,89 @@ Deno.serve(async (req) => {
     const fullName = String(body.full_name ?? "").trim()
     const role = String(body.role ?? "").trim()
     const initialPassword = String(body.initial_password ?? "")
+    const driverId = body.driver_id == null || String(body.driver_id).trim() === ""
+      ? null
+      : String(body.driver_id).trim()
 
-    if (!/^\S+@\S+\.\S+$/.test(email)) return response({ error: "البريد الإلكتروني غير صالح." }, 400)
-    if (fullName.length < 2) return response({ error: "الاسم الكامل مطلوب." }, 400)
-    if (!ROLES.has(role)) return response({ error: "الدور المحدد غير صالح." }, 400)
-    if (initialPassword.length < 8) return response({ error: "كلمة المرور المؤقتة يجب ألا تقل عن 8 أحرف." }, 400)
+    if (!/^\S+@\S+\.\S+$/.test(email)) return errorResponse("VALIDATION_ERROR", "البريد الإلكتروني غير صالح.", 400)
+    if (fullName.length < 2) return errorResponse("VALIDATION_ERROR", "الاسم الكامل مطلوب.", 400)
+    if (!ROLES.has(role)) return errorResponse("VALIDATION_ERROR", "الدور المحدد غير صالح.", 400)
+    if (initialPassword.length < 8) return errorResponse("VALIDATION_ERROR", "كلمة المرور المؤقتة يجب ألا تقل عن 8 أحرف.", 400)
+    if (role === "driver" && !driverId) return errorResponse("DRIVER_INVALID", "يجب ربط حساب السائق بملف سائق.", 400)
+    if (role !== "driver" && driverId) return errorResponse("VALIDATION_ERROR", "لا يجوز ربط ملف سائق بدور غير سائق.", 400)
 
-    const admin = createClient(url, secretKey, { auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false } })
+    const admin = createClient(url, secretKey, {
+      auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+    })
+
+    if (role === "driver") {
+      const { data: linked, error: linkedError } = await admin
+        .from("profiles")
+        .select("id")
+        .eq("driver_id", driverId)
+        .limit(1)
+        .maybeSingle()
+      if (linkedError) {
+        console.error("admin-create-user driver_link_lookup_failed", linkedError.message)
+        return errorResponse("DRIVER_INVALID", "تعذر التحقق من ربط ملف السائق.", 500)
+      }
+      if (linked) return errorResponse("DRIVER_INVALID", "ملف السائق مرتبط بالفعل بحساب مستخدم.", 400)
+
+      const { data: driver, error: driverError } = await admin
+        .from("drivers")
+        .select("id")
+        .eq("id", driverId)
+        .limit(1)
+        .maybeSingle()
+      if (driverError) {
+        console.error("admin-create-user driver_lookup_failed", driverError.message)
+        return errorResponse("DRIVER_INVALID", "تعذر التحقق من ملف السائق.", 500)
+      }
+      if (!driver) return errorResponse("DRIVER_INVALID", "ملف السائق المحدد غير موجود.", 400)
+    }
+
     const { data: created, error: createError } = await admin.auth.admin.createUser({
       email,
       password: initialPassword,
       email_confirm: true,
       user_metadata: { full_name: fullName },
     })
-    if (createError || !created.user) return response({ error: createError?.message ?? "تعذر إنشاء مستخدم المصادقة." }, 400)
 
+    if (createError || !created.user) {
+      const message = createError?.message ?? "تعذر إنشاء مستخدم المصادقة."
+      const duplicate = looksLikeDuplicateUser(message, String((createError as { code?: unknown } | null)?.code ?? ""))
+      console.error("admin-create-user auth_create_failed", {
+        code: (createError as { code?: unknown } | null)?.code ?? null,
+        status: (createError as { status?: unknown } | null)?.status ?? null,
+        duplicate,
+        message,
+      })
+      return errorResponse(
+        duplicate ? "USER_EXISTS" : "AUTH_CREATE_FAILED",
+        duplicate ? "البريد الإلكتروني مستخدم بالفعل. استخدم بريدًا آخر." : message,
+        duplicate ? 409 : 400,
+      )
+    }
+
+    const profileDriverId = role === "driver" ? driverId : null
     const { data: profile, error: profileError } = await admin
       .from("profiles")
-      .update({ email, full_name: fullName, role, active: true, must_change_password: true })
+      .update({
+        email,
+        full_name: fullName,
+        role,
+        active: true,
+        must_change_password: true,
+        driver_id: profileDriverId,
+      })
       .eq("id", created.user.id)
-      .select("id,email,full_name,role,active,must_change_password")
+      .select("id,email,full_name,role,active,must_change_password,driver_id")
       .single()
 
     if (profileError || !profile) {
+      console.error("admin-create-user profile_init_failed", profileError?.message ?? "profile not returned")
       await admin.auth.admin.deleteUser(created.user.id)
-      return response({ error: profileError?.message ?? "تعذر تهيئة ملف المستخدم." }, 500)
+      return errorResponse("PROFILE_INIT_FAILED", "تعذر تهيئة ملف المستخدم بعد إنشاء الحساب.", 500)
     }
 
     return response({
@@ -96,9 +189,11 @@ Deno.serve(async (req) => {
         role: profile.role,
         active: profile.active,
         must_change_password: profile.must_change_password,
+        driver_id: profile.driver_id,
       },
     })
   } catch (error) {
-    return response({ error: error instanceof Error ? error.message : "حدث خطأ غير متوقع." }, 500)
+    console.error("admin-create-user unexpected_error", error instanceof Error ? error.message : String(error))
+    return errorResponse("INTERNAL_ERROR", "حدث خطأ غير متوقع أثناء إنشاء الحساب.", 500)
   }
 })

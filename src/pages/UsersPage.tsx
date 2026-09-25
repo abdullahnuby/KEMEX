@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Check, Copy, KeyRound, Pencil, ShieldCheck, UserPlus, UserRound } from 'lucide-react'
 import { ROLE_LABELS, canManageUsers } from '../config/app'
-import type { Role, User } from '../types/tfms'
+import type { Driver, Role, User } from '../types/tfms'
 import type { Repository } from '../core/repository/types'
 import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
 import { FormModal } from '../shared/ui/FormModal'
@@ -9,10 +9,10 @@ import { FormModal } from '../shared/ui/FormModal'
 import { APP_LOCALE } from '../shared/formatters/locale'
 const ROLE_OPTIONS = Object.entries(ROLE_LABELS) as Array<[Role, string]>
 
-type CreateState = { email:string; name:string; role:Role; password:string }
-const emptyCreate:CreateState={email:'',name:'',role:'fleet',password:''}
+type CreateState = { email:string; name:string; role:Role; password:string; driverId:string }
+const emptyCreate:CreateState={email:'',name:'',role:'fleet',password:'',driverId:''}
 
-export function UsersPage({user,repository}:{user:User;repository:Repository}){
+export function UsersPage({user,repository,drivers}:{user:User;repository:Repository;drivers:Driver[]}){
   const [users,setUsers]=useState<User[]>([])
   const [editing,setEditing]=useState<User|null>(null)
   const [createOpen,setCreateOpen]=useState(false)
@@ -41,7 +41,7 @@ export function UsersPage({user,repository}:{user:User;repository:Repository}){
     if(!editing||!user||!canManageUsers(user.role))return
     setBusy(true);setError('');setNotice('')
     try{
-      const saved=await repository.updateUserProfile(editing.id,{full_name:editing.name.trim(),role:editing.role,active:editing.active!==false})
+      const saved=await repository.updateUserProfile(editing.id,{full_name:editing.name.trim(),role:editing.role,active:editing.active!==false,driver_id:editing.role==='driver'?(editing.driverId ?? null):null})
       setUsers(rows=>rows.map(x=>x.id===saved.id?saved:x));setEditing(null);setNotice('تم تحديث بيانات المستخدم وصلاحياته بنجاح.')
     }catch(e){setError(e instanceof Error?e.message:'تعذر حفظ التعديلات. حاول مرة أخرى.')}finally{setBusy(false)}
   }
@@ -53,9 +53,9 @@ export function UsersPage({user,repository}:{user:User;repository:Repository}){
       if(!/^\S+@\S+\.\S+$/.test(email)) throw new Error('اكتب بريدًا إلكترونيًا صحيحًا.')
       if(name.length<2) throw new Error('الاسم الكامل مطلوب.')
       if(password.length<8) throw new Error('كلمة المرور المؤقتة يجب ألا تقل عن 8 أحرف.')
-      const result=await repository.createUserAccount({email,full_name:name,role:create.role,initial_password:password})
+      const result=await repository.createUserAccount({email,full_name:name,role:create.role,initial_password:password,driver_id:create.role==='driver'?create.driverId:null})
       setUsers(rows=>[{
-        id:result.id,username:result.email,name:result.name,role:result.role,active:result.active,mustChangePassword:result.mustChangePassword,
+        id:result.id,username:result.email,name:result.name,role:result.role,active:result.active,mustChangePassword:result.mustChangePassword,driverId:result.driver_id ?? null,
       },...rows.filter(x=>x.id!==result.id)])
       setCreated({email,password});setCreate(emptyCreate);setCreateOpen(false);setNotice('تم إنشاء الحساب. سلّم المستخدم كلمة المرور المؤقتة؛ سيُطلب منه تغييرها عند أول دخول.')
     }catch(e){setError(e instanceof Error?e.message:'تعذر إنشاء حساب المستخدم.')}finally{setBusy(false)}
@@ -84,16 +84,16 @@ export function UsersPage({user,repository}:{user:User;repository:Repository}){
       <FormBlock title="بيانات الحساب" hint="هذا الحساب سيُنشأ في Supabase Authentication وملف المستخدم في KEMEX.">
         <label className="field"><span>الاسم الكامل *</span><input autoFocus value={create.name} onChange={e=>setCreate(x=>({...x,name:e.target.value}))}/></label>
         <label className="field"><span>البريد الإلكتروني *</span><input type="email" dir="ltr" value={create.email} onChange={e=>setCreate(x=>({...x,email:e.target.value}))}/></label>
-        <label className="field"><span>الدور *</span><select value={create.role} onChange={e=>setCreate(x=>({...x,role:e.target.value as Role}))}>{ROLE_OPTIONS.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
+        <label className="field"><span>الدور *</span><select value={create.role} onChange={e=>setCreate(x=>({...x,role:e.target.value as Role,driverId:e.target.value==='driver'?x.driverId:''}))}>{ROLE_OPTIONS.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>{create.role==='driver'&&<label className="field"><span>ملف السائق *</span><select value={create.driverId} onChange={e=>setCreate(x=>({...x,driverId:e.target.value}))}><option value="">اختر السائق</option>{drivers.map(d=><option key={d.id} value={d.id}>{d.name} — {d.code}</option>)}</select></label>}
         <label className="field"><span>كلمة المرور المؤقتة *</span><div className="input-with-icon"><KeyRound size={16}/><input type="password" dir="ltr" minLength={8} value={create.password} onChange={e=>setCreate(x=>({...x,password:e.target.value}))}/></div></label>
       </FormBlock>
       <div className="modal-note"><ShieldCheck size={16}/><span>بعد أول تسجيل دخول سيتم منع الوصول لباقي النظام حتى يغيّر المستخدم كلمة المرور المؤقتة.</span></div>
-      <div className="modal-actions"><button className="secondary-button" onClick={()=>setCreateOpen(false)} disabled={busy}>إلغاء</button><button className="primary-button" onClick={()=>void createUser()} disabled={busy||!create.email.trim()||!create.name.trim()||create.password.length<8}><UserPlus size={15}/>{busy?'جارٍ إنشاء الحساب...':'إنشاء الحساب'}</button></div>
+      <div className="modal-actions"><button className="secondary-button" onClick={()=>setCreateOpen(false)} disabled={busy}>إلغاء</button><button className="primary-button" onClick={()=>void createUser()} disabled={busy||!create.email.trim()||!create.name.trim()||create.password.length<8||(create.role==='driver'&&!create.driverId)}><UserPlus size={15}/>{busy?'جارٍ إنشاء الحساب...':'إنشاء الحساب'}</button></div>
     </FormModal>}
 
     {editing&&<FormModal title="تعديل صلاحية المستخدم" subtitle={editing.username} onClose={()=>setEditing(null)}>
-      <FormBlock title="بيانات المستخدم" hint="تعديل بيانات الملف فقط؛ كلمة المرور تُدار من المصادقة."><label className="field"><span>اسم المستخدم</span><input value={editing.username} readOnly dir="ltr"/></label><label className="field"><span>الاسم الظاهر</span><input value={editing.name} onChange={e=>setEditing({...editing,name:e.target.value})}/></label><label className="field"><span>الدور</span><select value={editing.role} onChange={e=>setEditing({...editing,role:e.target.value as Role})}>{ROLE_OPTIONS.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label><label className="field"><span>حالة الحساب</span><select value={editing.active===false?'false':'true'} onChange={e=>setEditing({...editing,active:e.target.value==='true'})}><option value="true">نشط</option><option value="false">موقوف</option></select></label></FormBlock>
-      <div className="modal-actions"><button className="secondary-button" onClick={()=>setEditing(null)}>إلغاء</button><button className="primary-button" disabled={busy||!editing.name.trim()} onClick={()=>void save()}><ShieldCheck size={15}/>{busy?'جارٍ الحفظ...':'حفظ الصلاحية'}</button></div>
+      <FormBlock title="بيانات المستخدم" hint="تعديل بيانات الملف فقط؛ كلمة المرور تُدار من المصادقة."><label className="field"><span>اسم المستخدم</span><input value={editing.username} readOnly dir="ltr"/></label><label className="field"><span>الاسم الظاهر</span><input value={editing.name} onChange={e=>setEditing({...editing,name:e.target.value})}/></label><label className="field"><span>الدور</span><select value={editing.role} onChange={e=>setEditing({...editing,role:e.target.value as Role,driverId:e.target.value==='driver'?(editing.driverId??''):''})}>{ROLE_OPTIONS.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>{editing.role==='driver'&&<label className="field"><span>ملف السائق *</span><select value={editing.driverId??''} onChange={e=>setEditing({...editing,driverId:e.target.value})}><option value="">اختر السائق</option>{drivers.map(d=><option key={d.id} value={d.id}>{d.name} — {d.code}</option>)}</select></label>}<label className="field"><span>حالة الحساب</span><select value={editing.active===false?'false':'true'} onChange={e=>setEditing({...editing,active:e.target.value==='true'})}><option value="true">نشط</option><option value="false">موقوف</option></select></label></FormBlock>
+      <div className="modal-actions"><button className="secondary-button" onClick={()=>setEditing(null)}>إلغاء</button><button className="primary-button" disabled={busy||!editing.name.trim()||(editing.role==='driver'&&!editing.driverId)} onClick={()=>void save()}><ShieldCheck size={15}/>{busy?'جارٍ الحفظ...':'حفظ الصلاحية'}</button></div>
     </FormModal>}
   </div>
 }

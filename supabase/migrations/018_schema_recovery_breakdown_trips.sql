@@ -443,3 +443,30 @@ comment on table public.trip_costs is
   'KEMEX recovered schema: trip-level operational cost lines.';
 comment on table public.trip_permits is
   'KEMEX recovered schema: delivery/receipt permits and proof of handover.';
+
+
+-- ============================================================================
+-- 13. MAINTENANCE CALCULATION TRIGGERS
+-- ============================================================================
+-- The helper functions are defined and hardened in migration 017. The tables
+-- they operate on are created by this migration, so their triggers belong here.
+DROP TRIGGER IF EXISTS trg_breakdown_events_calc_downtime ON public.breakdown_events;
+CREATE TRIGGER trg_breakdown_events_calc_downtime
+BEFORE INSERT OR UPDATE OF breakdown_datetime, recovery_datetime
+ON public.breakdown_events
+FOR EACH ROW
+EXECUTE FUNCTION public.calc_breakdown_downtime();
+
+DROP TRIGGER IF EXISTS trg_downtime_tracking_calc_costs ON public.downtime_tracking;
+CREATE TRIGGER trg_downtime_tracking_calc_costs
+BEFORE INSERT OR UPDATE OF start_datetime, end_datetime, driver_daily_rate, lost_revenue_per_day
+ON public.downtime_tracking
+FOR EACH ROW
+EXECUTE FUNCTION public.calc_downtime_costs();
+
+DROP TRIGGER IF EXISTS trg_maintenance_parts_refresh_work_order_totals ON public.maintenance_parts;
+CREATE TRIGGER trg_maintenance_parts_refresh_work_order_totals
+AFTER INSERT OR UPDATE OF work_order_id, issued_qty, returned_qty, unit_cost OR DELETE
+ON public.maintenance_parts
+FOR EACH ROW
+EXECUTE FUNCTION public.refresh_work_order_totals();
