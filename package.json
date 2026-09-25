@@ -19,7 +19,8 @@
     "verify:production": "node scripts/verify-production.mjs",
     "test:map": "node --test tests/frontend/location-map-picker.test.mjs",
     "test:gps": "node --test tests/db/gps-tracking.test.mjs tests/frontend/gps-tracking-contract.test.mjs",
-    "test:notifications": "node --test tests/frontend/notifications-contract.test.mjs"
+    "test:notifications": "node --test tests/frontend/notifications-contract.test.mjs",
+    "test:data-protection": "node --test tests/enterprise/data-protection.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",

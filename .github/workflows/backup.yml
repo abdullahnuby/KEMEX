@@ -1,0 +1,84 @@
+name: KEMEX Data Protection Backup
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      backup_kind:
+        description: 'Backup type'
+        required: true
+        default: scheduled
+        type: choice
+        options:
+          - scheduled
+          - pre_release
+          - manual
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kemex-production-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      KEMEX_BACKUP_KIND: ${{ inputs.backup_kind || 'scheduled' }}
+      KEMEX_B2_OBJECT_LOCK_DAYS: '30'
+      KEMEX_SUPABASE_DB_URL: ${{ secrets.KEMEX_SUPABASE_DB_URL }}
+      KEMEX_STORAGE_S3_ENDPOINT: ${{ secrets.KEMEX_STORAGE_S3_ENDPOINT }}
+      KEMEX_STORAGE_S3_REGION: ${{ secrets.KEMEX_STORAGE_S3_REGION }}
+      KEMEX_STORAGE_S3_ACCESS_KEY_ID: ${{ secrets.KEMEX_STORAGE_S3_ACCESS_KEY_ID }}
+      KEMEX_STORAGE_S3_SECRET_ACCESS_KEY: ${{ secrets.KEMEX_STORAGE_S3_SECRET_ACCESS_KEY }}
+      KEMEX_B2_ENDPOINT: ${{ secrets.KEMEX_B2_ENDPOINT }}
+      KEMEX_B2_REGION: ${{ secrets.KEMEX_B2_REGION }}
+      KEMEX_B2_BUCKET: ${{ secrets.KEMEX_B2_BUCKET }}
+      KEMEX_B2_KEY_ID: ${{ secrets.KEMEX_B2_KEY_ID }}
+      KEMEX_B2_APPLICATION_KEY: ${{ secrets.KEMEX_B2_APPLICATION_KEY }}
+      KEMEX_BACKUP_AGE_RECIPIENT: ${{ secrets.KEMEX_BACKUP_AGE_RECIPIENT }}
+      KEMEX_STORAGE_BUCKET: kemex-attachments
+    steps:
+      - name: Checkout exact release source
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Install backup utilities
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli age postgresql-client
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in \
+            KEMEX_SUPABASE_DB_URL \
+            KEMEX_STORAGE_S3_ENDPOINT \
+            KEMEX_STORAGE_S3_REGION \
+            KEMEX_STORAGE_S3_ACCESS_KEY_ID \
+            KEMEX_STORAGE_S3_SECRET_ACCESS_KEY \
+            KEMEX_B2_ENDPOINT \
+            KEMEX_B2_REGION \
+            KEMEX_B2_BUCKET \
+            KEMEX_B2_KEY_ID \
+            KEMEX_B2_APPLICATION_KEY \
+            KEMEX_BACKUP_AGE_RECIPIENT
+          do
+            test -n "${!name}" || { echo "::error::Missing $name"; exit 1; }
+          done
+
+      - name: Run encrypted off-site backup
+        run: node scripts/backup/kemex-backup.mjs
