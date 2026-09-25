@@ -235,7 +235,7 @@ export function InventoryPage({
             getValue: item => item.category,
           },
         ]}
-        columns={
+        columns={[
           { id:'code', header:'الكود', render:item=><strong>{item.code}</strong>, sortValue:item=>item.code },
           { id:'name', header:'الصنف', render:item=>item.name, sortValue:item=>item.name },
           { id:'category', header:'التصنيف', render:item=>item.category, sortValue:item=>item.category, hideOnMobile:true },
