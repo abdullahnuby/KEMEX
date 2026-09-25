@@ -130,7 +130,7 @@ function renderMeta(meta: PrintableMetaItem[] | undefined) {
 }
 
 function renderSignatures(signatures: PrintableSignature[] | undefined, labels: string[]) {
-  const effective = signatures?.length ? signatures : labels.map(label => ({ label }))
+  const effective: PrintableSignature[] = signatures?.length ? signatures : labels.map(label => ({ label }))
   if (!effective.length) return null
 
   return (
