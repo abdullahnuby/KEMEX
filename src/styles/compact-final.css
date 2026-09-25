@@ -1179,3 +1179,406 @@ body { background: #f4f7f8; }
   .ui-card, .phase2-page .rounded-2xl.border, .phase2-page .alert-row { transition: none !important; }
 }
 
+
+
+/* =====================================================================
+ * KEMEX UI Excellence Sprint 02 — shell stabilization + page hierarchy
+ * Canonical rules must live here because this stylesheet is intentionally
+ * loaded last. Do not layer another navbar/header override after this.
+ * ===================================================================== */
+
+/* ---------- Global viewport contract ---------- */
+html,
+body,
+#root,
+.app-shell,
+.main-shell,
+.page-body,
+.dashboard-page {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+html,
+body,
+#root {
+  width: 100% !important;
+  overflow-x: clip !important;
+}
+
+/* ---------- Desktop page-header contract ---------- */
+.ui-page-header,
+.page-head,
+.ds-page-header {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.ui-page-header__copy {
+  width: 100% !important;
+  min-width: 0 !important;
+  align-items: flex-end !important;
+  text-align: right !important;
+}
+
+.ui-page-header__title-row {
+  width: 100% !important;
+  min-width: 0 !important;
+  justify-content: flex-start !important;
+}
+
+.ui-page-title,
+.page-head h1,
+.ds-page-header h1 {
+  max-width: 100% !important;
+  text-align: right !important;
+}
+
+.ui-page-header__action,
+.reference-header-actions,
+.page-actions,
+.head-actions {
+  min-width: 0 !important;
+}
+
+/* Dashboard keeps its title on the reading side (right in RTL) and actions
+   on the opposite side; the title row itself must stretch to make this
+   alignment deterministic instead of centering by shrink-to-fit behavior. */
+.dashboard-page .ui-page-header__copy,
+.dashboard-page .ui-page-header__title-row {
+  width: 100% !important;
+}
+
+.dashboard-page .ui-page-header__action {
+  flex: 0 0 auto !important;
+  margin-inline-start: 0 !important;
+}
+
+/* ---------- Navbar: one responsive source of truth ---------- */
+.site-navbar {
+  width: 100% !important;
+  max-width: 100vw !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  flex-wrap: nowrap !important;
+}
+
+.navbar-brand {
+  min-width: 0 !important;
+  max-width: min(26vw, 240px) !important;
+  flex: 0 1 min(26vw, 240px) !important;
+}
+
+.navbar-context-copy {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.navbar-context-copy strong,
+.navbar-context-copy span {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.desktop-nav {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+.navbar-actions {
+  min-width: 0 !important;
+  flex: 0 1 auto !important;
+}
+
+/* Once the viewport can no longer comfortably fit brand + navigation +
+   utilities, collapse navigation before it can overflow. This covers small
+   tablets as well as split-screen browser widths. */
+@media (max-width: 1180px) {
+  .site-navbar {
+    height: 64px !important;
+    padding-inline: 10px !important;
+    gap: 6px !important;
+  }
+
+  .desktop-nav {
+    display: none !important;
+  }
+
+  .navbar-menu-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 38px !important;
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .navbar-brand {
+    max-width: none !important;
+    flex: 1 1 auto !important;
+  }
+
+  .navbar-context-copy {
+    max-width: min(42vw, 210px) !important;
+  }
+
+  .navbar-actions {
+    margin-inline-start: auto !important;
+    flex: 0 0 auto !important;
+    gap: 4px !important;
+  }
+
+  .navbar-search-btn {
+    width: 38px !important;
+    flex: 0 0 38px !important;
+    padding-inline: 0 !important;
+    justify-content: center !important;
+  }
+
+  .navbar-search-btn span,
+  .navbar-search-btn kbd {
+    display: none !important;
+  }
+
+  .navbar-icon-btn,
+  .navbar-user,
+  .navbar-menu-btn {
+    flex: 0 0 38px !important;
+  }
+
+  .navbar-icon-btn {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .navbar-user {
+    min-width: 38px !important;
+    width: 38px !important;
+    padding-inline: 2px !important;
+    justify-content: center !important;
+  }
+
+  .navbar-user-copy,
+  .navbar-user > svg,
+  .navbar-logout {
+    display: none !important;
+  }
+
+  .navbar-user .avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+}
+
+/* Tablet / phone page header: keep titles right-aligned, actions below, and
+   never let the header become a shrink-to-fit centered block. */
+@media (max-width: 1180px) {
+  .page-head,
+  .ui-page-header,
+  .ds-page-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .page-head > :first-child,
+  .ui-page-header__copy,
+  .ds-page-header > :first-child {
+    width: 100% !important;
+    align-items: flex-end !important;
+    text-align: right !important;
+  }
+
+  .ui-page-header__title-row {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+
+  .page-head h1,
+  .ui-page-title,
+  .ds-page-header h1 {
+    width: 100% !important;
+    text-align: right !important;
+  }
+
+  .page-actions,
+  .head-actions,
+  .ui-page-header__action,
+  .ds-page-header-action {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+}
+
+/* Small tablet: keep the shell compact without switching it into an
+   overpacked phone layout. */
+@media (min-width: 761px) and (max-width: 1180px) {
+  .page-body {
+    padding-inline: 18px !important;
+  }
+
+  .ui-page-title,
+  .page-head h1,
+  .ds-page-header h1 {
+    font-size: 24px !important;
+  }
+
+  .mobile-tab-bar {
+    display: none !important;
+  }
+
+  .module-sub-nav {
+    top: 64px !important;
+  }
+}
+
+/* Phone sizes: remove the remaining competing desktop spacing assumptions. */
+@media (max-width: 760px) {
+  .site-navbar {
+    height: 62px !important;
+    padding-inline: 8px !important;
+  }
+
+  .navbar-context-copy {
+    max-width: 34vw !important;
+  }
+
+  .navbar-context-copy strong {
+    font-size: .76rem !important;
+  }
+
+  .navbar-context-copy span {
+    display: none !important;
+  }
+
+  .navbar-search-btn,
+  .navbar-icon-btn,
+  .navbar-menu-btn {
+    width: 35px !important;
+    height: 35px !important;
+    flex-basis: 35px !important;
+  }
+
+  .navbar-user {
+    display: none !important;
+  }
+
+  .page-body {
+    padding-inline: 12px !important;
+  }
+
+  .ui-page-title,
+  .page-head h1,
+  .ds-page-header h1 {
+    width: 100% !important;
+    text-align: right !important;
+    font-size: 21px !important;
+    line-height: 1.35 !important;
+  }
+
+  .page-actions,
+  .head-actions,
+  .ui-page-header__action,
+  .ds-page-header-action {
+    justify-content: flex-start !important;
+    width: 100% !important;
+  }
+
+  .ui-page-header__action > *,
+  .page-actions > *,
+  .head-actions > * {
+    min-width: 0 !important;
+  }
+}
+
+/* Ultra-small phones: keep all shell controls inside the viewport. */
+@media (max-width: 380px) {
+  .site-navbar {
+    gap: 3px !important;
+    padding-inline: 6px !important;
+  }
+
+  .navbar-context-copy {
+    max-width: 29vw !important;
+  }
+
+  .navbar-search-btn,
+  .navbar-icon-btn,
+  .navbar-menu-btn {
+    width: 33px !important;
+    height: 33px !important;
+    flex-basis: 33px !important;
+  }
+}
+
+
+/* ---------- Adaptive drawer contract for small tablets ---------- */
+@media (max-width: 1180px) {
+  .mobile-nav-scrim {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    border: 0 !important;
+    background: rgba(7, 28, 35, .46) !important;
+    backdrop-filter: blur(2px);
+    z-index: 900 !important;
+  }
+
+  .mobile-nav-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    left: auto !important;
+    bottom: 0 !important;
+    width: min(88vw, 380px) !important;
+    max-width: 380px !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    padding: max(12px, env(safe-area-inset-top, 0px)) 14px max(14px, env(safe-area-inset-bottom, 0px)) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain !important;
+    border: 0 !important;
+    border-left: 1px solid #dce7ea !important;
+    border-radius: 0 !important;
+    background: #fbfdfd !important;
+    box-shadow: -18px 0 52px rgba(12,44,53,.18) !important;
+    z-index: 910 !important;
+    animation: kemexDrawerIn .18s ease-out;
+  }
+
+  @keyframes kemexDrawerIn {
+    from { transform: translateX(24px); opacity: .94; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  .mobile-nav-panel-head,
+  .mobile-account-row,
+  .mobile-nav-search,
+  .mobile-nav-group,
+  .mobile-group-title {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .mobile-nav-panel-head,
+  .mobile-account-row,
+  .mobile-nav-search {
+    flex: 0 0 auto !important;
+  }
+
+  .mobile-nav-search input {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}

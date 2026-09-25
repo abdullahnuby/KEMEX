@@ -86,6 +86,13 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount, notifica
   useEffect(() => {
     if (popover !== 'search') setQuery('')
   }, [popover])
+  useEffect(() => {
+    if (!mobileOpen) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = previousOverflow }
+  }, [mobileOpen])
+
 
   const navigate = (next: string) => {
     setOpenGroup(null)
