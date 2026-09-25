@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent, type MouseEvent } from 'react'
 import { Check, ClipboardCheck, Eye, Flag, Pencil, Plus, RotateCcw, Send, X } from 'lucide-react'
-import { MODULE_CONFIG, canWriteModule, type ModuleField, type WorkflowAction } from '../config/modules'
+import { MODULE_CONFIG, canWriteModule, type ModuleConfig, type ModuleField, type WorkflowAction } from '../config/modules'
 import { canApproveModule } from '../config/app'
 import type { Asset, Driver, Project, User, WorkOrder, Customer } from '../types/tfms'
 import { Button, Card, DataTable, PageHeader, StatusBadge } from '../components/ui'
@@ -259,7 +259,7 @@ export function OperationalWorkflowPage({
   </div>
 }
 
-function DetailModal({ record, cfg, lookups, actions, busy, onClose, onAction, onEdit, onNavigate }: any) {
+function DetailModal({ record, cfg, lookups, actions, busy, onClose, onAction, onEdit, onNavigate }: { record: Record<string, unknown>; cfg: ModuleConfig; lookups: ReferenceLookups; actions: WorkflowAction[]; busy: boolean; onClose: () => void; onAction: (action: WorkflowAction) => void; onEdit: () => void; onNavigate?: (route: string) => void }) {
   return <div className="modal-backdrop" onMouseDown={onClose}><section className="modal-card wide" role="dialog" aria-modal="true" onMouseDown={(e: MouseEvent) => e.stopPropagation()}><div className="modal-head"><div><h2>تفاصيل التشغيل</h2><p>{cfg.title} · <strong>{String(record.number ?? record.date ?? record.id ?? '')}</strong></p></div><button className="icon-button" type="button" onClick={onClose}><X size={18} /></button></div><div className="detail-grid">{cfg.fields.map((field: ModuleField) => <div className="detail-item" key={field.key}><span>{field.label}</span><strong><ReferenceValue field={field.key} value={record[field.key]} lookups={lookups} /></strong></div>)}</div><div className="modal-actions">{actions.map((action: WorkflowAction) => <button key={action.key} type="button" className={`workflow-button ${action.tone ?? 'secondary'}`} disabled={busy} onClick={() => onAction(action)}>{action.label}</button>)}<button type="button" className="secondary-button" onClick={onClose}>إغلاق</button><button type="button" className="primary-button" onClick={onEdit}><Pencil size={15} /> تعديل</button></div>{onNavigate && record.id && <button type="button" className="mt-3 text-sm font-bold text-primary-700 hover:underline" onClick={() => onNavigate(`assignments/${encodeURIComponent(String(record.id))}`)}>فتح السجل المرتبط</button>}</section></div>
 }
 
