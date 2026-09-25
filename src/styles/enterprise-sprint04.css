@@ -1,0 +1,128 @@
+
+/* KEMEX Enterprise Sprint 04 — workflow UX layer.
+   Scope: operational pages and small-screen workflow behavior.
+   Business data, permissions and backend contracts are untouched. */
+.workflow-page,
+.maintenance-page,
+.breakdown-list-page,
+.breakdown-detail-page,
+.breakdown-wizard-page,
+.trips-page,
+.inventory-page,
+.purchases-page,
+.fuel-page,
+.costs-page,
+.invoices-page,
+.contracts-page,
+.users-page,
+.settings-page { min-width: 0; width: 100%; }
+
+.workflow-page .panel,
+.workflow-page .ui-card,
+.workflow-page .metric-card { min-width: 0; }
+
+.workflow-quick-filter {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 14px;
+}
+.workflow-quick-filter button {
+  min-width: 0;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 13px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  color: var(--ds-text-soft);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: right;
+}
+.workflow-quick-filter button strong {
+  flex: 0 0 auto;
+  min-width: 28px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: var(--ds-color-gray-100);
+  color: var(--ds-text-strong);
+  text-align: center;
+}
+.workflow-quick-filter button.is-active {
+  border-color: color-mix(in srgb, var(--ds-primary) 28%, var(--ds-border));
+  background: color-mix(in srgb, var(--ds-primary) 6%, var(--ds-surface));
+  color: var(--ds-primary);
+}
+.workflow-quick-filter button.is-active strong {
+  background: var(--ds-primary);
+  color: #fff;
+}
+
+.breakdown-list-page .toolbar,
+.contracts-page .contracts-filter-bar {
+  min-width: 0;
+}
+.breakdown-list-page .toolbar select { max-width: 100%; }
+
+.breakdown-detail-page .workflow-action-card,
+.breakdown-detail-page .workflow-timeline { min-width: 0; }
+
+.breakdown-wizard-page .panel { min-width: 0; }
+.breakdown-wizard-page .form-grid { min-width: 0; }
+.breakdown-wizard-page .relative.overflow-x-auto { scrollbar-width: thin; }
+
+.trips-create-modal-body { min-width: 0; }
+.trips-create-modal-body .global-error { margin-bottom: 10px; }
+.trips-page .min-h-11 { max-width: 100%; }
+.trips-page .ui-card { overflow: hidden; }
+.trips-page .snap-x { overscroll-behavior-inline: contain; }
+
+.inventory-page .ui-data-table,
+.purchases-page .ui-data-table,
+.fuel-page .ui-data-table,
+.costs-page .ui-data-table,
+.invoices-page .ui-data-table,
+.contracts-page .ui-data-table,
+.users-page .ui-data-table { min-width: 0; }
+
+@media (max-width: 960px) {
+  .workflow-quick-filter { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .workflow-quick-filter {
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+  .workflow-quick-filter button {
+    min-height: 50px;
+    padding: 9px 10px;
+    font-size: 11px;
+  }
+  .breakdown-list-page .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .breakdown-list-page .toolbar > div { width: 100%; }
+  .breakdown-list-page .toolbar select { width: 100%; min-height: 44px; }
+  .trips-page .ui-card { padding: 10px; }
+  .trips-page .ui-card > div:first-child { gap: 8px; }
+  .trips-page .ui-card .flex.shrink-0 { width: 100%; justify-content: stretch; }
+  .trips-page .ui-card .flex.shrink-0 > button { flex: 1 1 0; }
+}
+
+@media print {
+  .workflow-page .ui-page-header__action,
+  .workflow-page .ui-filter-bar,
+  .workflow-page .toolbar,
+  .workflow-quick-filter,
+  .workflow-page .no-print,
+  .workflow-page button:not(.print-button) { display: none !important; }
+  .workflow-page,
+  .workflow-page .panel,
+  .workflow-page .ui-card { box-shadow: none !important; }
+}

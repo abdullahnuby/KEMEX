@@ -105,7 +105,7 @@ export function FuelPage({ fuelOps, assets, projects, onSave, defaultPrices = { 
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 workflow-page fuel-page">
       <PageHeader
         title="إدارة الوقود"
         description="الصرف والتعبئة وتحليل التكلفة والاستهلاك حسب الأصل والمشروع."

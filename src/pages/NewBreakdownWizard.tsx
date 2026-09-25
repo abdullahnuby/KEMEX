@@ -172,6 +172,7 @@ export function NewBreakdownWizard({
     setError('')
 
     try {
+      const warnings: string[] = []
       // 1. Create Breakdown Event
       const breakdownPayload: BreakdownEventInsert = {
         asset_id: assetId,
@@ -207,8 +208,8 @@ export function NewBreakdownWizard({
             attachments: null,
           }
           await createCostItemMut.mutateAsync(costPayload)
-        } catch (err) {
-          console.error('Failed to create diagnosis cost item:', err)
+        } catch {
+          warnings.push('تعذر تسجيل تكلفة الكشف والتشخيص ضمن العطل.')
         }
       }
 
@@ -230,8 +231,8 @@ export function NewBreakdownWizard({
             notes: null,
           }
           await createTransportMut.mutateAsync(transportPayload)
-        } catch (err) {
-          console.error('Failed to create transport record:', err)
+        } catch {
+          warnings.push('تم تسجيل البلاغ، لكن تعذر تسجيل حركة النقل المرتبطة به.')
         }
       }
 
@@ -249,14 +250,16 @@ export function NewBreakdownWizard({
             notes: downtimeNotes.trim() || 'بدء توقف الأصل فور الإبلاغ عن العطل',
           }
           await createDowntimeMut.mutateAsync(downtimePayload)
-        } catch (err) {
-          console.error('Failed to create downtime tracking:', err)
+        } catch {
+          warnings.push('تم تسجيل البلاغ، لكن تعذر بدء سجل التوقف.')
         }
       }
 
       toast.show({
-        message: 'تم تسجيل بلاغ العطل بنجاح وبدء تتبع التكلفة الحقيقية.',
-        tone: 'success',
+        message: warnings.length
+          ? `تم تسجيل البلاغ، لكن توجد ${warnings.length} ملاحظة تحتاج مراجعة في بطاقة العطل.`
+          : 'تم تسجيل بلاغ العطل بنجاح وبدء تتبع التكلفة الحقيقية.',
+        tone: warnings.length ? 'info' : 'success',
       })
 
       // Navigate to detail page
@@ -268,7 +271,7 @@ export function NewBreakdownWizard({
   }
 
   return (
-    <div className="mx-auto w-full max-w-[980px]">
+    <div className="mx-auto w-full max-w-[980px] workflow-page breakdown-wizard-page">
       <PageHeader
         title="معالج تسجيل عطل جديد"
         description="تسجيل شامل لعطل المعدة وحساب تكاليف الكشف والنقل وبدلات التوقف والفرص الضائعة."

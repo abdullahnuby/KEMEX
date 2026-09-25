@@ -215,7 +215,7 @@ export function BreakdownDetailPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 workflow-page breakdown-detail-page">
       <PageHeader
         title={`عطل: ${asset?.name ?? breakdown.asset_id} (${asset?.code ?? '—'})`}
         description={breakdown.description}

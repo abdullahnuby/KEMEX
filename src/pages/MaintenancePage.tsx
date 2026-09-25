@@ -1,5 +1,5 @@
 import { AlertCircle, CheckCircle2, Clock3, Pencil, Plus, Wrench, X, type LucideIcon } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import type { Asset, MaintenanceTechnician, Project, WorkOrder } from '../types/tfms'
 import { useCurrency } from '../features/settings'
 import { ReferenceValue } from '../components/ReferenceValue'
@@ -31,6 +31,14 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
   const completedCount = workOrders.filter(order => order.status === 'مكتمل').length
   const highPriorityCount = workOrders.filter(order => ['عالية', 'عاجلة', 'حرجة'].includes(order.prio) && !['مكتمل', 'ملغى'].includes(order.status)).length
   const maintenanceKpis = calculateMaintenanceKpis(workOrders)
+  const [queueFilter, setQueueFilter] = useState<'all' | 'action' | 'critical' | 'waiting' | 'completed'>('all')
+  const visibleWorkOrders = useMemo(() => workOrders.filter(order => {
+    if (queueFilter === 'action') return !['مكتمل', 'ملغى'].includes(order.status)
+    if (queueFilter === 'critical') return !['مكتمل', 'ملغى'].includes(order.status) && ['عالية', 'عاجلة', 'حرجة'].includes(order.prio)
+    if (queueFilter === 'waiting') return ['بانتظار الاعتماد', 'بانتظار قطع غيار'].includes(order.status)
+    if (queueFilter === 'completed') return order.status === 'مكتمل'
+    return true
+  }), [workOrders, queueFilter])
 
   function newWorkOrder() {
     const firstAsset = assets[0]?.id ?? ''
@@ -174,7 +182,7 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
   }
 
   return (
-    <div>
+    <div className="maintenance-page">
       <PageHeader
         title="أوامر العمل والصيانة"
         description="الدورة: اعتماد الفتح ← بدء التنفيذ ← بانتظار قطع الغيار عند الحاجة ← الإنجاز والتكلفة."
@@ -202,8 +210,22 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
         { id: 'priority', label: 'أولوية عالية / عاجلة', value: highPriorityCount, tone: highPriorityCount ? 'alert' : 'default' },
       ]} />
 
+      <div className="workflow-quick-filter" role="group" aria-label="قائمة متابعة الصيانة">
+        {[
+          ['all', 'كل الأوامر', workOrders.length],
+          ['action', 'تحتاج إجراء', openCount],
+          ['critical', 'أولوية عالية', highPriorityCount],
+          ['waiting', 'بانتظار', waitingCount],
+          ['completed', 'مكتملة', completedCount],
+        ].map(([key, label, count]) => (
+          <button key={key} type="button" className={queueFilter === key ? 'is-active' : ''} aria-pressed={queueFilter === key} onClick={() => setQueueFilter(key as typeof queueFilter)}>
+            <span>{label}</span><strong>{count}</strong>
+          </button>
+        ))}
+      </div>
+
       <DataTable
-        rows={workOrders}
+        rows={visibleWorkOrders}
         rowKey={order => order.id}
         pageSize={12}
         searchPlaceholder="بحث في الأصل أو نوع العمل أو الوصف أو الحالة..."
@@ -217,6 +239,7 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
         columnVisibilityStorageKey="kemex.maintenance.columns.v1"
         exportable
         exportFileName="KEMEX-work-orders"
+        mobilePresentation="cards"
         enableSelection={Boolean(onSave)}
         bulkActions={(selected, clear) => <Button size="sm" variant="secondary" onClick={() => void bulkWaitingForParts(selected, clear)} disabled={busy}>تحويل لانتظار قطع الغيار ({selected.length})</Button>}
         filters={[

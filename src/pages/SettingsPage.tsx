@@ -155,7 +155,7 @@ export function SettingsPage({ user, repository, onSaved }: { user: User; reposi
   }
 
   return (
-    <div className="space-y-6 settings-page">
+    <div className="space-y-6 settings-page workflow-page">
       <div className="settings-tabbar" role="tablist" aria-label="أقسام الإعدادات">
         <button className={tab === 'general' ? 'settings-tab active' : 'settings-tab'} type="button" role="tab" aria-selected={tab === 'general'} onClick={() => setTab('general')}>
           <Settings2 size={15} /> الإعدادات العامة

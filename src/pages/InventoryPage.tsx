@@ -4,6 +4,7 @@ import type { Asset, InventoryItem, Project, StockMovement, StockMovementType, W
 import { useCurrency } from '../features/settings'
 import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
 import { OperationalSummaryStrip } from '../shared/ui'
+import { ReferenceValue } from '../components/ReferenceValue'
 
 /** Input accepted by the atomic stock-posting RPC. */
 type PostMovementInput = {
@@ -223,6 +224,7 @@ export function InventoryPage({
         exportable
         exportFileName="KEMEX-inventory"
         pageSizeOptions={[15, 30, 60]}
+        mobilePresentation="cards"
       />
 
       <section className="space-y-4">
@@ -236,9 +238,10 @@ export function InventoryPage({
             { id:'item', header:'الصنف', render:move=>items.find(item=>item.id===move.itemId)?.name || move.itemId, sortValue:move=>items.find(item=>item.id===move.itemId)?.name || move.itemId },
             { id:'quantity', header:'الكمية', render:move=>formatNumber(move.quantity), sortValue:move=>move.quantity },
             { id:'unitCost', header:'التكلفة', render:move=>formatMoney(move.unitCost), sortValue:move=>move.unitCost },
-            { id:'reference', header:'الربط', render:move=>move.workOrderId || move.assetId || move.projectId || '—' },
+            { id:'reference', header:'الربط', render:move=><ReferenceValue field={move.workOrderId ? 'workOrderId' : move.assetId ? 'assetId' : 'projectId'} value={move.workOrderId || move.assetId || move.projectId || null} lookups={{assets, projects, workOrders}} /> },
           ]}
           rowKey={move=>move.id}
+          mobilePresentation="cards"
           emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد حركات مخزون.</div>}
           enableColumnVisibility
           columnVisibilityStorageKey="kemex.stock-movements.columns.v1"

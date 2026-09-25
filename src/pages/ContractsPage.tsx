@@ -234,7 +234,7 @@ export function ContractsPage({ records, assets, canEdit, onSave, onDelete }: Pr
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 workflow-page contracts-page">
       <PageHeader
         title="عقود الإيجار والتأجير"
         description="إدارة دورة العقد من الربط بالأصل والتواريخ إلى الشروط والتجديد والامتثال والتكلفة."

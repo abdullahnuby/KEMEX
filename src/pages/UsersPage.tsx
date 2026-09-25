@@ -66,7 +66,7 @@ export function UsersPage({user,repository,drivers}:{user:User;repository:Reposi
     try{await navigator.clipboard.writeText(`البريد: ${created.email}\nكلمة المرور المؤقتة: ${created.password}`);setCopied(true);setTimeout(()=>setCopied(false),1500)}catch{setCopied(false)}
   }
 
-  return <div className="space-y-6" dir="rtl">
+  return <div className="space-y-6 workflow-page users-page" dir="rtl">
     <PageHeader title="المستخدمون والصلاحيات" description="إنشاء حسابات النظام، تحديد الدور، وإيقاف الحسابات. الحساب الجديد يبدأ بكلمة مرور مؤقتة ويُجبر على تغييرها عند أول دخول." action={canCreate?<Button icon={<UserPlus size={17}/>} onClick={()=>{setCreate(emptyCreate);setCreated(null);setError('');setCreateOpen(true)}}>إنشاء مستخدم</Button>:undefined}/>
     {error&&<div className="global-error" role="alert">{error}</div>}
     {notice&&<div className="form-success" role="status">{notice}</div>}

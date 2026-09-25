@@ -67,7 +67,7 @@ export function CostsPage({ assets, projects, workOrders, fuelOps, moduleData }:
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 workflow-page costs-page">
       <PageHeader
         title="التكاليف والإهلاك"
         description="تجميع تكلفة الأصل من الوقود والصيانة والزيوت والإطارات والإيجار والإهلاك."

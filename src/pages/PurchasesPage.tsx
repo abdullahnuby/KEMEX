@@ -126,7 +126,7 @@ export function PurchasesPage({records,user,projects,inventoryItems=[],warehouse
 
   const canApprove=APPROVER_ROLES.includes(user.role)
 
-  return <div className="space-y-6">
+  return <div className="space-y-6 workflow-page purchases-page">
     <PageHeader title="المشتريات وطلبات الشراء" description="الموقع يطلب ولا يشتري مباشرة: طلب ← مراجعة ← اعتماد ← إصدار أمر شراء." action={canEdit&&<Button icon={<Plus size={16}/>} onClick={openNew}>طلب شراء</Button>} />
     {error&&<div className="global-error" role="alert">{error}</div>}
     <div className="metric-grid compact">
