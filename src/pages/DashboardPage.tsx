@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react'
 import { AlertTriangle, ArrowLeft, Boxes, CircleCheckBig, ClipboardCheck, Fuel, Gauge, ShieldCheck, Settings, Truck, Wrench } from 'lucide-react'
 import type { Asset, FuelOperation, Operation, Project, WorkOrder } from '../types/tfms'
-import { Button, Card, ChartShell, AnalyticsBarChart, AnalyticsDonut, AnalyticsDualBars, AnalyticsLineChart, MetricCard, StatusBadge, DataTable } from '../components/ui'
-import { ReferenceValue } from '../components/ReferenceValue'
+import { Button, Card, ChartShell, AnalyticsDonut, AnalyticsLineChart, MetricCard, StatusBadge } from '../components/ui'
 import { sameReference } from '../utils/referenceLabels'
 import { useCurrency } from '../features/settings'
 
@@ -21,137 +20,71 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
   const openWo = dashboard.openWo
   const pendingOps = dashboard.pendingOps
 
-  return <div className="dashboard-page">
+  return <div className="dashboard-page dashboard-page--executive">
     <header className="dashboard-page-header">
       <div className="dashboard-page-header__copy">
-        <div className="dashboard-page-header__eyebrow"><Gauge size={15} /> مركز التشغيل</div>
+        <div className="dashboard-page-header__eyebrow"><Gauge size={15} /> مركز الإدارة</div>
         <h1>لوحة المعلومات</h1>
-        <p>ملخص تنفيذي لحالة الأسطول، الصيانة، التشغيل، الوقود، والمشروعات.</p>
+        <p>ملخص تنفيذي سريع يوضح حالة الأسطول، الاستثناءات، وتكلفة التشغيل دون الدخول في التفاصيل التشغيلية.</p>
       </div>
       <div className="dashboard-page-header__actions">
         <div className="dashboard-period-control" role="group" aria-label="نطاق المؤشرات">
-          <span>النطاق</span>
           {([30, 90, 180] as const).map(value => <button key={value} type="button" className={period === value ? 'active' : ''} aria-pressed={period === value} onClick={() => setPeriod(value)}>{value === 30 ? '30 يوم' : value === 90 ? '90 يوم' : '6 أشهر'}</button>)}
         </div>
-        <Button variant="secondary" icon={<Truck size={16} />} onClick={() => onRoute('assets')}>عرض الأصول</Button>
-        <Button icon={<Settings size={16} />} onClick={() => onRoute('reports')}>مركز التقارير</Button>
+        <Button variant="secondary" icon={<Truck size={16} />} onClick={() => onRoute('assets')}>الأصول</Button>
+        <Button icon={<Settings size={16} />} onClick={() => onRoute('reports')}>التقارير</Button>
       </div>
     </header>
 
-    <section className="dashboard-command-strip" aria-label="ملخص الحالة التشغيلية">
-      <div className="dashboard-command-lead">
-        <span className="dashboard-command-kicker"><ShieldCheck size={14} /> قراءة تشغيلية</span>
-        <strong>{dashboard.totalAssets ? `${dashboard.readiness}% جاهزية التشغيل` : 'لا توجد بيانات كافية'}</strong>
-        <small>{periodLabel(period)} · الحالة الحالية للأصول والصيانة والوقود.</small>
-      </div>
-      <div className={`dashboard-signal ${dashboard.priorityCount > 0 ? 'is-alert' : 'is-clear'}`}>
-        {dashboard.priorityCount > 0 ? <AlertTriangle size={17} /> : <CircleCheckBig size={17} />}
-        <span>{dashboard.priorityCount > 0 ? `${dashboard.priorityCount} تحتاج متابعة` : 'مستقر'}</span>
-      </div>
-      <button className="dashboard-command-link" onClick={() => onRoute('alerts')}>التنبيهات <ArrowLeft size={15} /></button>
+    <section className={`dashboard-status-line ${dashboard.priorityCount > 0 ? 'is-alert' : 'is-clear'}`} aria-label="الحالة العامة">
+      {dashboard.priorityCount > 0 ? <AlertTriangle size={16} /> : <CircleCheckBig size={16} />}
+      <strong>{dashboard.priorityCount > 0 ? `${fmt(dashboard.priorityCount)} نقطة تحتاج متابعة` : 'الوضع التشغيلي مستقر'}</strong>
+      <span>{dashboard.totalAssets ? `جاهزية الأسطول ${fmt(dashboard.readiness)}%` : 'لا توجد بيانات كافية'}</span>
+      <button type="button" onClick={() => onRoute('alerts')}>عرض التنبيهات <ArrowLeft size={14} /></button>
     </section>
 
-    <section className="dashboard-hero" aria-label="ملخص الجاهزية">
-      <div className="dashboard-hero-main">
-        <div className="dashboard-hero-header">
-          <span className="dashboard-hero-kicker">جاهزية التشغيل</span>
-          <span className="dashboard-hero-badge">{dashboard.readiness}%</span>
-        </div>
-        <h3>{dashboard.totalAssets ? `نسبة جاهزية الأسطول ${dashboard.readiness}%` : 'لا توجد بيانات كافية'}</h3>
-        <p>{dashboard.totalAssets ? `${fmt(dashboard.activeCount)} أصل يعمل الآن و${fmt(dashboard.available)} أصل متاح، مع ${fmt(dashboard.maintenance)} أصل قيد المتابعة.` : 'سيتوفر المؤشر فور توفر بيانات الأصول.'}</p>
-        <div className="dashboard-hero-progress" aria-hidden="true">
-          <span style={{ width: `${Math.max(6, Math.min(100, dashboard.readiness))}%` }} />
-        </div>
-      </div>
-      <div className="dashboard-mini-stats">
-        <div className="dashboard-mini-stat">
-          <span>المشروعات النشطة</span>
-          <strong>{fmt(dashboard.activeProjects)}</strong>
-        </div>
-        <div className="dashboard-mini-stat">
-          <span>أوامر العمل المفتوحة</span>
-          <strong>{fmt(openWo)}</strong>
-        </div>
-        <div className="dashboard-mini-stat">
-          <span>تكلفة الوقود</span>
-          <strong>{formatMoney(dashboard.fuelCost)}</strong>
-        </div>
-      </div>
+    <section className="dashboard-kpi-grid" aria-label="المؤشرات التنفيذية">
+      <MetricCard label="جاهزية الأسطول" value={`${fmt(dashboard.readiness)}%`} meta={`${fmt(dashboard.totalAssets)} أصل`} icon={CircleCheckBig} tone="green" />
+      <MetricCard label="أصول تعمل الآن" value={fmt(dashboard.activeCount)} meta={`${fmt(dashboard.available)} متاحة`} icon={Boxes} tone="teal" />
+      <MetricCard label="أوامر عمل مفتوحة" value={fmt(openWo)} meta={`${fmt(dashboard.urgentWorkOrders)} عاجلة`} icon={ClipboardCheck} tone="rose" />
+      <MetricCard label="استحقاقات خلال 30 يوم" value={fmt(expiring)} meta="تحتاج متابعة" icon={Gauge} tone="blue" />
+      <MetricCard label={`تكلفة الوقود · ${periodLabelShort(period)}`} value={formatMoney(dashboard.fuelCost)} meta={`${fmt(dashboard.fuelEntries)} عملية معتمدة`} icon={Fuel} tone="amber" />
     </section>
 
-    <div className="metric-grid dashboard-metrics">
-      <MetricCard label="الأصول" value={fmt(dashboard.totalAssets)} meta={`عاملة ${fmt(active)} · متاحة ${fmt(available)}`} icon={Boxes} />
-      <MetricCard label="نسبة التشغيل" value={`${fmt(active)}%`} meta={`${fmt(dashboard.activeCount)} أصل يعمل الآن`} icon={CircleCheckBig} tone="green" />
-      <MetricCard label="صيانة" value={fmt(maintenance)} meta={`${fmt(dashboard.maintenanceCritical)} متابعة`} icon={Wrench} tone="purple" />
-      <MetricCard label={`صرف الوقود · ${periodLabelShort(period)}`} value={formatMoney(dashboard.fuelCost)} meta={`${fmt(dashboard.fuelEntries)} عملية معتمدة`} icon={Fuel} tone="amber" />
-      <MetricCard label="أوامر مفتوحة" value={fmt(openWo)} meta={`${fmt(dashboard.urgentWorkOrders)} عاجلة`} icon={ClipboardCheck} tone="rose" />
-      <MetricCard label="استحقاقات قريبة" value={fmt(expiring)} meta="خلال 30 يومًا" icon={Gauge} tone="blue" />
-    </div>
-
-    <div className="dashboard-analytics-grid">
-      <ChartShell title="اتجاه التكلفة" description={period === 30 ? 'آخر 30 يومًا — مجمعة أسبوعيًا' : period === 90 ? 'آخر 90 يومًا — مجمعة نصف شهريًا' : 'آخر 6 أشهر — مجمعة شهريًا'}>
-        <AnalyticsLineChart points={dashboard.monthlyCost} valueSuffix=" ج.م" secondarySuffix=" ج.م" primaryLabel="الوقود" secondaryLabel="الصيانة" height={260} />
-        <div className="analytics-insight-strip">
-          <div><span>إجمالي الوقود</span><strong>{formatMoney(dashboard.fuelCost)}</strong></div>
-          <div><span>تكلفة الصيانة</span><strong>{formatMoney(dashboard.maintenanceCost)}</strong></div>
-          <div><span>ساعات التشغيل</span><strong>{fmt(dashboard.hours)}</strong></div>
-          <div><span>أوامر العمل</span><strong>{fmt(dashboard.workOrderCount)}</strong></div>
+    <section className="dashboard-executive-grid">
+      <ChartShell title="اتجاه تكلفة التشغيل" description={period === 30 ? 'آخر 30 يومًا' : period === 90 ? 'آخر 90 يومًا' : 'آخر 6 أشهر'} action={<Button variant="ghost" size="sm" onClick={() => onRoute('reports')}>التفاصيل</Button>}>
+        <AnalyticsLineChart points={dashboard.monthlyCost} valueSuffix=" ج.م" secondarySuffix=" ج.م" primaryLabel="الوقود" secondaryLabel="الصيانة" height={225} />
+        <div className="dashboard-chart-summary">
+          <div><span>الوقود</span><strong>{formatMoney(dashboard.fuelCost)}</strong></div>
+          <div><span>الصيانة</span><strong>{formatMoney(dashboard.maintenanceCost)}</strong></div>
         </div>
       </ChartShell>
-      <ChartShell title="جاهزية الأسطول" description="توزيع الأصول حسب الحالة الحالية">
-        <AnalyticsDonut segments={dashboard.healthSegments} centerValue={fmt(dashboard.totalAssets)} centerLabel="إجمالي أصل" />
-      </ChartShell>
-    </div>
 
-    <div className="dashboard-secondary-grid">
-      <ChartShell title="الأصول حسب المشروع" description="المشروعات الأعلى في الأصول المرتبطة" action={<Button variant="ghost" size="sm" onClick={() => onRoute('projects')}>كل المشروعات</Button>}>
-        {dashboard.projectRows.length ? <AnalyticsBarChart points={dashboard.projectRows.map(project => ({ label: project.name, value: project.count }))} valueSuffix=" أصل" limit={7} /> : <DashboardEmpty message="لا توجد بيانات مشروعات كافية للتحليل." onRoute={() => onRoute('projects')} action="فتح المشروعات" />}
-      </ChartShell>
-      <ChartShell title="الاستخدام مقابل التوقف" description="ساعات التشغيل والتوقف للأصول ذات السجلات المعتمدة">
-        <AnalyticsDualBars points={dashboard.assetUsage.map(item => ({ label: item.label, value: item.hours, secondary: item.down }))} firstLabel="التشغيل" secondLabel="التوقف" />
-      </ChartShell>
-    </div>
-
-    <div className="dashboard-operational-grid">
-      <Card title="قائمة المتابعة" description={`${fmt(dashboard.priorityCount)} مؤشر يحتاج مراجعة`} action={<AlertTriangle size={18} className="warning-icon" />}>
-        <div className="dashboard-watchlist">
-          {dashboard.watchlist.map(item => <button key={item.id} type="button" onClick={() => onRoute(item.route)} className="dashboard-watch-row">
+      <Card title="يحتاج انتباه" description={dashboard.priorityCount ? 'الاستثناءات الأهم فقط' : 'لا توجد استثناءات حرجة'} action={<AlertTriangle size={18} className="warning-icon" />}>
+        <div className="dashboard-decision-list">
+          {dashboard.watchlist.slice(0, 4).map(item => <button key={item.id} type="button" onClick={() => onRoute(item.route)} className="dashboard-decision-row">
             <span className={`priority-icon ${item.tone}`}><item.icon size={16} /></span>
             <span className="dashboard-watch-copy"><strong>{item.name}</strong><small>{item.reason}{item.code ? ` · ${item.code}` : ''}</small></span>
             <StatusBadge tone={item.tone === 'red' ? 'red' : item.tone === 'amber' ? 'amber' : 'blue'}>{item.status}</StatusBadge>
           </button>)}
-          {pendingOps > 0 && <button type="button" onClick={() => onRoute('operations')} className="dashboard-watch-row"><span className="priority-icon blue"><Gauge size={16} /></span><span className="dashboard-watch-copy"><strong>{fmt(pendingOps)} سجل تشغيلي</strong><small>بانتظار الاعتماد</small></span><StatusBadge tone="blue">اعتماد</StatusBadge></button>}
-          {!dashboard.priorityCount && <div className="dashboard-clear-state"><CircleCheckBig size={22} /><div><strong>الحالة مستقرة</strong><small>لا توجد عناصر تحتاج متابعة عاجلة.</small></div></div>}
+          {pendingOps > 0 && <button type="button" onClick={() => onRoute('operations')} className="dashboard-decision-row"><span className="priority-icon blue"><Gauge size={16} /></span><span className="dashboard-watch-copy"><strong>{fmt(pendingOps)} سجل تشغيلي</strong><small>بانتظار الاعتماد</small></span><StatusBadge tone="blue">اعتماد</StatusBadge></button>}
+          {!dashboard.priorityCount && <div className="dashboard-clear-state"><CircleCheckBig size={22} /><div><strong>لا توجد نقاط حرجة</strong><small>لا يوجد شيء يحتاج تدخّلًا فوريًا في البيانات الحالية.</small></div></div>}
         </div>
       </Card>
+    </section>
 
-      <Card title="مؤشرات التشغيل" description={periodLabel(period)} span2 action={<Settings size={18} className="muted-icon" />}>
-        <div className="dashboard-insight-list dashboard-insight-list-rich">
-          <div className="dashboard-insight"><span>جاهزية</span><strong>{fmt(dashboard.readiness)}%</strong><small>تشغيل + متاح</small></div>
-          <div className="dashboard-insight"><span>ساعات التشغيل</span><strong>{fmt(dashboard.avgHours)}</strong><small>متوسط لكل أصل</small></div>
-          <div className="dashboard-insight"><span>وقود / أصل</span><strong>{formatMoney(dashboard.avgFuel)}</strong><small>متوسط التكلفة</small></div>
-          <div className="dashboard-insight"><span>توقف</span><strong>{fmt(dashboard.downtime)}</strong><small>ساعات مسجلة</small></div>
-          <div className="dashboard-insight"><span>مشروعات</span><strong>{fmt(dashboard.activeProjects)}</strong><small>نشطة</small></div>
-          <div className="dashboard-insight"><span>أوامر</span><strong>{fmt(dashboard.workOrderCount)}</strong><small>في الفترة</small></div>
+    <section className="dashboard-status-grid" aria-label="حالة الأسطول">
+      <Card title="حالة الأصول" description="توزيع مختصر للحالة الحالية" action={<Button variant="ghost" size="sm" onClick={() => onRoute('assets')}>فتح الأصول</Button>}>
+        <AnalyticsDonut segments={dashboard.healthSegments} centerValue={fmt(dashboard.totalAssets)} centerLabel="إجمالي أصل" />
+      </Card>
+      <Card title="مؤشر الفترة" description="للسياق فقط — بدون تفاصيل تشغيلية" action={<Button variant="ghost" size="sm" onClick={() => onRoute('operations')}>مركز التشغيل</Button>}>
+        <div className="dashboard-period-summary">
+          <div><span>المشروعات النشطة</span><strong>{fmt(dashboard.activeProjects)}</strong></div>
+          <div><span>ساعات التشغيل</span><strong>{fmt(dashboard.hours)}</strong></div>
+          <div><span>ساعات التوقف</span><strong>{fmt(dashboard.downtime)}</strong></div>
         </div>
       </Card>
-
-      <Card title="آخر أوامر العمل" description="أحدث السجلات المسجلة" action={<Button variant="ghost" size="sm" onClick={() => onRoute('maintenance')}>فتح الوحدة</Button>} noPadding>
-        <DataTable
-          rows={dashboard.recentWo}
-          columns={[
-            { id: 'asset', header: 'الأصل', sortValue: workOrder => String(workOrder.asset ?? ''), render: workOrder => <ReferenceValue field="asset" value={workOrder.asset} lookups={{ assets }} /> },
-            { id: 'project', header: 'المشروع', sortValue: workOrder => String(workOrder.proj ?? ''), render: workOrder => <ReferenceValue field="proj" value={workOrder.proj} lookups={{ projects }} /> },
-            { id: 'type', header: 'نوع العمل', sortValue: workOrder => workOrder.type, render: workOrder => workOrder.type },
-            { id: 'status', header: 'الحالة', sortValue: workOrder => workOrder.status, render: workOrder => <StatusBadge dot>{workOrder.status}</StatusBadge> },
-            { id: 'opened', header: 'التاريخ', sortValue: workOrder => workOrder.opened, render: workOrder => fmtDate(workOrder.opened) },
-          ]}
-          rowKey={workOrder => workOrder.id}
-          pageSize={6}
-          searchPlaceholder="بحث في أوامر العمل..."
-        />
-      </Card>
-    </div>
+    </section>
   </div>
 }
 
