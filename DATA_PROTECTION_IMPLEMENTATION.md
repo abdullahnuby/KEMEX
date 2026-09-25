@@ -7,8 +7,8 @@
 3. Add `tests/enterprise/data-protection.test.mjs`.
 4. Replace `scripts/verify-migrations.mjs` with the bundled version.
 5. Add `test:data-protection` to `package.json`.
-6. Rename `supabase/migrations/028_live_gps_tracking.sql` back to `supabase/migrations/029_live_gps_tracking.sql`.
-7. Do **not** recreate historical migration 028 from memory; it remains a documented production-only gap until reconciled against the real production database.
+6. Keep `supabase/migrations/028_live_gps_tracking.sql` as the canonical GPS migration.
+7. Migration 028 is now resolved; there is no migration-numbering gap to reconcile.
 
 ## GitHub Production Environment secrets
 

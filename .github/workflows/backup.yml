@@ -58,7 +58,9 @@ jobs:
       - name: Install backup utilities
         run: |
           sudo apt-get update
-          sudo apt-get install -y awscli age postgresql-client
+          sudo apt-get install -y age postgresql-client curl unzip
+          curl -fsSL https://awscli.amazonaws.com/v2/install.sh | sudo bash -s -- --system
+          aws --version
 
       - name: Validate required secrets
         shell: bash

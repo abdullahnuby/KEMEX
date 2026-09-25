@@ -8,16 +8,7 @@ const files = fs.readdirSync(dir).filter(x => /^\d+_.+\.sql$/.test(x)).sort()
 const nums = files.map(x => Number(x.slice(0,3)))
 
 for (let i = 0; i < nums.length; i++) {
-  if (nums[i] === i + 1) continue
-
-  // Migration 028 was historically applied to production out-of-band.
-  // Keep that gap explicit; the repository GPS migration remains 029.
-  const isHistorical028Gap =
-    nums[i] === 29 &&
-    nums[i - 1] === 27 &&
-    !files.some(file => file.startsWith('028_'))
-
-  if (!isHistorical028Gap) {
+  if (nums[i] !== i + 1) {
     throw new Error(`Migration sequence gap/duplicate near ${String(nums[i]).padStart(3,'0')}`)
   }
 }
@@ -57,5 +48,5 @@ for (const needle of [
   }
 }
 
-console.log('Migration sequence is valid with the documented historical 028 production-only gap.')
+console.log('Migration sequence is valid and contiguous through migration 028.')
 console.log(`KEMEX migrations OK (${files.length} ordered migrations).`)

@@ -12,6 +12,8 @@ test('data protection backup workflow is scheduled, manual, and least-privilege'
   assert.match(workflow, /cron:\s*['"]0 2 \* \* \*['"]/) 
   assert.match(workflow, /workflow_dispatch:/)
   assert.match(workflow, /permissions:\s*\n\s+contents:\s+read/)
+  assert.match(workflow, /awscli\.amazonaws\.com\/v2\/install\.sh/)
+  assert.doesNotMatch(workflow, /apt-get install[^\n]*awscli/i)
   assert.doesNotMatch(workflow, /service_role|sb_secret_/i)
 })
 
@@ -32,10 +34,10 @@ test('backup script captures database, auth, storage metadata and storage binari
   ]) assert.ok(script.includes(needle), `Missing backup construct: ${needle}`)
 })
 
-test('migration 029 remains the repository GPS migration and historical 028 is explicit', () => {
+test('migration 028 is the repository GPS migration and sequence is contiguous', () => {
   const files = fs.readdirSync(path.join(root, 'supabase/migrations'))
-  assert.ok(files.includes('029_live_gps_tracking.sql'))
-  assert.ok(!files.includes('028_live_gps_tracking.sql'))
+  assert.ok(files.includes('028_live_gps_tracking.sql'))
+  assert.ok(!files.includes('029_live_gps_tracking.sql'))
   const verifier = fs.readFileSync(path.join(root, 'scripts/verify-migrations.mjs'), 'utf8')
-  assert.match(verifier, /historical.*028/i)
+  assert.doesNotMatch(verifier, /historical.*028.*gap/i)
 })
