@@ -48,26 +48,25 @@ export function BreakdownListPage({
   const toast = useToast()
   const [severityFilter, setSeverityFilter] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<string>('')
-  const [assetFilter, setAssetFilter] = useState<string>('')
-  const [projectFilter, setProjectFilter] = useState<string>('')
+  const [queueFilter, setQueueFilter] = useState<'all' | 'open' | 'repair' | 'transit' | 'critical'>('all')
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const { data: breakdowns = [], isLoading, error } = useBreakdownList()
   const deleteMutation = useDeleteBreakdown()
 
   const assetsMap = useMemo(() => new Map(assets.map(a => [a.id, a])), [assets])
-  const projectsMap = useMemo(() => new Map(projects.map(p => [p.id, p])), [projects])
-
   // Filtered rows
   const filteredBreakdowns = useMemo(() => {
     return breakdowns.filter(item => {
       if (severityFilter && item.severity !== severityFilter) return false
       if (statusFilter && item.status !== statusFilter) return false
-      if (assetFilter && item.asset_id !== assetFilter) return false
-      if (projectFilter && item.project_id !== projectFilter) return false
+      if (queueFilter === 'open' && item.status === 'closed') return false
+      if (queueFilter === 'repair' && item.status !== 'under_repair') return false
+      if (queueFilter === 'transit' && !['in_transit_to_workshop', 'in_transit_to_site'].includes(item.status)) return false
+      if (queueFilter === 'critical' && (item.status === 'closed' || (item.downtime_hours ?? 0) < 72)) return false
       return true
     })
-  }, [breakdowns, severityFilter, statusFilter, assetFilter, projectFilter])
+  }, [breakdowns, severityFilter, statusFilter, queueFilter])
 
   // Metrics
   const openCount = breakdowns.filter(b => b.status !== 'closed').length
@@ -181,7 +180,6 @@ export function BreakdownListPage({
     {
       id: 'actions',
       header: 'إجراءات',
-      hideOnMobile: true,
       render: row => (
         <div className="row-actions">
           <button
@@ -210,7 +208,7 @@ export function BreakdownListPage({
   ]
 
   return (
-    <div className="space-y-6 workflow-page breakdown-list-page">
+    <div className="space-y-6">
       <PageHeader
         title="إدارة الأعطال والتكاليف الكاملة"
         description="تتبع دورة حياة الأعطال من البلاغ الميداني حتى عودة الأصل، واحتساب التكلفة الحقيقية (المباشرة وغير المباشرة)."
@@ -301,30 +299,6 @@ export function BreakdownListPage({
             </select>
 
             <select
-              value={assetFilter}
-              onChange={e => setAssetFilter(e.target.value)}
-              className="min-w-[180px]"
-              aria-label="تصفية حسب الأصل"
-            >
-              <option value="">كل الأصول</option>
-              {assets.map(asset => (
-                <option key={asset.id} value={asset.id}>{asset.name} — {asset.code}</option>
-              ))}
-            </select>
-
-            <select
-              value={projectFilter}
-              onChange={e => setProjectFilter(e.target.value)}
-              className="min-w-[170px]"
-              aria-label="تصفية حسب المشروع"
-            >
-              <option value="">كل المشروعات</option>
-              {projects.map(project => (
-                <option key={project.id} value={project.id}>{project.name}</option>
-              ))}
-            </select>
-
-            <select
               value={severityFilter}
               onChange={e => setSeverityFilter(e.target.value)}
               className="min-w-[130px]"
@@ -339,15 +313,38 @@ export function BreakdownListPage({
               )}
             </select>
 
-            {(statusFilter || severityFilter || assetFilter || projectFilter) && (
+            <div className="w-full basis-full border-t border-slate-100 pt-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-bold text-slate-700">طابور الأعطال:</span>
+                {([
+                  ['all', 'كل الأعطال', breakdowns.length],
+                  ['open', 'مفتوحة', openCount],
+                  ['repair', 'قيد الإصلاح', underRepairCount],
+                  ['transit', 'في النقل', inTransitCount],
+                  ['critical', 'توقف حرج', criticalDowntimeCount],
+                ] as const).map(([key, label, count]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={queueFilter === key ? 'primary-button' : 'secondary-button'}
+                    onClick={() => setQueueFilter(key)}
+                    aria-pressed={queueFilter === key}
+                  >
+                    {label} <span className="opacity-70">({count})</span>
+                  </button>
+                ))}
+                <span className="ms-auto text-xs font-semibold text-slate-500">يُعرض {filteredBreakdowns.length} من {breakdowns.length}</span>
+              </div>
+            </div>
+
+            {(statusFilter || severityFilter || queueFilter !== 'all') && (
               <button
                 type="button"
                 className="text-button"
                 onClick={() => {
                   setStatusFilter('')
                   setSeverityFilter('')
-                  setAssetFilter('')
-                  setProjectFilter('')
+                  setQueueFilter('all')
                 }}
               >
                 إعادة ضبط الفلاتر
@@ -356,15 +353,18 @@ export function BreakdownListPage({
           </div>
         </div>
 
+        {isLoading ? (
+          <div className="loading-page min-h-[260px]">
+            <div className="spinner" />
+            <strong>جارٍ تحميل سجلات الأعطال...</strong>
+          </div>
+        ) : (
           <DataTable
             rows={filteredBreakdowns}
             columns={columns}
             rowKey={row => row.id}
-            searchPlaceholder="بحث باسم الأصل أو وصف العطل أو الحالة..."
+            searchPlaceholder="بحث بكود أو اسم الأصل أو وصف العطل..."
             pageSize={10}
-            loading={isLoading}
-            mobilePresentation="cards"
-            onRowClick={row => onRoute(`breakdowns/${row.id}`)}
             emptyState={
               <div className="empty">
                 <AlertTriangle size={28} className="text-slate-400" />
@@ -372,6 +372,7 @@ export function BreakdownListPage({
               </div>
             }
           />
+        )}
       </section>
 
       {/* Delete Confirmation Modal */}

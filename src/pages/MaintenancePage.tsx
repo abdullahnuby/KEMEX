@@ -1,11 +1,10 @@
 import { AlertCircle, CheckCircle2, Clock3, Pencil, Plus, Wrench, X, type LucideIcon } from 'lucide-react'
-import { useMemo, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import type { Asset, MaintenanceTechnician, Project, WorkOrder } from '../types/tfms'
 import { useCurrency } from '../features/settings'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { Button, DataTable, IconButton, PageHeader, StatusBadge } from '../components/ui'
-import { FormSection, OperationalSummaryStrip } from '../shared/ui'
-import { PrintRecordButton } from '../shared/printing'
+import { ConfirmModal, FormSection, OperationalSummaryStrip } from '../shared/ui'
 
 import { APP_LOCALE } from '../shared/formatters/locale'
 type MaintenancePageProps = {
@@ -24,6 +23,8 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
   const [technicianOpen, setTechnicianOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [queueFilter, setQueueFilter] = useState<'all' | 'active' | 'waiting' | 'priority'>('all')
+  const [pendingBulk, setPendingBulk] = useState<WorkOrder[]>([])
   const { formatMoney } = useCurrency()
 
   const openCount = workOrders.filter(order => !['مكتمل', 'ملغى'].includes(order.status)).length
@@ -31,14 +32,12 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
   const completedCount = workOrders.filter(order => order.status === 'مكتمل').length
   const highPriorityCount = workOrders.filter(order => ['عالية', 'عاجلة', 'حرجة'].includes(order.prio) && !['مكتمل', 'ملغى'].includes(order.status)).length
   const maintenanceKpis = calculateMaintenanceKpis(workOrders)
-  const [queueFilter, setQueueFilter] = useState<'all' | 'action' | 'critical' | 'waiting' | 'completed'>('all')
-  const visibleWorkOrders = useMemo(() => workOrders.filter(order => {
-    if (queueFilter === 'action') return !['مكتمل', 'ملغى'].includes(order.status)
-    if (queueFilter === 'critical') return !['مكتمل', 'ملغى'].includes(order.status) && ['عالية', 'عاجلة', 'حرجة'].includes(order.prio)
+  const visibleWorkOrders = workOrders.filter(order => {
+    if (queueFilter === 'active') return !['مكتمل', 'ملغى'].includes(order.status)
     if (queueFilter === 'waiting') return ['بانتظار الاعتماد', 'بانتظار قطع غيار'].includes(order.status)
-    if (queueFilter === 'completed') return order.status === 'مكتمل'
+    if (queueFilter === 'priority') return ['عالية', 'عاجلة', 'حرجة'].includes(order.prio) && !['مكتمل', 'ملغى'].includes(order.status)
     return true
-  }), [workOrders, queueFilter])
+  })
 
   function newWorkOrder() {
     const firstAsset = assets[0]?.id ?? ''
@@ -164,16 +163,20 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
     }
   }
 
-  async function bulkWaitingForParts(selected: readonly WorkOrder[], clearSelection: () => void) {
+  function requestBulkWaitingForParts(selected: readonly WorkOrder[]) {
     if (!onSave || busy || !selected.length) return
     const actionable = selected.filter(order => !['مكتمل', 'ملغى', 'بانتظار قطع غيار'].includes(order.status))
     if (!actionable.length) return
-    if (!window.confirm(`سيتم تحويل ${actionable.length} أمر عمل إلى «بانتظار قطع غيار». هل تريد المتابعة؟`)) return
+    setPendingBulk([...actionable])
+  }
+
+  async function confirmBulkWaitingForParts() {
+    if (!onSave || busy || !pendingBulk.length) return
     setBusy(true)
     setError('')
     try {
-      for (const order of actionable) await onSave({ ...order, status: 'بانتظار قطع غيار' })
-      clearSelection()
+      for (const order of pendingBulk) await onSave({ ...order, status: 'بانتظار قطع غيار' })
+      setPendingBulk([])
     } catch (bulkError) {
       setError(bulkError instanceof Error ? bulkError.message : 'تعذر تنفيذ الإجراء الجماعي على أوامر العمل.')
     } finally {
@@ -182,7 +185,7 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
   }
 
   return (
-    <div className="maintenance-page">
+    <div>
       <PageHeader
         title="أوامر العمل والصيانة"
         description="الدورة: اعتماد الفتح ← بدء التنفيذ ← بانتظار قطع الغيار عند الحاجة ← الإنجاز والتكلفة."
@@ -210,18 +213,27 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
         { id: 'priority', label: 'أولوية عالية / عاجلة', value: highPriorityCount, tone: highPriorityCount ? 'alert' : 'default' },
       ]} />
 
-      <div className="workflow-quick-filter" role="group" aria-label="قائمة متابعة الصيانة">
-        {[
-          ['all', 'كل الأوامر', workOrders.length],
-          ['action', 'تحتاج إجراء', openCount],
-          ['critical', 'أولوية عالية', highPriorityCount],
-          ['waiting', 'بانتظار', waitingCount],
-          ['completed', 'مكتملة', completedCount],
-        ].map(([key, label, count]) => (
-          <button key={key} type="button" className={queueFilter === key ? 'is-active' : ''} aria-pressed={queueFilter === key} onClick={() => setQueueFilter(key as typeof queueFilter)}>
-            <span>{label}</span><strong>{count}</strong>
-          </button>
-        ))}
+      <div className="panel" aria-label="طابور أوامر الصيانة">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-bold text-slate-700">طابور العمل:</span>
+          {([
+            ['all', 'كل الأوامر', workOrders.length],
+            ['active', 'نشطة', openCount],
+            ['waiting', 'بانتظار إجراء', waitingCount],
+            ['priority', 'أولوية عالية', highPriorityCount],
+          ] as const).map(([key, label, count]) => (
+            <button
+              key={key}
+              type="button"
+              className={queueFilter === key ? 'primary-button' : 'secondary-button'}
+              onClick={() => setQueueFilter(key)}
+              aria-pressed={queueFilter === key}
+            >
+              {label} <span className="opacity-70">({count})</span>
+            </button>
+          ))}
+          <span className="ms-auto text-xs font-semibold text-slate-500">يُعرض {visibleWorkOrders.length} من {workOrders.length}</span>
+        </div>
       </div>
 
       <DataTable
@@ -239,9 +251,8 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
         columnVisibilityStorageKey="kemex.maintenance.columns.v1"
         exportable
         exportFileName="KEMEX-work-orders"
-        mobilePresentation="cards"
         enableSelection={Boolean(onSave)}
-        bulkActions={(selected, clear) => <Button size="sm" variant="secondary" onClick={() => void bulkWaitingForParts(selected, clear)} disabled={busy}>تحويل لانتظار قطع الغيار ({selected.length})</Button>}
+        bulkActions={(selected) => <Button size="sm" variant="secondary" onClick={() => requestBulkWaitingForParts(selected)} disabled={busy}>تحويل لانتظار قطع الغيار ({selected.length})</Button>}
         filters={[
           { id: 'status', label: 'الحالة', options: [
             { value: 'مفتوح', label: 'مفتوح' }, { value: 'قيد التنفيذ', label: 'قيد التنفيذ' }, { value: 'بانتظار قطع غيار', label: 'بانتظار قطع غيار' }, { value: 'مكتمل', label: 'مكتمل' },
@@ -266,13 +277,23 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
           { id:'status', header:'الحالة', sortValue:order=>order.status, render:order=><StatusBadge dot>{order.status}</StatusBadge> },
           { id:'opened', header:'التاريخ', sortValue:order=>order.opened, render:order=>formatDate(order.opened) },
           { id:'cost', header:'التكلفة', sortValue:order=>Number(order.laborCost||0)+Number(order.partsCost||0)+Number(order.vendorCost||0), render:order=>formatMoney(Number(order.laborCost||0)+Number(order.partsCost||0)+Number(order.vendorCost||0)) },
-          { id:'actions', header:'إجراءات', mobileVisible:true, render:order=><div className="flex flex-wrap gap-2"><PrintRecordButton documentTitle="أمر عمل صيانة" documentNumber={String(order.id||'')} documentDate={String(order.opened||'')} documentStatus={String(order.status||'')} meta={[{label:'الأصل',value:String(assets.find(a=>a.id===order.asset)?.name||order.asset||'—')},{label:'المشروع',value:String(projects.find(p=>p.id===order.proj)?.name||order.proj||'—')},{label:'نوع العمل',value:String(order.type||'—')},{label:'الأولوية',value:String(order.prio||'—')},{label:'المورد / الورشة',value:String(order.vendor||'—')},{label:'الفني المسؤول',value:String(order.techs||'—')}]} signatures={[{label:'مشرف الصيانة'},{label:'الفني المنفذ'},{label:'مراجعة'},{label:'اعتماد'}]} footerNote="أمر عمل صادر من نظام KEMEX لإدارة الصيانة."><div className="print-section-title">تفاصيل أمر العمل</div><table><tbody><tr><th>البند</th><th>التفاصيل</th></tr><tr><td>الوصف</td><td>{String(order.desc||'—')}</td></tr><tr><td>سبب العطل / التشخيص</td><td>{String(order.cause||'—')}</td></tr><tr><td>المواد وقطع الغيار</td><td>{String(order.materials||'—')}</td></tr><tr><td>التكلفة التقديرية</td><td>{formatMoney(Number(order.estimatedCost||0))}</td></tr><tr><td>تكلفة العمالة</td><td>{formatMoney(Number(order.laborCost||0))}</td></tr><tr><td>قطع الغيار</td><td>{formatMoney(Number(order.partsCost||0))}</td></tr><tr><td>المورد الخارجي</td><td>{formatMoney(Number(order.vendorCost||0))}</td></tr><tr><td>نتائج الفحص</td><td>{String(order.results||'—')}</td></tr><tr><td>ملاحظات الاعتماد</td><td>{String(order.approvalNotes||'—')}</td></tr></tbody></table></PrintRecordButton>
+          { id:'actions', header:'إجراءات', mobileVisible:true, render:order=><div className="flex flex-wrap gap-2">
             {order.status === 'بانتظار الاعتماد' && <Button size="sm" icon={<CheckCircle2 size={14}/>} onClick={() => void transition(order, 'مفتوح')} disabled={busy}>اعتماد</Button>}
             {order.status === 'مفتوح' && <Button size="sm" icon={<Wrench size={14}/>} onClick={() => void transition(order, 'قيد التنفيذ')} disabled={busy}>بدء التنفيذ</Button>}
             {(order.status === 'قيد التنفيذ' || order.status === 'بانتظار قطع غيار') && <><Button size="sm" variant="secondary" onClick={() => void markWaitingForParts(order)} disabled={busy}>قطع غيار</Button><Button size="sm" icon={<CheckCircle2 size={14}/>} onClick={() => void transition(order, 'مكتمل')} disabled={busy}>إنجاز</Button></>}
             {(order.status === 'مفتوح' || order.status === 'بانتظار الاعتماد') && <IconButton size="sm" icon={<Pencil size={14}/>} label="تعديل أمر العمل" onClick={() => setEditing({ ...order })} />}
           </div> },
         ]}
+      />
+
+      <ConfirmModal
+        open={pendingBulk.length > 0}
+        title="تحويل أوامر العمل إلى انتظار قطع الغيار"
+        description={`سيتم تحويل ${pendingBulk.length} أمر عمل قابل للتنفيذ إلى «بانتظار قطع غيار». سيتم الاحتفاظ بباقي بيانات الأوامر كما هي.`}
+        confirmLabel="تحويل الأوامر"
+        busy={busy}
+        onConfirm={confirmBulkWaitingForParts}
+        onCancel={() => !busy && setPendingBulk([])}
       />
 
       {editing && (
