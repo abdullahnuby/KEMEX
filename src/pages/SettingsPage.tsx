@@ -45,7 +45,6 @@ export function SettingsPage({ user, repository, onSaved }: { user: User; reposi
   const [loadError, setLoadError] = useState('')
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'general' | 'print' | 'data'>('general')
-  const [restoreDefaultsOpen, setRestoreDefaultsOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -232,6 +231,7 @@ function PrintSettingsPanel({ settings, can, onUpdate, onUpdateSignature }: {
   onUpdateSignature: (index: number, value: string) => void
 }) {
   const [logoError, setLogoError] = useState('')
+  const [restoreDefaultsOpen, setRestoreDefaultsOpen] = useState(false)
 
   async function handleLogoChange(file?: File) {
     if (!file || !can) return
