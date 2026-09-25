@@ -6,6 +6,7 @@ import { sameReference } from '../utils/referenceLabels'
 import { useCurrency } from '../features/settings'
 import { PageHeader, Card, CardGrid, StatCard, DataTable, Button } from '../components/ui'
 import type { DataTableColumn } from '../components/ui/DataTable'
+import { OperationalSummaryStrip } from '../shared/ui'
 
 import { APP_LOCALE } from '../shared/formatters/locale'
 type RecordRow = Record<string, unknown>
@@ -26,11 +27,12 @@ export function CostsPage({ assets, projects, workOrders, fuelOps, moduleData }:
   const [to, setTo] = useState(today)
   const [own, setOwn] = useState('')
   const [projectId, setProjectId] = useState('')
+  const rangeValid = from <= to
 
-  const rows = useMemo(() => assets
+  const rows = useMemo(() => (rangeValid ? assets
     .filter((a) => (!own || a.own === own) && (!projectId || a.proj === projectId || projects.some(p => p.id === projectId && sameReference(a.proj, p))))
-    .map((a) => ({ ...calculateAssetCost(a, from, to, workOrders, fuelOps, moduleData), asset: a })),
-    [assets, from, to, own, projectId, workOrders, fuelOps, moduleData])
+    .map((a) => ({ ...calculateAssetCost(a, from, to, workOrders, fuelOps, moduleData), asset: a })) : []),
+    [assets, from, to, own, projectId, workOrders, fuelOps, moduleData, rangeValid])
 
   const total = rows.reduce((s, r) => s + r.total, 0)
   const fuel = rows.reduce((s, r) => s + r.fuel, 0)
@@ -67,7 +69,7 @@ export function CostsPage({ assets, projects, workOrders, fuelOps, moduleData }:
   ]
 
   return (
-    <div className="space-y-6 workflow-page costs-page">
+    <div className="space-y-6">
       <PageHeader
         title="التكاليف والإهلاك"
         description="تجميع تكلفة الأصل من الوقود والصيانة والزيوت والإطارات والإيجار والإهلاك."
@@ -108,6 +110,8 @@ export function CostsPage({ assets, projects, workOrders, fuelOps, moduleData }:
         </div>
       </Card>
 
+      {!rangeValid && <div className="global-error" role="alert">تاريخ البداية لا يمكن أن يكون بعد تاريخ النهاية.</div>}
+
       <CardGrid cols={4}>
         <StatCard icon={<CircleDollarSign size={18} />} label="إجمالي تكاليف الفترة" value={formatMoney(total)} />
         <StatCard icon={<Fuel size={18} />} label="الوقود" value={formatMoney(fuel)} />
@@ -116,12 +120,19 @@ export function CostsPage({ assets, projects, workOrders, fuelOps, moduleData }:
         <StatCard icon={<Gauge size={18} />} label="الإهلاك" value={formatMoney(dep)} />
       </CardGrid>
 
+      <OperationalSummaryStrip items={[
+        { id: 'total', label: 'إجمالي التكلفة', value: formatMoney(total), tone: 'default' },
+        { id: 'fuel', label: 'الوقود', value: formatMoney(fuel) },
+        { id: 'maintenance', label: 'الصيانة والمواد', value: formatMoney(maintenance + oils) },
+        { id: 'fixed', label: 'الإيجار والإهلاك', value: formatMoney(rental + dep) },
+      ]} />
+
       <Card
         title="تكلفة الأصول خلال الفترة"
         description={`إطارات ${formatMoney(tires)} · الفترة ${from} ← ${to}`}
         action={<span className="inline-flex items-center rounded-full bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-600/20 px-2.5 py-1 text-xs font-semibold"><CalendarRange size={13} className="me-1" />{rows.length} أصل</span>}
       >
-        <DataTable columns={columns} rows={rows} rowKey={(r) => r.asset.id} emptyState="لا توجد بيانات مطابقة." />
+        <DataTable columns={columns} rows={rows} rowKey={(r) => r.asset.id} emptyState="لا توجد بيانات مطابقة." mobilePresentation="cards" enableColumnVisibility columnVisibilityStorageKey="kemex.costs.columns.v1" exportable exportFileName="KEMEX-costs" printTitle="سجل التكاليف والإهلاك" />
       </Card>
     </div>
   )

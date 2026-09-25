@@ -7,7 +7,6 @@ import { ReferenceValue } from '../components/ReferenceValue'
 import { useCurrency } from '../features/settings'
 import { PageHeader, Card, CardGrid, StatCard, DataTable, EmptyState, Button } from '../components/ui'
 import type { DataTableColumn } from '../components/ui/DataTable'
-import { PrintRecordButton } from '../shared/printing'
 
 import { APP_LOCALE } from '../shared/formatters/locale'
 type Props={assets:Asset[];projects:Project[];moduleData:Record<string,Record<string,unknown>[]>;workOrders:WorkOrder[];fuelOps:FuelOperation[];chargingRates:Rate[];assetTypes:AssetTypeRef[]}
@@ -43,35 +42,9 @@ export function ChargingPage({assets,projects,moduleData,workOrders,fuelOps,char
        title="التحميل الداخلي على المشروعات"
        description="الأسعار والحد الأدنى للفوترة — يفصل الاستخدام الفعلي عن أساس الاحتساب."
        action={
-         <div className="flex flex-wrap gap-2">
-           <PrintRecordButton
-             documentTitle="تقرير التحميل الداخلي على المشروعات"
-             documentNumber={`CHG-${month}`}
-             documentDate={month}
-             orientation="landscape"
-             meta={[
-               { label: 'الشهر', value: month },
-               { label: 'المشروع', value: projects.find((p) => sameReference(project, p))?.name ?? 'كل المشروعات' },
-               { label: 'الأصول المحملة', value: rows.length },
-               { label: 'إجمالي التحميل', value: formatMoney(total) },
-               { label: 'صافي الفرق عن التكلفة', value: formatMoney(net) },
-             ]}
-             signatures={[{ label: 'إعداد' }, { label: 'التشغيل' }, { label: 'مراجعة' }, { label: 'اعتماد' }]}
-             footerNote="تقرير تحميل داخلي صادر من نظام KEMEX — الاحتساب مبني على الاستخدام والتعريفات الفعلية المسجلة."
-           >
-             <div className="print-section-title">تفاصيل التحميل والفروقات</div>
-             <table>
-               <thead><tr><th>الأصل</th><th>المشروع</th><th>الوحدة</th><th>السعر</th><th>الاستخدام الفعلي</th><th>الكمية المفوترة</th><th>قيمة التحميل</th><th>التكلفة</th><th>صافي الفرق</th></tr></thead>
-               <tbody>{rows.map((x) => <tr key={x.a.id}>
-                 <td>{x.a.name}</td><td>{projects.find((p) => sameReference(x.a.proj, p))?.name ?? 'المقر'}</td><td>{x.rate?.unit ?? '—'}</td>
-                 <td>{fmt(x.rate?.rate ?? 0)}</td><td>{fmt(x.qty)}</td><td>{fmt(x.billed)}</td><td>{fmt(x.amount)}</td><td>{fmt(x.cost)}</td><td>{fmt(x.net)}</td>
-               </tr>)}</tbody>
-             </table>
-           </PrintRecordButton>
-           <Button variant="secondary" icon={<Download size={16} />} onClick={exportCsv}>
-             تصدير CSV
-           </Button>
-         </div>
+         <Button variant="secondary" icon={<Download size={16} />} onClick={exportCsv}>
+           تصدير CSV
+         </Button>
        }
      />
 
@@ -100,13 +73,20 @@ export function ChargingPage({assets,projects,moduleData,workOrders,fuelOps,char
        <StatCard icon={<Scale size={18} />} label="صافي الفرق عن التكلفة" value={formatMoney(net)} />
      </CardGrid>
 
+     <OperationalSummaryStrip items={[
+       { id: 'amount', label: 'إجمالي التحميل', value: formatMoney(total) },
+       { id: 'assets', label: 'الأصول المحملة', value: rows.length },
+       { id: 'usage', label: 'الاستخدام الفعلي', value: fmt(qty) },
+       { id: 'net', label: 'صافي الفرق عن التكلفة', value: formatMoney(net), tone: net < 0 ? 'alert' : 'success' },
+     ]} />
+
      <Card title="تفاصيل التحميل" description="التحميل يحسب من البيانات التشغيلية المعتمدة.">
-       <DataTable columns={detailColumns} rows={rows} rowKey={(x) => x.a.id} emptyState="لا توجد أصول لها تعريفة تحميل مطابقة." />
+       <DataTable columns={detailColumns} rows={rows} rowKey={(x) => x.a.id} emptyState="لا توجد أصول لها تعريفة تحميل مطابقة." mobilePresentation="cards" enableColumnVisibility columnVisibilityStorageKey="kemex.charging.columns.v1" exportable exportFileName="KEMEX-charging" printTitle="سجل التحميل الداخلي على المشروعات" />
      </Card>
 
      <Card title="تعريفات التحميل الداخلية" description="لا يعرض النظام أي تعريفة افتراضية؛ يتم احتساب التحميل فقط من التعريفات الفعلية المسجلة.">
        {chargingRates.length ? (
-         <DataTable columns={rateColumns} rows={chargingRates} rowKey={(r) => r.id} />
+         <DataTable columns={rateColumns} rows={chargingRates} rowKey={(r) => r.id} mobilePresentation="cards" exportable exportFileName="KEMEX-charging-rates" printTitle="تعريفات التحميل الداخلية" />
        ) : (
          <EmptyState title="لا توجد تعريفات تحميل" description="أضف تعريفات فعلية مرتبطة بنوع أصل أو أصل أو مشروع من إدارة التعريفات قبل تشغيل التحميل الداخلي." />
        )}
