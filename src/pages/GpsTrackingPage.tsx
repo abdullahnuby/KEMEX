@@ -16,6 +16,7 @@ import {
 import type { User } from '../types/tfms'
 import { canAction } from '../config/app'
 import { Button, Card, PageHeader } from '../components/ui'
+import { PrintRecordButton } from '../shared/printing'
 import { GpsTrackingMap } from '../components/GpsTrackingMap'
 import { gpsTrackingService } from '../features/gpsTracking/service'
 import type {
@@ -302,6 +303,32 @@ export function GpsTrackingPage({ user }: Props) {
             >
               تحديث
             </Button>
+            <PrintRecordButton
+              documentTitle="تقرير حالة تتبع المركبات"
+              documentNumber={`GPS-${new Date().toISOString().slice(0, 10)}`}
+              orientation="landscape"
+              meta={[
+                { label: 'المركبات المتصلة', value: counts.online },
+                { label: 'المركبات المتأخرة', value: counts.stale },
+                { label: 'المركبات غير المتصلة', value: counts.offline },
+                { label: 'لها موقع GPS', value: counts.tracked },
+                { label: 'المركبة المحددة', value: selectedRow?.asset.name ?? 'بدون تحديد' },
+              ]}
+              signatures={[{ label: 'إعداد' }, { label: 'مراقبة الأسطول' }, { label: 'مراجعة' }, { label: 'اعتماد' }]}
+              footerNote="تقرير مراقبة GPS صادر من نظام KEMEX — يعرض آخر حالة معروفة وقت إنشاء التقرير."
+            >
+              <div className="print-section-title">حالة الأسطول ومواقع التتبع</div>
+              <table>
+                <thead><tr><th>المركبة</th><th>رقم الأصل</th><th>الحالة</th><th>آخر قراءة</th><th>السرعة</th><th>الإشعال</th><th>الإحداثيات</th></tr></thead>
+                <tbody>{filteredRows.map(row => <tr key={row.asset.id}>
+                  <td>{row.asset.name}</td><td>{row.asset.code}</td><td>{healthLabel(row.health)}</td>
+                  <td>{row.position?.recorded_at ?? row.device?.last_seen_at ?? 'لا توجد قراءة'}</td>
+                  <td>{row.position?.speed_kmh == null ? '—' : `${Math.round(Number(row.position.speed_kmh))} كم/س`}</td>
+                  <td>{row.position?.ignition_on == null ? 'غير معروف' : row.position.ignition_on ? 'يعمل' : 'متوقف'}</td>
+                  <td>{row.position ? `${Number(row.position.latitude).toFixed(6)}, ${Number(row.position.longitude).toFixed(6)}` : '—'}</td>
+                </tr>)}</tbody>
+              </table>
+            </PrintRecordButton>
             {canAction('gps', 'manage_devices', user.role) && (
               <Button
                 icon={<Satellite size={16} />}

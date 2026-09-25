@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { AlertTriangle, CheckCircle2, Clock3, FileWarning, Fuel, ShieldAlert, Wrench } from 'lucide-react'
 import type { Asset, Contract, Driver, FuelOperation, WorkOrder, User } from '../types/tfms'
 import type { AppNotification } from '../features/notifications/types'
@@ -7,13 +7,16 @@ import { PrintRecordButton } from '../shared/printing'
 
 import { APP_LOCALE } from '../shared/formatters/locale'
 type Alert = { id:string; title:string; entity:string; detail:string; severity:'عالي'|'متوسط'|'منخفض'; route:string; icon:'license'|'maintenance'|'contract'|'fuel'|'general' }
+type SeverityFilter = 'all'|'عالي'|'متوسط'|'منخفض'
 
 export function AlertsPage({user,notifications=[],unreadCount=0,onRefreshNotifications,onMarkNotificationRead,onMarkAllRead,assets,workOrders,fuelOps,drivers,contracts,onRoute,alertDays=30,alertKm=1500,alertHours=80,plans=[],oils=[]}:{user?:User;notifications?:AppNotification[];unreadCount?:number;onRefreshNotifications?:()=>Promise<void>;onMarkNotificationRead?:(id:string)=>Promise<void>;onMarkAllRead?:()=>Promise<void>;assets:Asset[];workOrders:WorkOrder[];fuelOps:FuelOperation[];drivers:Driver[];contracts:Contract[];onRoute:(route:string)=>void;alertDays?:number;alertKm?:number;alertHours?:number;plans?:Record<string,unknown>[];oils?:Record<string,unknown>[]}) {
   const alerts=useMemo(()=>buildAlerts(assets,workOrders,fuelOps,drivers,contracts,alertDays,alertKm,alertHours,plans,oils),[assets,workOrders,fuelOps,drivers,contracts,alertDays,alertKm,alertHours,plans,oils])
+  const [severityFilter,setSeverityFilter]=useState<SeverityFilter>('all')
+  const filteredAlerts=useMemo(()=>severityFilter==='all'?alerts:alerts.filter(item=>item.severity===severityFilter),[alerts,severityFilter])
   const high=alerts.filter(x=>x.severity==='عالي').length
   const medium=alerts.filter(x=>x.severity==='متوسط').length
   return <div className="space-y-6">
-    <PageHeader title="التنبيهات والاستحقاقات" description="متابعة الاستحقاقات التشغيلية والصيانة والتعاقدات من شاشة واحدة." action={<PrintRecordButton documentTitle="تقرير التنبيهات والاستحقاقات" documentNumber={`ALR-${new Date().toISOString().slice(0,10)}`} meta={[{label:"إجمالي التنبيهات",value:alerts.length},{label:"عالية",value:high},{label:"متوسطة",value:medium},{label:"غير المقروء",value:unreadCount}]} signatures={[{label:"إعداد"},{label:"مراجعة"},{label:"اعتماد"}]}><div className="print-section-title">التنبيهات النشطة</div>{alerts.length?<table><thead><tr><th>العنوان</th><th>الكيان</th><th>التفاصيل</th><th>الخطورة</th></tr></thead><tbody>{alerts.map(a=><tr key={a.id}><td>{a.title}</td><td>{a.entity}</td><td>{a.detail}</td><td>{a.severity}</td></tr>)}</tbody></table>:<p>لا توجد تنبيهات نشطة.</p>}</PrintRecordButton>} />
+    <PageHeader title="التنبيهات والاستحقاقات" description="متابعة الاستحقاقات التشغيلية والصيانة والتعاقدات من شاشة واحدة." action={<PrintRecordButton documentTitle="تقرير التنبيهات والاستحقاقات" documentNumber={`ALR-${new Date().toISOString().slice(0,10)}`} meta={[{label:"إجمالي التنبيهات",value:alerts.length},{label:"عالية",value:high},{label:"متوسطة",value:medium},{label:"غير المقروء",value:unreadCount}]} signatures={[{label:"إعداد"},{label:"مراجعة"},{label:"اعتماد"}]}><div className="print-section-title">التنبيهات النشطة</div>{filteredAlerts.length?<table><thead><tr><th>العنوان</th><th>الكيان</th><th>التفاصيل</th><th>الخطورة</th></tr></thead><tbody>{filteredAlerts.map(a=><tr key={a.id}><td>{a.title}</td><td>{a.entity}</td><td>{a.detail}</td><td>{a.severity}</td></tr>)}</tbody></table>:<p>لا توجد تنبيهات نشطة.</p>}</PrintRecordButton>} />
     <div className="metric-grid compact">
       <Metric icon={ShieldAlert} label="عالية" value={high}/>
       <Metric icon={Clock3} label="متوسطة" value={medium}/>
@@ -25,8 +28,9 @@ export function AlertsPage({user,notifications=[],unreadCount=0,onRefreshNotific
       {notifications.length ? <div className="space-y-2">{notifications.slice(0,12).map(n=><button key={n.id} type="button" className={`w-full rounded-xl border p-3 text-right ${n.read_at?'border-slate-200':'border-slate-300 bg-slate-50'}`} onClick={async()=>{if(!n.read_at && onMarkNotificationRead) await onMarkNotificationRead(n.id); if(n.link) onRoute(n.link.replace(/^\//,''));}}><div className="flex items-start justify-between gap-3"><div><strong>{n.title}</strong><p className="mt-1 text-sm text-slate-600">{n.body}</p></div>{!n.read_at&&<span className="rounded-full bg-red-100 px-2 py-1 text-[10px] font-black text-red-700">جديد</span>}</div></button>)}</div> : <div className="empty"><CheckCircle2 size={24}/><strong>لا توجد رسائل تشغيلية حديثة</strong></div>}
     </section>
     <section className="panel">
-      {!alerts.length ? <div className="empty"><CheckCircle2 size={26}/><strong>لا توجد تنبيهات نشطة</strong><span>كل الاستحقاقات الحالية داخل الحدود المسموح بها.</span></div> :
-      <div className="alert-list">{alerts.map(a=><button className="alert-row" key={a.id} onClick={()=>onRoute(a.route)}>
+      <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label="فلترة التنبيهات حسب الخطورة">{([['all','الكل'],['عالي','عالية'],['متوسط','متوسطة'],['منخفض','منخفضة']] as const).map(([key,label])=><button key={key} type="button" onClick={()=>setSeverityFilter(key)} className={`rounded-xl px-3 py-2 text-xs font-black ${severityFilter===key?'bg-slate-950 text-white':'bg-slate-100 text-slate-600'}`}>{label}</button>)}</div>
+      {!filteredAlerts.length ? <div className="empty"><CheckCircle2 size={26}/><strong>لا توجد تنبيهات نشطة</strong><span>كل الاستحقاقات الحالية داخل الحدود المسموح بها.</span></div> :
+      <div className="alert-list">{filteredAlerts.map(a=><button className="alert-row" key={a.id} onClick={()=>onRoute(a.route)}>
         <span className={`alert-dot ${a.severity==='عالي'?'red':a.severity==='متوسط'?'amber':'gray'}`}/>
         <span className="alert-icon">{a.icon==='maintenance'?<Wrench size={16}/>:a.icon==='license'?<FileWarning size={16}/>:a.icon==='fuel'?<Fuel size={16}/>:<AlertTriangle size={16}/>}</span>
         <span className="alert-copy"><strong>{a.title}</strong><span>{a.entity}</span><small>{a.detail}</small></span>

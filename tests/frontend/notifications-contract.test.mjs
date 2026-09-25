@@ -27,13 +27,12 @@ test('notification center is connected to durable outbox data', () => {
 })
 
 test('operations center is wired into route navigation', () => {
-  const routes = read('src/app/routes.tsx')
   const mainRoutes = read('src/app/routing/AppRoutes.tsx')
   const config = read('src/config/app.ts')
   const page = read('src/pages/OperationsCenterPage.tsx')
 
-  assert.match(routes, /OperationsCenterPage/)
-  assert.match(routes + mainRoutes, /path=['"]operations-center['"]/)
+  assert.match(mainRoutes, /OperationsCenterPage/)
+  assert.match(mainRoutes, /path=['"]operations-center['"]/)
   assert.match(config, /operations-center/)
   assert.match(page, /الرحلات المتأخرة/)
   assert.match(page, /الاستثناءات التشغيلية/)

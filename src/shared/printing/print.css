@@ -1,19 +1,8 @@
-@page {
-  size: A4 portrait;
-  margin: 12mm 12mm 15mm;
-}
-
-@page kemex-landscape {
-  size: A4 landscape;
-  margin: 10mm 12mm 12mm;
-}
+/* KEMEX enterprise print system */
 
 .kemex-print-layer {
   display: none;
-}
-
-.kemex-print-layer--landscape {
-  page: kemex-landscape;
+  --kemex-print-primary: #0b7285;
 }
 
 .kemex-print-document {
@@ -21,70 +10,85 @@
   color: #172a30;
   background: #fff;
   font-family: 'Alexandria', ui-sans-serif, system-ui, sans-serif;
+  box-sizing: border-box;
+  width: 100%;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
 }
 
 .kemex-print-header {
+  direction: ltr;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
-  padding-bottom: 14px;
-  border-bottom: 2px solid #0b7285;
-}
-
-.kemex-print-brand,
-.kemex-print-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  gap: 20px;
+  padding-bottom: 9px;
+  border-bottom: 2px solid var(--kemex-print-primary);
 }
 
 .kemex-print-brand {
-  flex-direction: row;
+  direction: ltr;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  text-align: left;
+}
+
+.kemex-print-brand-text {
+  min-width: 0;
+  text-align: left;
+}
+
+.kemex-print-title {
+  direction: rtl;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+  text-align: right;
 }
 
 .kemex-print-logo {
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
   flex: 0 0 auto;
 }
 
 .kemex-print-company {
-  font-size: 17px;
+  max-width: 80mm;
+  font-size: 13px;
   font-weight: 900;
-  color: #16353f;
+  line-height: 1.35;
+  color: #173a43;
 }
 
 .kemex-print-group {
   margin-top: 2px;
   color: #71858d;
-  font-size: 9px;
-}
-
-.kemex-print-title {
-  min-width: 220px;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: right;
+  font-size: 7px;
+  line-height: 1.4;
 }
 
 .kemex-print-title > span {
   color: #7b9198;
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 800;
 }
 
 .kemex-print-title h1 {
   margin: 0;
-  color: #0b6671;
-  font-size: 21px;
+  color: #234c56;
+  font-size: 17px;
   line-height: 1.35;
+  font-weight: 900;
 }
 
 .kemex-print-title strong {
+  margin-top: 2px;
   color: #35545c;
-  font-size: 10px;
+  font-size: 8px;
   direction: ltr;
   unicode-bidi: plaintext;
 }
@@ -92,12 +96,12 @@
 .kemex-print-document-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 18px;
-  padding: 9px 0;
-  margin-bottom: 10px;
+  gap: 5px 16px;
+  padding: 6px 0;
+  margin-bottom: 7px;
   border-bottom: 1px solid #e0e8ea;
   color: #637981;
-  font-size: 9px;
+  font-size: 7.5px;
 }
 
 .kemex-print-document-bar b {
@@ -107,49 +111,61 @@
 .kemex-print-meta {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0 0 14px;
+  gap: 5px;
+  margin: 0 0 8px;
 }
 
 .kemex-print-meta-item {
   min-width: 0;
-  padding: 8px 9px;
+  padding: 5px 6px;
   border: 1px solid #dbe6e8;
-  border-radius: 7px;
+  border-radius: 4px;
   background: #fbfdfd;
+  overflow-wrap: anywhere;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .kemex-print-meta-item dt {
-  margin: 0 0 3px;
+  margin: 0 0 2px;
   color: #71858d;
-  font-size: 7.5px;
+  font-size: 6.2px;
   font-weight: 800;
 }
 
 .kemex-print-meta-item dd {
   margin: 0;
   color: #1f3e47;
-  font-size: 9px;
+  font-size: 7px;
   font-weight: 800;
   overflow-wrap: anywhere;
 }
 
 .kemex-print-content {
-  min-height: 130mm;
+  min-width: 0;
+  width: 100%;
+  overflow: visible !important;
 }
 
 .kemex-print-content table {
   width: 100%;
+  max-width: 100%;
   border-collapse: collapse;
+  border-spacing: 0;
+  table-layout: fixed;
 }
 
 .kemex-print-content th,
 .kemex-print-content td {
-  padding: 7px 8px;
+  padding: 4.5px 5px;
   border: 1px solid #cfdcdf;
   text-align: right;
   vertical-align: top;
-  font-size: 8.5pt;
+  font-size: 7.1pt;
+  line-height: 1.42;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .kemex-print-content th {
@@ -158,111 +174,164 @@
   font-weight: 900;
 }
 
+.kemex-print-content thead {
+  display: table-header-group;
+}
+
+.kemex-print-content tfoot {
+  display: table-footer-group;
+}
+
 .kemex-print-content tr {
   break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.kemex-print-content td > *,
+.kemex-print-content th > * {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .kemex-print-content .print-section-title {
-  margin: 0 0 8px;
-  padding: 7px 9px;
+  margin: 7px 0 5px;
+  padding: 5px 7px;
   background: #f3f8f9;
-  border-right: 3px solid #0b7285;
+  border-right: 3px solid var(--kemex-print-primary);
   color: #26464f;
-  font-size: 10pt;
+  font-size: 8.5pt;
+  line-height: 1.35;
   font-weight: 900;
+  break-after: avoid;
+}
+
+.kemex-print-density--compact .kemex-print-content th,
+.kemex-print-density--compact .kemex-print-content td {
+  padding: 3px 4px;
+  font-size: 6.4pt;
+  line-height: 1.3;
+}
+
+.kemex-print-density--comfortable .kemex-print-content th,
+.kemex-print-density--comfortable .kemex-print-content td {
+  padding: 6px 7px;
+  font-size: 7.6pt;
+  line-height: 1.55;
 }
 
 .kemex-print-signatures {
   display: grid;
-  gap: 16px;
-  margin-top: 22mm;
-  break-inside: avoid;
-}
-
-.kemex-print-signatures.signatures-1 {
-  grid-template-columns: 1fr;
-}
-
-.kemex-print-signatures.signatures-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.kemex-print-signatures.signatures-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.kemex-print-signatures.signatures-4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
+
+.kemex-print-signatures.signatures-1 { grid-template-columns: 1fr; }
+.kemex-print-signatures.signatures-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.kemex-print-signatures.signatures-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.kemex-print-signatures.signatures-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
 .kemex-print-signature {
-  min-height: 35mm;
+  min-width: 0;
+  height: 19mm;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   text-align: center;
+  justify-content: flex-start;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .kemex-print-signature strong {
   color: #34545d;
-  font-size: 9px;
+  font-size: 7px;
 }
 
 .kemex-print-signature span {
   color: #1f3e47;
-  font-size: 8.5px;
+  font-size: 6.7px;
   font-weight: 800;
 }
 
 .kemex-print-signature small {
-  min-height: 12px;
+  min-height: 8px;
   color: #7c9096;
-  font-size: 7.5px;
+  font-size: 6px;
 }
 
 .kemex-print-signature-line {
-  width: 72%;
+  width: 74%;
   margin-top: auto;
   border-bottom: 1px solid #6b8087;
 }
 
 .kemex-print-footer {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 10mm;
-  padding-top: 6px;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  align-items: center;
+  gap: 10px;
+  margin-top: 3mm;
+  padding-top: 3px;
   border-top: 1px solid #dbe5e7;
-  color: #81949b;
-  font-size: 7.5px;
+  color: #7f9198;
+  font-size: 5.7px;
+  line-height: 1.35;
+  direction: ltr;
+}
+
+.kemex-print-app-name {
+  text-align: left;
+  font-size: 5.5px;
+  color: #a0adb1;
+  letter-spacing: .08px;
+}
+
+.kemex-print-footer-text {
+  text-align: center;
+  direction: rtl;
+}
+
+.kemex-print-page-number {
+  text-align: right;
+  direction: rtl;
+  white-space: nowrap;
 }
 
 .kemex-print-page-number::after {
   content: 'صفحة ' counter(page) ' من ' counter(pages);
-  white-space: nowrap;
 }
 
+.kemex-print-fixed-area {
+  display: block;
+}
+
+.kemex-print-fixed-area--repeat {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
 
 .kemex-print-report-subtitle {
-  margin: -2px 0 12px;
+  margin: -2px 0 8px;
   color: #6d8188;
-  font-size: 9px;
+  font-size: 8px;
 }
 
 .kemex-print-report-summary {
   display: grid;
   grid-template-columns: 1fr 3fr;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .kemex-print-report-summary > div {
   min-width: 0;
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: 1px solid #dbe6e8;
-  border-radius: 7px;
+  border-radius: 5px;
   background: #f8fbfb;
 }
 
@@ -272,32 +341,27 @@
 }
 
 .kemex-print-report-summary span {
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   color: #74888f;
-  font-size: 7.5px;
+  font-size: 6.5px;
   font-weight: 800;
 }
 
 .kemex-print-report-summary strong {
   color: #244650;
-  font-size: 9px;
+  font-size: 7.5px;
   overflow-wrap: anywhere;
 }
 
 .kemex-print-report-table-wrap {
-  overflow: visible;
+  width: 100%;
+  max-width: 100%;
+  overflow: visible !important;
 }
 
 .kemex-print-report-table-wrap table {
-  table-layout: auto;
-}
-
-.kemex-print-report-table-wrap thead {
-  display: table-header-group;
-}
-
-.kemex-print-report-table-wrap tfoot {
-  display: table-footer-group;
+  width: 100%;
+  table-layout: fixed;
 }
 
 @media print {
@@ -306,21 +370,32 @@
     background: #fff !important;
   }
 
-  body.kemex-printing > * {
+  body.kemex-printing {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.kemex-printing > *:not(.kemex-print-layer) {
     display: none !important;
   }
 
   body.kemex-printing > .kemex-print-layer {
     display: block !important;
-  }
-
-  body.kemex-printing > .kemex-print-layer.kemex-print-layer--landscape {
-    page: kemex-landscape;
+    width: 100% !important;
+    max-width: none !important;
   }
 
   .kemex-print-document {
-    display: block !important;
-    width: 100%;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .kemex-print-header,
+  .kemex-print-document-bar,
+  .kemex-print-meta,
+  .kemex-print-content,
+  .kemex-print-fixed-area {
+    max-width: none !important;
   }
 
   .kemex-print-content a {
@@ -342,29 +417,184 @@
 
   .kemex-print-content h1,
   .kemex-print-content h2,
-  .kemex-print-content h3 {
+  .kemex-print-content h3,
+  .print-section-title {
     break-after: avoid;
+    page-break-after: avoid;
   }
 
   .kemex-print-content section,
   .kemex-print-meta-item {
     break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .kemex-print-content table {
     break-inside: auto;
+    page-break-inside: auto;
   }
 
-  .kemex-print-content thead {
-    display: table-header-group;
+  /* Repeated signature/footer block occupies the reserved page-bottom area.
+     It is fixed so it repeats on every page without creating a new page. */
+  .kemex-print-fixed-area--repeat {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 2mm;
+    background: #fff;
+    padding-top: 1mm;
+    z-index: 9999;
   }
 
-  .kemex-print-content tr {
-    break-inside: avoid;
+  .kemex-print-signature-mode--last-page .kemex-print-fixed-area {
+    position: static;
   }
 
   .kemex-print-footer,
   .kemex-print-signatures {
     break-inside: avoid;
+    page-break-inside: avoid;
   }
+}
+
+/* Configurable enterprise presentation */
+.kemex-print-font--alexandria .kemex-print-document { font-family: 'Alexandria', ui-sans-serif, system-ui, sans-serif; }
+.kemex-print-font--tajawal .kemex-print-document { font-family: 'Tajawal', ui-sans-serif, system-ui, sans-serif; }
+.kemex-print-font--system .kemex-print-document { font-family: ui-sans-serif, system-ui, sans-serif; }
+
+.kemex-print-layout--corporate .kemex-print-header { border-bottom: 2px solid var(--kemex-print-primary); }
+.kemex-print-layout--minimal .kemex-print-header { border-bottom: 1px solid #d8e1e4; }
+.kemex-print-layout--clean .kemex-print-header { border-bottom: 0; }
+
+.kemex-print-company-detail {
+  margin-top: 1px;
+  color: #6f838a;
+  font-size: 6.2px;
+  line-height: 1.4;
+  max-width: 85mm;
+  overflow-wrap: anywhere;
+}
+
+.kemex-print-logo {
+  width: var(--kemex-print-logo-width, 32mm);
+  max-width: 45mm;
+  height: 18mm;
+  object-fit: contain;
+}
+
+.kemex-print-signature {
+  height: var(--kemex-print-signature-height, 19mm);
+}
+
+.kemex-print-content table {
+  table-layout: fixed !important;
+}
+
+.kemex-print-content col,
+.kemex-print-content td,
+.kemex-print-content th {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+.kemex-print-report-table-wrap {
+  overflow: visible !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* The print window reserves real page-bottom space for the repeated signature block.
+   This keeps signatures on the same physical page instead of letting them spill onto a
+   new page. */
+@media print {
+  .kemex-print-signature-mode--every-page .kemex-print-document {
+    padding-bottom: 0 !important;
+  }
+
+  .kemex-print-signature-mode--every-page .kemex-print-fixed-area--repeat {
+    height: auto;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .kemex-print-signature-mode--every-page .kemex-print-signatures {
+    margin-bottom: 0;
+  }
+
+  .kemex-print-content table,
+  .kemex-print-content thead,
+  .kemex-print-content tbody,
+  .kemex-print-content tr,
+  .kemex-print-content th,
+  .kemex-print-content td {
+    max-width: 100% !important;
+  }
+}
+
+/* Screen preview in Settings */
+.kemex-print-preview-shell {
+  overflow: auto;
+  padding: 12px;
+  background: #e8edef;
+  border-radius: 10px;
+}
+.kemex-print-preview-page {
+  width: min(100%, 720px);
+  min-height: 680px;
+  margin: 0 auto;
+  padding: 28px;
+  box-sizing: border-box;
+  background: #fff;
+  color: #172a30;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, .14);
+  font-family: 'Alexandria', ui-sans-serif, system-ui, sans-serif;
+  direction: rtl;
+}
+.kemex-print-preview-a4 { aspect-ratio: 210 / 297; }
+.kemex-print-preview-letter { aspect-ratio: 8.5 / 11; }
+.kemex-print-preview-header {
+  display: flex;
+  direction: ltr;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  padding-bottom: 10px;
+}
+.kemex-print-preview-corporate .kemex-print-preview-header,
+.kemex-print-layout--corporate .kemex-print-preview-header { border-bottom: 2px solid var(--kemex-print-primary); }
+.kemex-print-layout--minimal .kemex-print-preview-header { border-bottom: 1px solid #d8e1e4; }
+.kemex-print-layout--clean .kemex-print-preview-header { border-bottom: 0; }
+.kemex-print-preview-brand { display: flex; align-items: center; gap: 10px; direction: ltr; min-width: 0; text-align: left; }
+.kemex-print-preview-logo { width: var(--kemex-print-logo-width, 32mm); height: 52px; object-fit: contain; background: #fff; }
+.kemex-print-preview-brand-text { min-width: 0; text-align: left; }
+.kemex-print-preview-company { font-size: 14px; font-weight: 900; line-height: 1.35; }
+.kemex-print-preview-group { font-size: 9px; color: #6d8188; margin-top: 2px; }
+.kemex-print-preview-detail { font-size: 7px; color: #7b8d93; }
+.kemex-print-preview-title { text-align: right; direction: rtl; min-width: 0; }
+.kemex-print-preview-title small { display: block; color: #81939a; font-size: 8px; }
+.kemex-print-preview-title h3 { margin: 0; font-size: 20px; font-weight: 900; color: #234c56; }
+.kemex-print-preview-title strong { display: block; margin-top: 2px; font-size: 9px; color: #49636a; }
+.kemex-print-preview-meta-bar { display: flex; gap: 18px; flex-wrap: wrap; padding: 7px 0; border-bottom: 1px solid #e0e8ea; color: #667b83; font-size: 8px; }
+.kemex-print-preview-summary { display: grid; grid-template-columns: 1fr 1fr 2fr 2fr; gap: 6px; margin: 10px 0; padding: 7px; background: #f7fafb; border: 1px solid #dbe6e8; border-radius: 5px; font-size: 8px; }
+.kemex-print-preview-summary span { color: #71858d; font-weight: 700; }
+.kemex-print-preview-summary strong { color: #244650; }
+.kemex-print-preview-page table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9px; }
+.kemex-print-preview-page th, .kemex-print-preview-page td { border: 1px solid #cfdcdf; padding: 6px; text-align: right; overflow-wrap: anywhere; }
+.kemex-print-preview-page th { background: #edf4f5; color: #33545d; }
+.kemex-print-preview-signatures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+.kemex-print-preview-signatures > div { min-height: 78px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.kemex-print-preview-signatures strong { font-size: 9px; color: #34545d; }
+.kemex-print-preview-signatures span { font-size: 8px; color: #6f838a; }
+.kemex-print-preview-signatures i { display: block; width: 72%; margin-top: auto; border-bottom: 1px solid #6b8087; }
+.kemex-print-preview-footer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 8px; align-items: center; margin-top: 14px; padding-top: 5px; border-top: 1px solid #dbe5e7; font-size: 7px; color: #91a0a5; direction: ltr; }
+.kemex-print-preview-app { text-align: left; font-size: 6px; }
+.kemex-print-preview-footer > span:nth-child(2) { direction: rtl; text-align: center; }
+.kemex-print-preview-footer > span:last-child { text-align: right; direction: rtl; }
+
+@media (max-width: 900px) {
+  .kemex-print-preview-page { width: 100%; min-height: 560px; padding: 18px; }
+  .kemex-print-preview-title h3 { font-size: 15px; }
 }

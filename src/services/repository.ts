@@ -106,7 +106,7 @@ export class TfmsRepository implements Repository {
     return data
   }
 
-  async saveSettings(settings:{company_name:string;group_name:string;currency_code:string;vat:number;diesel:number;petrol:number;alert_days:number;alert_km:number;alert_hours:number;trip_geofence_radius_m?:number}){
+  async saveSettings(settings:{company_name:string;group_name:string;currency_code:string;vat:number;diesel:number;petrol:number;alert_days:number;alert_km:number;alert_hours:number;trip_geofence_radius_m?:number; print_settings?:Record<string, unknown>}){
     const db = requireSupabase()
     const { error } = await db.from('organization_settings').upsert({id:true,...settings,currency_code:String(settings.currency_code||'EGP').toUpperCase()})
     if (error) throw error

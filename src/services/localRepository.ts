@@ -108,11 +108,11 @@ export class LocalStorageRepository implements Repository {
 
   async getSettings(): Promise<Record<string, unknown>> {
     return clone(read<Record<string, unknown>>('settings', {
-      company_name: '', group_name: '', currency_code: 'EGP', vat: 0, diesel: 0, petrol: 0, alert_days: 30, alert_km: 1500, alert_hours: 80, trip_geofence_radius_m: 1000,
+      company_name: '', group_name: '', currency_code: 'EGP', vat: 0, diesel: 0, petrol: 0, alert_days: 30, alert_km: 1500, alert_hours: 80, trip_geofence_radius_m: 1000, print_settings: {},
     }))
   }
 
-  async saveSettings(settings: { company_name: string; group_name: string; currency_code: string; vat: number; diesel: number; petrol: number; alert_days: number; alert_km: number; alert_hours: number; trip_geofence_radius_m?: number }): Promise<void> {
+  async saveSettings(settings: { company_name: string; group_name: string; currency_code: string; vat: number; diesel: number; petrol: number; alert_days: number; alert_km: number; alert_hours: number; trip_geofence_radius_m?: number; print_settings?: Record<string, unknown> }): Promise<void> {
     write('settings', settings)
   }
 

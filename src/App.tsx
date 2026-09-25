@@ -7,6 +7,7 @@ import { ChangePasswordPage } from './pages/ChangePasswordPage'
 import { repository } from './services/repositoryFactory'
 import { useAuth } from './features/auth'
 import { CurrencyProvider } from './features/settings'
+import { PrintSettingsProvider } from './shared/printing'
 import { useKemexBootstrap } from './features/app/hooks/useKemexBootstrap'
 import { useKemexMutations } from './features/app/hooks/useKemexMutations'
 import { DriverPortal } from './pages/driver/DriverPortal'
@@ -57,6 +58,7 @@ function AppInner() {
     currencyCode: 'EGP',
     companyName: '',
     groupName: '',
+    printSettings: {},
   }
 
   const navigate = useCallback((next: string) => routerNavigate(`/${next}`), [routerNavigate])
@@ -130,7 +132,14 @@ function AppInner() {
   const drivers = (moduleData.drivers as Driver[]) || []
   const operations = (moduleData.operations as unknown as Operation[]) || []
 
-  return <CurrencyProvider currencyCode={systemSettings.currencyCode}>
+  const resolvedPrintSettings = {
+    ...systemSettings.printSettings,
+    companyName: systemSettings.companyName,
+    groupName: systemSettings.groupName,
+  }
+
+  return <PrintSettingsProvider settings={resolvedPrintSettings}>
+    <CurrencyProvider currencyCode={systemSettings.currencyCode}>
     <Layout user={user} route={route} onRoute={navigate} onLogout={handleLogout} alertCount={alertCount} notifications={notifications} notificationUnreadCount={notificationUnreadCount} notificationsLoading={notificationsLoading} onRefreshNotifications={onRefreshNotifications} onMarkNotificationRead={onMarkNotificationRead} onMarkAllRead={onMarkAllRead}>
       {(authError || mutationError || bootstrapError || notificationsError) && (
         <div className="global-error">
@@ -184,7 +193,8 @@ function AppInner() {
         />
       </Suspense>
     </Layout>
-  </CurrencyProvider>
+    </CurrencyProvider>
+  </PrintSettingsProvider>
 }
 
 // HashRouter preserves the existing #/route URL scheme while delegating route matching

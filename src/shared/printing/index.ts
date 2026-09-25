@@ -1,3 +1,6 @@
 export { PrintableDocument, PrintButton, printDocument } from './PrintableDocument'
 export { PrintRecordButton } from './PrintRecordButton'
+export { PrintSettingsProvider, usePrintSettings, DEFAULT_PRINT_SETTINGS, normalizePrintSettings } from './PrintSettingsContext'
+export { PrintSettingsPreview } from './PrintSettingsPreview'
 export type { PrintableDocumentProps, PrintableMetaItem, PrintableSignature, PrintButtonProps } from './PrintableDocument'
+export type { PrintSettings, PrintOrientation, PrintSignatureMode, PrintTableDensity, PrintLayoutStyle, PrintFontFamily } from './PrintSettingsContext'

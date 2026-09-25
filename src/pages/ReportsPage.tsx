@@ -138,8 +138,6 @@ export function ReportsPage({assets,projects,workOrders,fuelOps,operations,modul
       documentTitle={reportTitle}
       documentNumber={`RPT-${kind.toUpperCase()}`}
       documentDate={new Date().toLocaleDateString(APP_LOCALE)}
-      companyName={companyName || 'KEMEX'}
-      groupName={groupName || undefined}
       reference={`عدد السجلات: ${data.rows.length}`}
       meta={[
         { label: 'نوع التقرير', value: reportSubtitle },

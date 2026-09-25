@@ -235,7 +235,6 @@ export function TrueCostReportPage() {
         documentTitle="تقرير التكلفة الحقيقية للأصول"
         documentNumber="TRUE-COST"
         documentDate={new Date().toLocaleDateString('ar-EG')}
-        companyName="KEMEX"
         reference={`عدد الأصول: ${sortedRows.length}`}
         meta={[
           { label: 'الفترة من', value: fromDate || 'بداية البيانات' },
