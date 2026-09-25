@@ -1,4 +1,4 @@
-import { OperationalSummaryStrip } from '../shared/ui'
+import { ConfirmModal, OperationalSummaryStrip } from '../shared/ui'
 import { Ban, CheckCircle2, ClipboardCheck, Pencil, Plus, ShoppingCart, X, type LucideIcon } from 'lucide-react'
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import type { InventoryItem, Project, StockMovement, User, Warehouse } from '../types/tfms'
