@@ -28,6 +28,7 @@ export type PrintableDocumentProps = {
   meta?: PrintableMetaItem[]
   signatures?: PrintableSignature[]
   footerNote?: string
+  orientation?: 'portrait' | 'landscape'
   children: ReactNode
 }
 
@@ -156,13 +157,14 @@ export function PrintableDocument({
   meta,
   signatures,
   footerNote,
+  orientation = 'portrait',
   children,
 }: PrintableDocumentProps) {
   if (typeof document === 'undefined') return null
 
   return createPortal(
     <div
-      className="kemex-print-layer"
+      className={`kemex-print-layer kemex-print-layer--${orientation}`}
       data-kemex-print-id={printId}
       dir="rtl"
       role="document"

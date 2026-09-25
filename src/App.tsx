@@ -55,6 +55,8 @@ function AppInner() {
     diesel: 0,
     petrol: 0,
     currencyCode: 'EGP',
+    companyName: '',
+    groupName: '',
   }
 
   const navigate = useCallback((next: string) => routerNavigate(`/${next}`), [routerNavigate])

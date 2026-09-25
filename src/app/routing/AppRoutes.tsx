@@ -68,7 +68,7 @@ type AppRoutesProps = {
   fuelOps: FuelOperation[]
   moduleData: Record<string, KemexModuleRecord[]>
   approvalEvents: Record<string, unknown>[]
-  systemSettings: { alertDays: number; alertKm: number; alertHours: number; vat: number; currencyCode: string }
+  systemSettings: { alertDays: number; alertKm: number; alertHours: number; vat: number; currencyCode: string; companyName: string; groupName: string }
   navigate: RouteHandler
   saveProject: (project: Project) => Promise<void>
   saveClient: (client: Customer) => Promise<void>
@@ -311,8 +311,8 @@ export function AppRoutes({
     <Route path="charging" element={guard('charging', <FinanceWorkspacePage initialTab="charging" {...financeWorkspaceProps} />)} />
     <Route path="invoices" element={guard('invoices', <FinanceWorkspacePage initialTab="invoices" {...financeWorkspaceProps} />)} />
     <Route path="customers" element={guard('customers', <FinanceWorkspacePage initialTab="customers" {...financeWorkspaceProps} />)} />
-    <Route path="reports" element={guard('reports', <ReportsPage assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} moduleData={moduleData} trips={trips} tripCosts={tripCosts} onRoute={navigate} />)} />
-    <Route path="reports/:key" element={guard('reports', <ReportsKeyRoute assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} moduleData={moduleData} trips={trips} tripCosts={tripCosts} onRoute={navigate} />)} />
+    <Route path="reports" element={guard('reports', <ReportsPage assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} moduleData={moduleData} trips={trips} tripCosts={tripCosts} onRoute={navigate} companyName={systemSettings.companyName} groupName={systemSettings.groupName} />)} />
+    <Route path="reports/:key" element={guard('reports', <ReportsKeyRoute assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} moduleData={moduleData} trips={trips} tripCosts={tripCosts} onRoute={navigate} companyName={systemSettings.companyName} groupName={systemSettings.groupName} />)} />
     <Route path="users" element={guard('users', <AdminWorkspacePage user={user} repository={repository} moduleData={moduleData} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} onSaved={invalidateData} />)} />
     <Route path="audit" element={guard('audit', <AuditPage records={moduleData.audit ?? []} approvalEvents={approvalEvents} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} moduleData={moduleData} />)} />
     <Route path="settings" element={guard('settings', <SettingsPage user={user} repository={repository} onSaved={invalidateData} />)} />

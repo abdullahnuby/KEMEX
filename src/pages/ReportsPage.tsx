@@ -5,6 +5,7 @@ import type { Trip, TripCost } from '../features/trips/types'
 import { sameReference } from '../utils/referenceLabels'
 import { Button, DataTable, PageHeader, StatusBadge, AnalyticsBarChart, AnalyticsDonut, AnalyticsDualBars, ChartShell } from '../components/ui'
 import { useCurrency } from '../features/settings'
+import { PrintButton, PrintableDocument } from '../shared/printing'
 
 import { APP_LOCALE } from '../shared/formatters/locale'
 export type ReportKey = 'all'|'owned'|'rented'|'veh'|'eq'|'contracts'|'due'|'fuel'|'invn'|'drivers'|'appr'|'unbilled'|'trip-profitability'
@@ -15,7 +16,7 @@ type Filters = { from:string; to:string; cat:string; own:string; status:string; 
 
 const emptyFilters:Filters={from:'',to:'',cat:'',own:'',status:'',proj:''}
 
-export function ReportsPage({assets,projects,workOrders,fuelOps,operations,moduleData,trips,tripCosts,onRoute,initialKind}:{assets:Asset[];projects:Project[];workOrders:WorkOrder[];fuelOps:FuelOperation[];operations:Operation[];moduleData:Record<string,Record<string,unknown>[]>;trips:Trip[];tripCosts:TripCost[];onRoute?:(route:string)=>void;initialKind?:ReportKey}) {
+export function ReportsPage({assets,projects,workOrders,fuelOps,operations,moduleData,trips,tripCosts,onRoute,initialKind,companyName,groupName}:{assets:Asset[];projects:Project[];workOrders:WorkOrder[];fuelOps:FuelOperation[];operations:Operation[];moduleData:Record<string,Record<string,unknown>[]>;trips:Trip[];tripCosts:TripCost[];onRoute?:(route:string)=>void;initialKind?:ReportKey;companyName?:string;groupName?:string}) {
   const [kind,setKind]=useState<ReportKey>(initialKind ?? 'all')
   useEffect(()=>{if(initialKind && REPORTS.some(r=>r.key===initialKind)) setKind(initialKind)},[initialKind])
   const [filters,setFilters]=useState<Filters>(emptyFilters)
@@ -28,7 +29,19 @@ export function ReportsPage({assets,projects,workOrders,fuelOps,operations,modul
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([`\ufeff${csv}`],{type:'text/csv;charset=utf-8'}));a.download=`KEMEX-${kind}-${new Date().toISOString().slice(0,10)}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),700)
   }
 
-  return <div className="report-page">
+  const reportTitle = REPORTS.find(x => x.key === kind)?.title ?? 'تقرير KEMEX'
+  const reportSubtitle = REPORTS.find(x => x.key === kind)?.subtitle ?? ''
+  const filterSummary = [
+    filters.from ? `من ${filters.from}` : '',
+    filters.to ? `إلى ${filters.to}` : '',
+    filters.cat ? `الفئة: ${filters.cat}` : '',
+    filters.own ? `الملكية: ${filters.own}` : '',
+    filters.status ? `الحالة: ${filters.status}` : '',
+    filters.proj ? `المشروع: ${projects.find(p => sameReference(filters.proj, p))?.name ?? filters.proj}` : '',
+  ].filter(Boolean).join(' • ') || 'بدون مرشحات إضافية'
+  const printId = `report-${kind}`
+
+    return <div className="report-page">
     <header className="report-page-banner">
       <div className="report-page-banner__copy">
         <h1>مركز التقارير</h1>
@@ -89,7 +102,7 @@ export function ReportsPage({assets,projects,workOrders,fuelOps,operations,modul
         <div className="report-control-actions">
           <Button icon={<BarChart3 size={15}/>} onClick={()=>setFilters(f=>({...f}))}>تشغيل التقرير</Button>
           <Button variant="secondary" icon={<Download size={15}/>} onClick={download} disabled={!data.rows.length}>تصدير CSV</Button>
-          <Button variant="secondary" icon={<Printer size={15}/>} onClick={()=>window.print()}>طباعة</Button>
+          <PrintButton printId={`report-${kind}`} documentTitle={REPORTS.find(x=>x.key===kind)?.title ?? 'تقرير KEMEX'} label="طباعة التقرير" disabled={!data.rows.length} />
         </div>
       </div>
     </section>
@@ -119,6 +132,50 @@ export function ReportsPage({assets,projects,workOrders,fuelOps,operations,modul
         }))}
       />
     </section>
+
+    <PrintableDocument
+      printId={printId}
+      documentTitle={reportTitle}
+      documentNumber={`RPT-${kind.toUpperCase()}`}
+      documentDate={new Date().toLocaleDateString(APP_LOCALE)}
+      companyName={companyName || 'KEMEX'}
+      groupName={groupName || undefined}
+      reference={`عدد السجلات: ${data.rows.length}`}
+      meta={[
+        { label: 'نوع التقرير', value: reportSubtitle },
+        { label: 'الفترة والمرشحات', value: filterSummary },
+        { label: 'عدد السجلات', value: new Intl.NumberFormat(APP_LOCALE).format(data.rows.length) },
+        { label: 'تاريخ الإصدار', value: new Date().toLocaleString(APP_LOCALE) },
+      ]}
+      signatures={[
+        { label: 'إعداد التقرير' },
+        { label: 'مراجعة' },
+        { label: 'اعتماد' },
+      ]}
+      footerNote="هذا المستند تقرير تشغيلي صادر من KEMEX. البيانات المعروضة مأخوذة من السجلات المتاحة وقت إصدار التقرير."
+      orientation="landscape"
+    >
+      <h2 className="print-section-title">{reportTitle}</h2>
+      <p className="kemex-print-report-subtitle">{reportSubtitle}</p>
+      <div className="kemex-print-report-summary">
+        <div><span>عدد السجلات</span><strong>{new Intl.NumberFormat(APP_LOCALE).format(data.rows.length)}</strong></div>
+        <div><span>المرشحات</span><strong>{filterSummary}</strong></div>
+      </div>
+      <div className="kemex-print-report-table-wrap">
+        <table>
+          <thead>
+            <tr>{data.columns.map((column) => <th key={column}>{column}</th>)}</tr>
+          </thead>
+          <tbody>
+            {data.rows.map((row, rowIndex) => (
+              <tr key={`${printId}-${rowIndex}`}>
+                {data.columns.map((_, columnIndex) => <td key={`${printId}-${rowIndex}-${columnIndex}`}>{renderPrintValue(row[columnIndex])}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </PrintableDocument>
   </div>
 }
 
@@ -176,6 +233,13 @@ function metricValue(value:ReportCell|undefined):number|null{
 }
 function labelOf(value:ReportCell|undefined){return typeof value==='object'&&'kind' in value ? value.label : String(value??'—')}
 function countBy(values:string[]){const m=new Map<string,number>();for(const v of values){if(!v||v==='—')continue;m.set(v,(m.get(v)??0)+1)}return Array.from(m.entries()).map(([label,value])=>({label,value})).sort((a,b)=>b.value-a.value)}
+
+function renderPrintValue(v: ReportCell) {
+  if (typeof v === 'object' && 'kind' in v && v.kind === 'ref') {
+    return v.code ? `${v.label} (${v.code})` : v.label
+  }
+  return v as string | number
+}
 
 function renderReportCell(v:ReportCell){
   if(typeof v==='object'&&'kind' in v&&v.kind==='ref')return <span className="report-reference-cell"><strong>{v.label}</strong>{v.code&&<small>{v.code}</small>}</span>

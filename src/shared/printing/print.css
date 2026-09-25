@@ -1,10 +1,19 @@
 @page {
-  size: A4;
+  size: A4 portrait;
   margin: 12mm 12mm 15mm;
+}
+
+@page kemex-landscape {
+  size: A4 landscape;
+  margin: 10mm 12mm 12mm;
 }
 
 .kemex-print-layer {
   display: none;
+}
+
+.kemex-print-layer--landscape {
+  page: kemex-landscape;
 }
 
 .kemex-print-document {
@@ -235,6 +244,62 @@
   white-space: nowrap;
 }
 
+
+.kemex-print-report-subtitle {
+  margin: -2px 0 12px;
+  color: #6d8188;
+  font-size: 9px;
+}
+
+.kemex-print-report-summary {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.kemex-print-report-summary > div {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #dbe6e8;
+  border-radius: 7px;
+  background: #f8fbfb;
+}
+
+.kemex-print-report-summary span,
+.kemex-print-report-summary strong {
+  display: block;
+}
+
+.kemex-print-report-summary span {
+  margin-bottom: 3px;
+  color: #74888f;
+  font-size: 7.5px;
+  font-weight: 800;
+}
+
+.kemex-print-report-summary strong {
+  color: #244650;
+  font-size: 9px;
+  overflow-wrap: anywhere;
+}
+
+.kemex-print-report-table-wrap {
+  overflow: visible;
+}
+
+.kemex-print-report-table-wrap table {
+  table-layout: auto;
+}
+
+.kemex-print-report-table-wrap thead {
+  display: table-header-group;
+}
+
+.kemex-print-report-table-wrap tfoot {
+  display: table-footer-group;
+}
+
 @media print {
   html,
   body {
@@ -249,11 +314,19 @@
     display: block !important;
   }
 
-  body.kemex-printing > .kemex-print-layer .kemex-print-document {
+  body.kemex-printing > .kemex-print-layer .kemex-print-layer--landscape {
+  page: kemex-landscape;
+}
+
+.kemex-print-document {
     display: block !important;
   }
 
-  .kemex-print-document {
+  .kemex-print-layer--landscape {
+  page: kemex-landscape;
+}
+
+.kemex-print-document {
     width: 100%;
   }
 

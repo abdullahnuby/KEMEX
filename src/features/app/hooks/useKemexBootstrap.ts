@@ -21,6 +21,8 @@ export interface BootstrapSettings {
   diesel: number
   petrol: number
   currencyCode: string
+  companyName: string
+  groupName: string
 }
 
 export interface KemexBootstrapData {
@@ -98,6 +100,8 @@ export function useKemexBootstrap(userId: string | undefined, activeRoute = 'das
         alertKm: Number(settingsRaw.alert_km ?? 1500),
         alertHours: Number(settingsRaw.alert_hours ?? 80),
         currencyCode: String(settingsRaw.currency_code ?? 'EGP'),
+        companyName: String(settingsRaw.company_name ?? '').trim(),
+        groupName: String(settingsRaw.group_name ?? '').trim(),
         vat: Number(settingsRaw.vat ?? 0),
         diesel: Number(settingsRaw.diesel ?? 0),
         petrol: Number(settingsRaw.petrol ?? 0),
