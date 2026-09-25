@@ -7,6 +7,7 @@ import { ReferenceValue } from '../components/ReferenceValue'
 import { useCurrency } from '../features/settings'
 import { PageHeader, Card, CardGrid, StatCard, DataTable, EmptyState, Button } from '../components/ui'
 import type { DataTableColumn } from '../components/ui/DataTable'
+import { OperationalSummaryStrip } from '../shared/ui'
 
 import { APP_LOCALE } from '../shared/formatters/locale'
 type Props={assets:Asset[];projects:Project[];moduleData:Record<string,Record<string,unknown>[]>;workOrders:WorkOrder[];fuelOps:FuelOperation[];chargingRates:Rate[];assetTypes:AssetTypeRef[]}
