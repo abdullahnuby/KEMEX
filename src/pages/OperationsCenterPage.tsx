@@ -4,6 +4,7 @@ import type { User, Asset, Contract, Driver, FuelOperation, WorkOrder } from '..
 import type { Trip } from '../features/trips/types'
 import type { AppNotification } from '../features/notifications/types'
 import { Card, PageHeader, StatusBadge } from '../components/ui'
+import { PrintRecordButton } from '../shared/printing'
 
 function daysLeft(value?: string | null) {
   if (!value) return null
@@ -63,7 +64,7 @@ export function OperationsCenterPage({
     <PageHeader
       title="مركز التشغيل"
       description={`نظرة تنفيذية موحدة على العمل التشغيلي للحساب الحالي: ${user.name}`}
-      action={<div className="flex flex-wrap gap-2"><PrintRecordButton documentTitle="تقرير مركز التشغيل" documentNumber={`OPS-${new Date().toISOString().slice(0,10)}`} meta={[{label:'رحلات قيد التنفيذ',value:activeTrips.length},{label:'رحلات متأخرة',value:delayedTrips.length},{label:'استثناءات مفتوحة',value:exceptions.length},{label:'أوامر صيانة مفتوحة',value:openWorkOrders.length},{label:'مستندات تقترب من الانتهاء',value:expiring},{label:'تنبيهات غير مقروءة',value:notifications.filter(n=>!n.read_at).length}]} signatures={[{label:'إعداد'},{label:'مراجعة'},{label:'اعتماد'}]}><div className="print-section-title">الحالة التشغيلية الحالية</div><table><thead><tr><th>المؤشر</th><th>القيمة</th><th>ملاحظات</th></tr></thead><tbody>{metrics.map(metric=><tr key={metric.label}><td>{metric.label}</td><td>{metric.value}</td><td>{metric.note}</td></tr>)}</tbody></table>{delayedTrips.length?<><div className="print-section-title">الرحلات المتأخرة</div><table><thead><tr><th>الرحلة</th><th>الوصف</th><th>الموعد</th></tr></thead><tbody>{delayedTrips.map(t=><tr key={t.id}><td>{t.trip_number}</td><td>{t.cargo_description||'—'}</td><td>{t.scheduled_end||'—'}</td></tr>)}</tbody></table></>:null}</PrintRecordButton><button type="button" className="secondary-button" onClick={() => onRoute('tracking')}><MapPinned size={16} /> فتح تتبع المركبات</button></div>
+      action={<div className="flex flex-wrap gap-2"><PrintRecordButton documentTitle="تقرير مركز التشغيل" documentNumber={`OPS-${new Date().toISOString().slice(0,10)}`} meta={[{label:'رحلات قيد التنفيذ',value:activeTrips.length},{label:'رحلات متأخرة',value:delayedTrips.length},{label:'استثناءات مفتوحة',value:exceptions.length},{label:'أوامر صيانة مفتوحة',value:openWorkOrders.length},{label:'مستندات تقترب من الانتهاء',value:expiring},{label:'تنبيهات غير مقروءة',value:notifications.filter(n=>!n.read_at).length}]} signatures={[{label:'إعداد'},{label:'مراجعة'},{label:'اعتماد'}]}><div className="print-section-title">الحالة التشغيلية الحالية</div><table><thead><tr><th>المؤشر</th><th>القيمة</th><th>ملاحظات</th></tr></thead><tbody>{metrics.map(metric=><tr key={metric.label}><td>{metric.label}</td><td>{metric.value}</td><td>{metric.note}</td></tr>)}</tbody></table>{delayedTrips.length?<><div className="print-section-title">الرحلات المتأخرة</div><table><thead><tr><th>الرحلة</th><th>الوصف</th><th>الموعد</th></tr></thead><tbody>{delayedTrips.map(t=><tr key={t.id}><td>{t.trip_number}</td><td>{t.cargo_description||'—'}</td><td>{t.scheduled_end||'—'}</td></tr>)}</tbody></table></>:null}</PrintRecordButton><button type="button" className="secondary-button" onClick={() => onRoute('tracking')}><MapPinned size={16} /> فتح تتبع المركبات</button></div>}
     />
 
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
