@@ -175,7 +175,7 @@ function TripDetailRoute({ assets, drivers, projects, currencyCode, onRoute }: {
   onRoute: RouteHandler
 }) {
   const { id } = useParams()
-  return <TripDetailPage id={decodeURIComponent(id ?? '')} assets={assets} drivers={drivers} projects={projects} currencyCode={currencyCode} onBack={() => onRoute('trips')} />
+  return <TripDetailPage id={decodeURIComponent(id ?? '')} assets={assets} drivers={drivers} projects={projects} currencyCode={currencyCode} onBack={() => onRoute('trips')} onRoute={onRoute} />
 }
 
 function ReportsKeyRoute(props: Omit<ComponentProps<typeof ReportsPage>, 'initialKind'>) {
@@ -286,7 +286,7 @@ export function AppRoutes({
     <Route path="alerts" element={guard('alerts', <AlertsPage user={user} notifications={notifications} unreadCount={notificationUnreadCount} onRefreshNotifications={onRefreshNotifications} onMarkNotificationRead={onMarkNotificationRead} onMarkAllRead={onMarkAllRead} assets={assets} workOrders={workOrders} fuelOps={fuelOps} drivers={drivers as any} contracts={contracts} onRoute={navigate} alertDays={systemSettings.alertDays} alertKm={systemSettings.alertKm} alertHours={systemSettings.alertHours} plans={moduleData.plans ?? []} oils={moduleData.oils ?? []} />)} />
     <Route path="operations" element={guard('operations', <OperationsWorkspacePage {...operationsWorkspaceProps} />)} />
     <Route path="operations-center" element={guard('operations-center', <OperationsCenterPage user={user} assets={assets} workOrders={workOrders} trips={trips} drivers={drivers} contracts={contracts} notifications={notifications} onRoute={navigate} />)} />
-    <Route path="tracking" element={guard('tracking', <GpsTrackingPage user={user} />)} />
+    <Route path="tracking" element={guard('tracking', <GpsTrackingPage user={user} geofenceRadiusM={systemSettings.tripGeofenceRadiusM} />)} />
     <Route path="assets" element={guard('assets', <FleetWorkspacePage {...fleetWorkspaceProps} />)} />
     <Route path="assets/edit/:id" element={guard('assets', <AssetEditRoute assets={assets} projects={projects} onSave={saveAsset} onRoute={navigate} canEdit={assetsCanEdit} />)} />
     <Route path="asset/:id" element={guard('assets', <AssetDetailRoute assets={assets} projects={projects} operations={operations} fuelOps={fuelOps} workOrders={workOrders} trips={trips} moduleData={moduleData} onRoute={navigate} />)} />

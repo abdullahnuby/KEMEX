@@ -24,7 +24,7 @@ export function PrintSettingsPreview({ settings }: Props) {
   return (
     <div className="kemex-print-preview-shell" dir="rtl">
       <div className={`kemex-print-preview-page kemex-print-preview-${settings.paperSize.toLowerCase()} ${fontClass} ${layoutClass}`} style={style}>
-        <header className="kemex-print-preview-header">
+        <header className={`kemex-print-preview-header ${settings.showHeaderRule ? 'kemex-print-preview-header--rule' : 'kemex-print-preview-header--plain'}`}>
           <div className="kemex-print-preview-brand">
             {logo}
             {(settings.showCompanyName || settings.showGroupName || settings.showCompanyDetails) && (

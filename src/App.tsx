@@ -58,6 +58,7 @@ function AppInner() {
     currencyCode: 'EGP',
     companyName: '',
     groupName: '',
+    tripGeofenceRadiusM: 1000,
     printSettings: {},
   }
 

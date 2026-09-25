@@ -116,6 +116,7 @@ export function ReportsPage({assets,projects,workOrders,fuelOps,operations,modul
         <div className="report-table-panel__meta">{REPORTS.find(x=>x.key===kind)?.subtitle}</div>
       </div>
       <DataTable<ReportCell[]>
+        printable={false}
         rows={data.rows}
         rowKey={(row) => `${kind}-${JSON.stringify(row)}`}
         pageSize={15}

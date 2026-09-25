@@ -90,13 +90,44 @@ export function SettingsPage({ user, repository, onSaved }: { user: User; reposi
       }
     }
 
+    const baseSettings = {
+      company_name: s.company_name.trim(),
+      group_name: s.group_name.trim(),
+      currency_code: normalizeCurrencyCode(s.currency_code),
+      vat: s.vat,
+      diesel: s.diesel,
+      petrol: s.petrol,
+      alert_days: s.alert_days,
+      alert_km: s.alert_km,
+      alert_hours: s.alert_hours,
+      trip_geofence_radius_m: s.trip_geofence_radius_m,
+    }
     const printSettings = normalizePrintSettings(s.print_settings)
+
     setBusy(true)
     try {
-      await repository.saveSettings({ ...s, currency_code: normalizeCurrencyCode(s.currency_code), print_settings: printSettings })
-      onSaved?.({ ...s, print_settings: printSettings })
-      setS(prev => ({ ...prev, print_settings: printSettings }))
-      setMsg('تم حفظ الإعدادات بنجاح.')
+      // Persist the core organization settings independently. This keeps
+      // company identity/currency editable even when an existing production
+      // database has not yet applied the optional print-settings migration.
+      await repository.saveSettings(baseSettings)
+
+      if (tab === 'print') {
+        try {
+          await repository.saveSettings({ ...baseSettings, print_settings: printSettings })
+        } catch (printError) {
+          const detail = printError instanceof Error ? printError.message : ''
+          if (/print_settings|schema cache|column .* does not exist|PGRST204|42703/i.test(detail)) {
+            setMsg('تم حفظ بيانات المؤسسة، لكن إعدادات الطباعة لم تُحفظ بعد. شغّل migration 030_print_settings.sql ثم 031_print_settings_layout.sql على قاعدة البيانات مرة واحدة.')
+            onSaved?.({ ...s, ...baseSettings, print_settings: printSettings })
+            return
+          }
+          throw printError
+        }
+      }
+
+      onSaved?.({ ...s, ...baseSettings, print_settings: printSettings })
+      setS(prev => ({ ...prev, ...baseSettings, print_settings: printSettings }))
+      setMsg(tab === 'print' ? 'تم حفظ إعدادات الطباعة وبيانات المؤسسة بنجاح.' : 'تم حفظ الإعدادات بنجاح.')
     } catch (e) {
       setMsg(e instanceof Error ? e.message : 'تعذر حفظ الإعدادات. حاول مرة أخرى.')
     } finally {
@@ -124,15 +155,15 @@ export function SettingsPage({ user, repository, onSaved }: { user: User; reposi
   }
 
   return (
-    <div className="space-y-6">
-      <div className="settings-tabbar">
-        <button className={tab === 'general' ? 'settings-tab active' : 'settings-tab'} type="button" onClick={() => setTab('general')}>
+    <div className="space-y-6 settings-page">
+      <div className="settings-tabbar" role="tablist" aria-label="أقسام الإعدادات">
+        <button className={tab === 'general' ? 'settings-tab active' : 'settings-tab'} type="button" role="tab" aria-selected={tab === 'general'} onClick={() => setTab('general')}>
           <Settings2 size={15} /> الإعدادات العامة
         </button>
-        <button className={tab === 'print' ? 'settings-tab active' : 'settings-tab'} type="button" onClick={() => setTab('print')}>
+        <button className={tab === 'print' ? 'settings-tab active' : 'settings-tab'} type="button" role="tab" aria-selected={tab === 'print'} onClick={() => setTab('print')}>
           <Printer size={15} /> إعدادات الطباعة
         </button>
-        <button className={tab === 'data' ? 'settings-tab active' : 'settings-tab'} type="button" onClick={() => setTab('data')}>
+        <button className={tab === 'data' ? 'settings-tab active' : 'settings-tab'} type="button" role="tab" aria-selected={tab === 'data'} onClick={() => setTab('data')}>
           <DatabaseBackup size={15} /> إدارة البيانات
         </button>
       </div>

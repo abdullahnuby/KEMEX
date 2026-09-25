@@ -66,11 +66,20 @@ export function printDocument(printId: string, documentTitle: string): void {
   }
 
   let cleaned = false
+  let cleanupTimer = 0
+  const printLayers = Array.from(document.querySelectorAll<HTMLElement>('[data-kemex-print-id]'))
+  const previousDisplay = new Map<HTMLElement, string>()
   const cleanup = () => {
     if (cleaned) return
     cleaned = true
+    if (cleanupTimer) window.clearTimeout(cleanupTimer)
     body.classList.remove('kemex-printing')
     body.removeAttribute('data-kemex-print-target')
+    printLayers.forEach(element => {
+      element.classList.remove('kemex-print-active')
+      element.style.display = previousDisplay.get(element) ?? ''
+      element.style.removeProperty('page')
+    })
     document.title = previousTitle
     document.head.querySelectorAll('style[data-kemex-print-runtime]').forEach(style => style.remove())
     window.removeEventListener('afterprint', cleanup)
@@ -82,23 +91,38 @@ export function printDocument(printId: string, documentTitle: string): void {
   }
   const paper = target.classList.contains('kemex-print-paper-letter') ? 'Letter' : 'A4'
   const orientation = target.classList.contains('kemex-print-layer--landscape') ? 'landscape' : 'portrait'
-  const minBottom = target.classList.contains('kemex-print-signature-mode--every-page') ? (target.classList.contains('kemex-print-density--comfortable') ? '48mm' : '42mm') : getCssVar('--kemex-print-margin-bottom', '30mm')
-  const requestedBottom = getCssVar('--kemex-print-margin-bottom', minBottom)
-  const bottomMargin = `${Math.max(parseFloat(requestedBottom) || 0, parseFloat(minBottom) || 0)}mm`
+  const pageName = 'kemex-active-print-page'
+  const signatureHeight = parseFloat(getCssVar('--kemex-print-signature-height', '19mm')) || 19
+  const fixedSignatureReserve = target.classList.contains('kemex-print-signature-mode--every-page')
+    ? Math.max(42, Math.ceil(signatureHeight + 23))
+    : 30
+  const requestedBottom = parseFloat(getCssVar('--kemex-print-margin-bottom', String(fixedSignatureReserve))) || fixedSignatureReserve
+  const bottomMargin = `${Math.max(requestedBottom, fixedSignatureReserve)}mm`
   const runtimeStyle = document.createElement('style')
   runtimeStyle.setAttribute('data-kemex-print-runtime', 'true')
-  runtimeStyle.textContent = `@media print { @page { size: ${paper} ${orientation}; margin: ${getCssVar('--kemex-print-margin-top', '10mm')} ${getCssVar('--kemex-print-margin-right', '12mm')} ${bottomMargin} ${getCssVar('--kemex-print-margin-left', '12mm')}; } }`
+  runtimeStyle.textContent = `@media print { @page ${pageName} { size: ${paper} ${orientation}; margin: ${getCssVar('--kemex-print-margin-top', '10mm')} ${getCssVar('--kemex-print-margin-right', '12mm')} ${bottomMargin} ${getCssVar('--kemex-print-margin-left', '12mm')}; } }`
   document.head.appendChild(runtimeStyle)
 
   const previousRuntimeStyles = Array.from(document.head.querySelectorAll('style[data-kemex-print-runtime]')).slice(0, -1)
   previousRuntimeStyles.forEach(style => style.remove())
 
+  printLayers.forEach(element => {
+    previousDisplay.set(element, element.style.display)
+    element.classList.remove('kemex-print-active')
+    element.style.display = 'none'
+  })
+  target.classList.add('kemex-print-active')
+  target.style.display = 'block'
+  target.style.setProperty('page', pageName)
+
   body.classList.add('kemex-printing')
   body.dataset.kemexPrintTarget = printId
   document.title = safeDocumentTitle(documentTitle)
   window.addEventListener('afterprint', cleanup)
-  window.setTimeout(() => cleanup(), 60_000)
-  window.print()
+  cleanupTimer = window.setTimeout(() => cleanup(), 60_000)
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => window.print())
+  })
 }
 
 export function PrintButton({ printId, documentTitle, label = 'طباعة', className = '', disabled = false }: PrintButtonProps) {
@@ -189,6 +213,7 @@ export function PrintableDocument({
       role="document"
       aria-label={documentTitle}
       style={{
+        page: 'kemex-active-print-page',
         ['--kemex-print-primary' as string]: settings.primaryColor,
         ['--kemex-print-margin-top' as string]: `${settings.marginTopMm}mm`,
         ['--kemex-print-margin-right' as string]: `${settings.marginRightMm}mm`,
@@ -199,7 +224,7 @@ export function PrintableDocument({
       }}
     >
       <article className="kemex-print-document">
-        <header className="kemex-print-header">
+        <header className={`kemex-print-header ${settings.showHeaderRule ? 'kemex-print-header--rule' : 'kemex-print-header--plain'}`}>
           <div className="kemex-print-brand">
             {settings.showLogo && resolvedLogo && <img src={resolvedLogo} alt="" className="kemex-print-logo" />}
             {(settings.showCompanyName || (settings.showGroupName && resolvedGroupName) || (settings.showCompanyDetails && (settings.companyAddress || settings.companyContact))) && (
@@ -227,18 +252,18 @@ export function PrintableDocument({
 
         {renderMeta(meta)}
         <main className="kemex-print-content">{children}</main>
-
-        <div className={`${signatureClass} ${showSignatureArea ? '' : 'kemex-print-fixed-area--no-signatures'}`.trim()}>
-          {showSignatureArea && renderSignatures(resolvedSignatures, resolvedLabels)}
-          {settings.showFooter && (
-            <footer className="kemex-print-footer">
-              {settings.showAppName ? <div className="kemex-print-app-name">{settings.appName}</div> : <div />}
-              <div className="kemex-print-footer-text">{resolvedFooterNote}</div>
-              {settings.showPageNumbers ? <div className="kemex-print-page-number" aria-label="رقم الصفحة" /> : <div />}
-            </footer>
-          )}
-        </div>
       </article>
+
+      <div className={`${signatureClass} ${showSignatureArea ? '' : 'kemex-print-fixed-area--no-signatures'}`.trim()} aria-hidden={false}>
+        {showSignatureArea && renderSignatures(resolvedSignatures, resolvedLabels)}
+        {settings.showFooter && (
+          <footer className="kemex-print-footer">
+            {settings.showAppName ? <div className="kemex-print-app-name">{settings.appName}</div> : <div />}
+            <div className="kemex-print-footer-text">{resolvedFooterNote}</div>
+            {settings.showPageNumbers ? <div className="kemex-print-page-number" aria-label="رقم الصفحة" /> : <div />}
+          </footer>
+        )}
+      </div>
     </div>,
     document.body,
   )

@@ -68,6 +68,15 @@ export const gpsTrackingService = {
 
   async listTrack(assetId: string, hours = 24): Promise<GpsPosition[]> {
     const from = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
+    return this.listTrackRange(assetId, from, new Date().toISOString())
+  },
+
+  async listTrackRange(assetId: string, from: string, to: string): Promise<GpsPosition[]> {
+    const start = new Date(from)
+    const end = new Date(to)
+    if (!assetId) throw new Error('الأصل المطلوب للتتبع غير محدد.')
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) throw new Error('نطاق التاريخ غير صالح.')
+    if (start >= end) throw new Error('تاريخ البداية يجب أن يكون قبل تاريخ النهاية.')
 
     const { data, error } = await db()
       .from('vehicle_gps_positions')
@@ -75,9 +84,10 @@ export const gpsTrackingService = {
         'id,device_id,asset_id,driver_id,trip_id,latitude,longitude,speed_kmh,heading_degrees,accuracy_m,ignition_on,recorded_at,source,provider,external_device_id,metadata,created_at',
       )
       .eq('asset_id', assetId)
-      .gte('recorded_at', from)
+      .gte('recorded_at', start.toISOString())
+      .lte('recorded_at', end.toISOString())
       .order('recorded_at', { ascending: true })
-      .limit(2000)
+      .limit(5000)
 
     if (error) throw error
     return (data ?? []) as GpsPosition[]

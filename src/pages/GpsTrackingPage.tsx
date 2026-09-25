@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   Activity,
   CheckCircle2,
@@ -10,6 +11,9 @@ import {
   Router,
   Satellite,
   Signal,
+  Play,
+  Pause,
+  RotateCcw,
   Truck,
   WifiOff,
 } from 'lucide-react'
@@ -19,6 +23,8 @@ import { Button, Card, PageHeader } from '../components/ui'
 import { PrintRecordButton } from '../shared/printing'
 import { GpsTrackingMap } from '../components/GpsTrackingMap'
 import { gpsTrackingService } from '../features/gpsTracking/service'
+import { tripsService } from '../features/trips/service'
+import type { Trip } from '../features/trips/types'
 import type {
   GpsAsset,
   GpsDevice,
@@ -30,9 +36,11 @@ const STALE_MS = 5 * 60 * 1000
 const OFFLINE_MS = 20 * 60 * 1000
 
 type Filter = 'all' | 'online' | 'stale' | 'offline'
+type TrackRange = 6 | 24 | 72 | 168
 
 type Props = {
   user: User
+  geofenceRadiusM?: number
 }
 
 type TrackingRow = {
@@ -42,13 +50,21 @@ type TrackingRow = {
   health: GpsHealth
 }
 
-export function GpsTrackingPage({ user }: Props) {
+export function GpsTrackingPage({ user, geofenceRadiusM = 1000 }: Props) {
   const [assets, setAssets] = useState<GpsAsset[]>([])
   const [positions, setPositions] = useState<GpsPosition[]>([])
   const [devices, setDevices] = useState<GpsDevice[]>([])
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
   const [track, setTrack] = useState<GpsPosition[]>([])
   const [trackLoading, setTrackLoading] = useState(false)
+  const [trackHours, setTrackHours] = useState<TrackRange>(24)
+  const [trackFrom, setTrackFrom] = useState(() => toDateTimeLocal(new Date(Date.now() - 24 * 60 * 60 * 1000)))
+  const [trackTo, setTrackTo] = useState(() => toDateTimeLocal(new Date()))
+  const [playbackIndex, setPlaybackIndex] = useState<number | null>(null)
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null)
+  const [searchParams] = useSearchParams()
+  const selectedAssetRef = useRef<string | null>(null)
+  const assetsRef = useRef<GpsAsset[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -75,13 +91,15 @@ export function GpsTrackingPage({ user }: Props) {
       ])
 
       setAssets(nextAssets)
+      assetsRef.current = nextAssets
       setPositions(nextPositions)
       setDevices(nextDevices)
 
-      if (
-        !selectedAssetId &&
-        nextPositions.length > 0
-      ) {
+      const requestedAssetId = searchParams.get('asset')
+      const requestedIsValid = Boolean(requestedAssetId && nextAssets.some(asset => asset.id === requestedAssetId))
+      if (requestedIsValid) {
+        setSelectedAssetId(requestedAssetId)
+      } else if (!selectedAssetId && nextPositions.length > 0) {
         setSelectedAssetId(nextPositions[0].asset_id)
       }
     } catch (e) {
@@ -93,15 +111,19 @@ export function GpsTrackingPage({ user }: Props) {
     } finally {
       if (!silent) setLoading(false)
     }
-  }, [selectedAssetId])
+  }, [searchParams, selectedAssetId])
 
   useEffect(() => {
     void load()
   }, [load])
 
   useEffect(() => {
+    selectedAssetRef.current = selectedAssetId
+  }, [selectedAssetId])
+
+  useEffect(() => {
     const unsubscribe = gpsTrackingService.subscribeToPositions(position => {
-      const asset = assets.find(item => item.id === position.asset_id)
+      const asset = assetsRef.current.find(item => item.id === position.asset_id)
 
       setPositions(current => {
         const enriched: GpsPosition = {
@@ -119,7 +141,7 @@ export function GpsTrackingPage({ user }: Props) {
         ]
       })
 
-      if (selectedAssetId === position.asset_id) {
+      if (selectedAssetRef.current === position.asset_id) {
         setTrack(current => [...current, position].slice(-2000))
       }
     })
@@ -138,7 +160,7 @@ export function GpsTrackingPage({ user }: Props) {
       window.clearInterval(refreshTimer)
       window.clearInterval(clockTimer)
     }
-  }, [assets, load, selectedAssetId])
+  }, [load])
 
   const positionsByAsset = useMemo(
     () =>
@@ -211,24 +233,54 @@ export function GpsTrackingPage({ user }: Props) {
   const selectedRow =
     rows.find(row => row.asset.id === selectedAssetId) ?? null
 
-  async function selectAsset(assetId: string) {
-    setSelectedAssetId(assetId)
-    setTrackLoading(true)
-    setError('')
-
-    try {
-      setTrack(await gpsTrackingService.listTrack(assetId, 24))
-    } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : 'تعذر تحميل مسار المركبة.',
-      )
+  useEffect(() => {
+    if (!selectedAssetId) {
       setTrack([])
-    } finally {
-      setTrackLoading(false)
+      setPlaybackIndex(null)
+      return
     }
+    const from = new Date(trackFrom)
+    const to = new Date(trackTo)
+    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || from >= to) return
+    setPlaybackIndex(null)
+    setTrackLoading(true)
+    void gpsTrackingService.listTrackRange(selectedAssetId, from.toISOString(), to.toISOString())
+      .then(setTrack)
+      .catch(e => { setError(e instanceof Error ? e.message : 'تعذر تحميل مسار المركبة.'); setTrack([]) })
+      .finally(() => setTrackLoading(false))
+  }, [selectedAssetId, trackFrom, trackTo])
+
+  const selectedTripId = selectedRow?.position?.trip_id ?? null
+
+  useEffect(() => {
+    if (!selectedTripId) { setSelectedTrip(null); return }
+    void tripsService.getById(selectedTripId).then(setSelectedTrip).catch(() => setSelectedTrip(null))
+  }, [selectedTripId])
+
+  useEffect(() => {
+    if (playbackIndex == null || !track.length) return
+    if (playbackIndex >= track.length - 1) { setPlaybackIndex(null); return }
+    const timer = window.setInterval(() => setPlaybackIndex(index => index == null ? null : Math.min(index + 1, track.length - 1)), 700)
+    return () => window.clearInterval(timer)
+  }, [playbackIndex, track.length])
+
+  function selectAsset(assetId: string) {
+    setSelectedAssetId(assetId)
+    const nextTo = new Date()
+    const nextFrom = new Date(nextTo.getTime() - trackHours * 60 * 60 * 1000)
+    setTrackFrom(toDateTimeLocal(nextFrom))
+    setTrackTo(toDateTimeLocal(nextTo))
   }
+
+  function applyPreset(hours: TrackRange) {
+    const nextTo = new Date()
+    const nextFrom = new Date(nextTo.getTime() - hours * 60 * 60 * 1000)
+    setTrackHours(hours)
+    setTrackFrom(toDateTimeLocal(nextFrom))
+    setTrackTo(toDateTimeLocal(nextTo))
+  }
+
+  function resetTrackRange() { applyPreset(24) }
 
   async function registerDevice(event: FormEvent) {
     event.preventDefault()
@@ -289,7 +341,7 @@ export function GpsTrackingPage({ user }: Props) {
   }
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6 phase2-page gps-tracking-page" dir="rtl">
       <PageHeader
         title="تتبع المركبات"
         description="مراقبة آخر موقع معروف للمركبات، حالة اتصال جهاز GPS، ومسار المركبة التشغيلي."
@@ -520,6 +572,11 @@ export function GpsTrackingPage({ user }: Props) {
           points={mapPoints}
           track={track}
           selectedAssetId={selectedAssetId}
+          playbackPoint={playbackIndex == null ? null : track[playbackIndex] ?? null}
+          geofences={selectedTrip ? [
+            ...(selectedTrip.pickup_latitude != null && selectedTrip.pickup_longitude != null ? [{ id: 'pickup', label: 'منطقة التحميل', latitude: Number(selectedTrip.pickup_latitude), longitude: Number(selectedTrip.pickup_longitude), radiusM: geofenceRadiusM }] : []),
+            ...(selectedTrip.delivery_latitude != null && selectedTrip.delivery_longitude != null ? [{ id: 'delivery', label: 'منطقة التسليم', latitude: Number(selectedTrip.delivery_latitude), longitude: Number(selectedTrip.delivery_longitude), radiusM: geofenceRadiusM }] : []),
+          ] : []}
         />
       </Card>
 
@@ -528,7 +585,7 @@ export function GpsTrackingPage({ user }: Props) {
           <div className="mb-4">
             <h2 className="text-lg font-black">المركبات وأجهزة GPS</h2>
             <p className="mt-1 text-sm text-slate-500">
-              اختر مركبة لعرض آخر نقطة ومسار الأربع والعشرين ساعة السابقة.
+              اختر مركبة لعرض آخر نقطة ومسارها التاريخي ضمن الفترة المحددة.
             </p>
           </div>
 
@@ -698,7 +755,7 @@ export function GpsTrackingPage({ user }: Props) {
                   <div>
                     <strong>تاريخ المسار</strong>
                     <p className="mt-1 text-xs text-slate-500">
-                      آخر أربع وعشرين ساعة
+                      آخر {trackHours} ساعة
                     </p>
                   </div>
                   {trackLoading && (
@@ -709,10 +766,26 @@ export function GpsTrackingPage({ user }: Props) {
                   )}
                 </div>
 
-                <div className="mt-4 flex items-center gap-2 text-sm font-bold">
-                  <Signal size={16} />
-                  {track.length} نقطة GPS
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <label className="field"><span>من</span><input type="datetime-local" value={trackFrom} onChange={e => setTrackFrom(e.target.value)} /></label>
+                  <label className="field"><span>إلى</span><input type="datetime-local" value={trackTo} onChange={e => setTrackTo(e.target.value)} /></label>
                 </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold text-slate-500">اختصارات:</span>
+                  {([6, 24, 72, 168] as TrackRange[]).map(hours => (
+                    <button key={hours} type="button" onClick={() => applyPreset(hours)} className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-bold text-slate-600">
+                      {hours === 6 ? '6 ساعات' : hours === 24 ? '24 ساعة' : hours === 72 ? '3 أيام' : '7 أيام'}
+                    </button>
+                  ))}
+                  <button type="button" onClick={resetTrackRange} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-600"><RotateCcw size={13}/> إعادة ضبط</button>
+                </div>
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-sm font-bold">
+                  <Signal size={16} /> {track.length} نقطة GPS
+                  {track.length > 1 && <button type="button" className="rounded-lg bg-slate-950 px-3 py-2 text-xs font-black text-white" onClick={() => setPlaybackIndex(playbackIndex == null ? 0 : null)}>
+                    {playbackIndex == null ? <><Play size={13}/> تشغيل المسار</> : <><Pause size={13}/> إيقاف المسار</>}
+                  </button>}
+                </div>
+                {selectedTrip && (selectedTrip.pickup_latitude != null || selectedTrip.delivery_latitude != null) && <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-semibold text-slate-600">تم إظهار مناطق التحميل والتسليم للرحلة الحالية على الخريطة.</div>}
               </div>
             </div>
           ) : (
@@ -940,6 +1013,11 @@ function getHealth(
   if (age <= STALE_MS) return 'online'
   if (age <= OFFLINE_MS) return 'stale'
   return 'offline'
+}
+
+function toDateTimeLocal(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
 function healthLabel(health: GpsHealth) {

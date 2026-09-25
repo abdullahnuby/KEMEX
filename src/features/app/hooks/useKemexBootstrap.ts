@@ -23,6 +23,7 @@ export interface BootstrapSettings {
   currencyCode: string
   companyName: string
   groupName: string
+  tripGeofenceRadiusM: number
   printSettings: Record<string, unknown>
 }
 
@@ -103,6 +104,7 @@ export function useKemexBootstrap(userId: string | undefined, activeRoute = 'das
         currencyCode: String(settingsRaw.currency_code ?? 'EGP'),
         companyName: String(settingsRaw.company_name ?? '').trim(),
         groupName: String(settingsRaw.group_name ?? '').trim(),
+        tripGeofenceRadiusM: Number(settingsRaw.trip_geofence_radius_m ?? 1000),
         printSettings: (settingsRaw.print_settings && typeof settingsRaw.print_settings === 'object') ? settingsRaw.print_settings as Record<string, unknown> : {},
         vat: Number(settingsRaw.vat ?? 0),
         diesel: Number(settingsRaw.diesel ?? 0),

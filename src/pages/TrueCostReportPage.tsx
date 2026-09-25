@@ -215,6 +215,7 @@ export function TrueCostReportPage() {
           </div>
         ) : (
           <DataTable
+            printable={false}
             rows={sortedRows}
             columns={columns}
             rowKey={r => r.asset_id}

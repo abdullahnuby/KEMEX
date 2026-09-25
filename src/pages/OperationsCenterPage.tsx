@@ -83,7 +83,7 @@ export function OperationsCenterPage({ user, assets, workOrders, trips, drivers:
   )
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6 phase2-page operations-center-page" dir="rtl">
       <PageHeader
         title="مركز التشغيل"
         description={`نظرة تنفيذية موحدة على العمل التشغيلي للحساب الحالي: ${user.name}`}
