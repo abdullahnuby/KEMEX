@@ -153,7 +153,7 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount, notifica
       </div>
 
     </header>
-    {mobileOpen && <MobileNavigation groups={groups} route={route} query={query} onQueryChange={setQuery} onNavigate={navigate} user={user} onLogout={onLogout} />}
+    {mobileOpen && <MobileNavigation groups={groups} route={route} query={query} onQueryChange={setQuery} onNavigate={navigate} user={user} onLogout={onLogout} onClose={() => setMobileOpen(false)} />}
     <MobileTabBar routeModule={routeModule} onNavigate={navigate} onOpenMore={() => { setMobileOpen(value => !value) }} moreOpen={mobileOpen} alertCount={notificationUnreadCount || alertCount} notificationUnreadCount={notificationUnreadCount} />
   </>
 }
@@ -187,7 +187,7 @@ function MobileTabBar({ routeModule, onNavigate, onOpenMore, moreOpen, alertCoun
   </nav>
 }
 
-function MobileNavigation({ groups, route, query, onQueryChange, onNavigate, user, onLogout }: {
+function MobileNavigation({ groups, route, query, onQueryChange, onNavigate, user, onLogout, onClose }: {
   groups: readonly NavigationGroup[]
   route: string
   query: string
@@ -195,10 +195,18 @@ function MobileNavigation({ groups, route, query, onQueryChange, onNavigate, use
   onNavigate: (route: string) => void
   user: User
   onLogout: () => void
+  onClose: () => void
 }) {
   const routeModule = resolveRouteModule(route)
   const [openGroup, setOpenGroup] = useState<string | null>(findGroupForRoute(route))
-  return <div className="mobile-nav-panel">
+  return <aside className="mobile-nav-panel" aria-label="قائمة النظام المحمولة">
+    <div className="mobile-nav-panel-head">
+      <div>
+        <span>التنقل</span>
+        <strong>قائمة النظام</strong>
+      </div>
+      <button type="button" className="mobile-nav-close" onClick={onClose} aria-label="إغلاق قائمة النظام"><X size={19} /></button>
+    </div>
     <div className="mobile-account-row">
       <div className="mobile-account-identity"><div className="avatar">{user.name?.slice(0, 1) ?? 'م'}</div><div><strong>{user.name}</strong><small>{ROLE_LABELS[user.role as Role]}</small></div></div>
       <button type="button" className="mobile-logout-button" onClick={onLogout}><LogOut size={16} /> تسجيل الخروج</button>
@@ -217,7 +225,7 @@ function MobileNavigation({ groups, route, query, onQueryChange, onNavigate, use
           : <div className="mobile-nav-section"><div className="mobile-nav-section-title">الوحدات</div>{group.items.map(item => { const Icon = iconFor(item.icon); const active = routeModule === item.key; return <button type="button" key={item.key} className={`mobile-nav-item ${active ? 'active' : ''}`} onClick={() => onNavigate(item.route)}>{Icon && <Icon size={16} />}<span>{item.label}</span></button> })}</div>}
       </div>}
     </section>)}
-  </div>
+  </aside>
 }
 
 function renderDomainMenu(items: readonly NavigationItem[], routeModule: string, navigate: (route: string) => void) {
