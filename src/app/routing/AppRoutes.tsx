@@ -68,7 +68,7 @@ type AppRoutesProps = {
   fuelOps: FuelOperation[]
   moduleData: Record<string, KemexModuleRecord[]>
   approvalEvents: Record<string, unknown>[]
-  systemSettings: { alertDays: number; alertKm: number; alertHours: number; vat: number; currencyCode: string; companyName: string; groupName: string }
+  systemSettings: { alertDays: number; alertKm: number; alertHours: number; vat: number; currencyCode: string; companyName: string; groupName: string; tripGeofenceRadiusM: number }
   navigate: RouteHandler
   saveProject: (project: Project) => Promise<void>
   saveClient: (client: Customer) => Promise<void>
@@ -286,7 +286,7 @@ export function AppRoutes({
     <Route path="alerts" element={guard('alerts', <AlertsPage user={user} notifications={notifications} unreadCount={notificationUnreadCount} onRefreshNotifications={onRefreshNotifications} onMarkNotificationRead={onMarkNotificationRead} onMarkAllRead={onMarkAllRead} assets={assets} workOrders={workOrders} fuelOps={fuelOps} drivers={drivers as any} contracts={contracts} onRoute={navigate} alertDays={systemSettings.alertDays} alertKm={systemSettings.alertKm} alertHours={systemSettings.alertHours} plans={moduleData.plans ?? []} oils={moduleData.oils ?? []} />)} />
     <Route path="operations" element={guard('operations', <OperationsWorkspacePage {...operationsWorkspaceProps} />)} />
     <Route path="operations-center" element={guard('operations-center', <OperationsCenterPage user={user} assets={assets} workOrders={workOrders} trips={trips} drivers={drivers} contracts={contracts} notifications={notifications} onRoute={navigate} />)} />
-    <Route path="tracking" element={guard('tracking', <GpsTrackingPage user={user} geofenceRadiusM={systemSettings.tripGeofenceRadiusM} />)} />
+    <Route path="tracking" element={guard('tracking', <GpsTrackingPage user={user} geofenceRadiusM={Number((systemSettings as unknown as { tripGeofenceRadiusM?: number }).tripGeofenceRadiusM ?? 1000)} />)} />
     <Route path="assets" element={guard('assets', <FleetWorkspacePage {...fleetWorkspaceProps} />)} />
     <Route path="assets/edit/:id" element={guard('assets', <AssetEditRoute assets={assets} projects={projects} onSave={saveAsset} onRoute={navigate} canEdit={assetsCanEdit} />)} />
     <Route path="asset/:id" element={guard('assets', <AssetDetailRoute assets={assets} projects={projects} operations={operations} fuelOps={fuelOps} workOrders={workOrders} trips={trips} moduleData={moduleData} onRoute={navigate} />)} />
