@@ -13,6 +13,7 @@ import { DriverPortal } from './pages/driver/DriverPortal'
 import { AppRoutes } from './app/routing/AppRoutes'
 import { ROUTE_DESCRIPTIONS } from './app/routing/routeRegistry'
 import type { Driver, Operation } from './types/tfms'
+import { useNotifications } from './features/notifications/useNotifications'
 
 function daysTo(value: string) {
   return Math.ceil((new Date(value).getTime() - Date.now()) / 86400000)
@@ -111,6 +112,8 @@ function AppInner() {
     clearBootstrapCache()
   }
 
+  const { notifications, unreadCount: notificationUnreadCount, loading: notificationsLoading, error: notificationsError, refresh: onRefreshNotifications, markRead: onMarkNotificationRead, markAllRead: onMarkAllRead } = useNotifications(user?.id)
+
   const alertCount = useMemo(
     () => assets.filter(asset => (asset.lic ? daysTo(asset.lic) <= 30 : false) || ['تحت الصيانة', 'بانتظار الإصلاح', 'بانتظار الفحص'].includes(asset.status)).length,
     [assets],
@@ -126,11 +129,11 @@ function AppInner() {
   const operations = (moduleData.operations as unknown as Operation[]) || []
 
   return <CurrencyProvider currencyCode={systemSettings.currencyCode}>
-    <Layout user={user} route={route} onRoute={navigate} onLogout={handleLogout} alertCount={alertCount}>
-      {(authError || mutationError || bootstrapError) && (
+    <Layout user={user} route={route} onRoute={navigate} onLogout={handleLogout} alertCount={alertCount} notifications={notifications} notificationUnreadCount={notificationUnreadCount} notificationsLoading={notificationsLoading} onRefreshNotifications={onRefreshNotifications} onMarkNotificationRead={onMarkNotificationRead} onMarkAllRead={onMarkAllRead}>
+      {(authError || mutationError || bootstrapError || notificationsError) && (
         <div className="global-error">
           <AlertTriangle size={17} />
-          <span>{authError || mutationError || bootstrapError}</span>
+          <span>{authError || mutationError || bootstrapError || notificationsError}</span>
         </div>
       )}
       <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center', color: 'var(--tfms-muted)' }}>...جارٍ التحميل</div>}>
@@ -170,6 +173,12 @@ function AppInner() {
           workflowModule={workflowModule}
           deleteModule={deleteModule}
           invalidateData={invalidateData}
+          notifications={notifications}
+          notificationUnreadCount={notificationUnreadCount}
+          notificationsLoading={notificationsLoading}
+          onRefreshNotifications={onRefreshNotifications}
+          onMarkNotificationRead={onMarkNotificationRead}
+          onMarkAllRead={onMarkAllRead}
         />
       </Suspense>
     </Layout>

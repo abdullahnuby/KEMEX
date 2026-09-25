@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { BarChart3, Bell, ChevronDown, Gauge, LayoutDashboard, LogOut, Menu, MoreHorizontal, Search, Truck, Wrench, X, type LucideIcon } from 'lucide-react'
 import { APP, NAVIGATION_GROUPS, REPORT_NAV_ITEMS, ROLE_LABELS, canViewModule, type NavigationGroup, type NavigationItem, type ReportNavigationItem } from '../../config/app'
 import type { Role, User } from '../../types/tfms'
+import type { AppNotification } from '../../features/notifications/types'
 import { GlobalSearchPanel, NotificationPopover, UserMenu } from './ShellPopovers'
 
 const ICONS: Record<string, LucideIcon> = {}
@@ -12,12 +13,18 @@ function iconFor(name: string, fallback?: LucideIcon) { return ICONS[name] ?? fa
 // from the "المزيد" sheet by default to avoid listing the same destination twice.
 const PRIMARY_TAB_GROUPS = new Set(['الأسطول', 'الصيانة', 'التشغيل'])
 
-export function AppNavbar({ user, route, onRoute, onLogout, alertCount }: {
+export function AppNavbar({ user, route, onRoute, onLogout, alertCount, notifications, notificationUnreadCount, notificationsLoading, onRefreshNotifications, onMarkNotificationRead, onMarkAllRead }: {
   user: User
   route: string
   onRoute: (route: string) => void
   onLogout: () => void
   alertCount: number
+  notifications: AppNotification[]
+  notificationUnreadCount: number
+  notificationsLoading: boolean
+  onRefreshNotifications: () => Promise<void>
+  onMarkNotificationRead: (id: string) => Promise<void>
+  onMarkAllRead: () => Promise<void>
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [openGroup, setOpenGroup] = useState<string | null>(null)
@@ -131,7 +138,7 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount }: {
           <button type="button" className={`navbar-icon-btn ${popover === 'notifications' ? 'active' : ''}`} onClick={() => { setOpenGroup(null); setPopover(current => current === 'notifications' ? null : 'notifications') }} title="التنبيهات" aria-label={`التنبيهات${alertCount > 0 ? `، ${alertCount} تنبيه` : ''}`} aria-expanded={popover === 'notifications'}>
             <Bell size={18} />{alertCount > 0 && <span>{alertCount > 9 ? '9+' : alertCount}</span>}
           </button>
-          {popover === 'notifications' && <NotificationPopover alertCount={alertCount} onOpenAlerts={() => navigate('alerts')} />}
+          {popover === 'notifications' && <NotificationPopover notifications={notifications} unreadCount={notificationUnreadCount} loading={notificationsLoading} onRefresh={onRefreshNotifications} onMarkRead={onMarkNotificationRead} onMarkAllRead={onMarkAllRead} onOpenAlerts={() => navigate('alerts')} />}
         </div>
         <div className="shell-control shell-user-control">
           <button type="button" className={`navbar-user ${popover === 'user' ? 'active' : ''}`} onClick={() => { setOpenGroup(null); setPopover(current => current === 'user' ? null : 'user') }} aria-label="فتح قائمة المستخدم" aria-expanded={popover === 'user'}>
@@ -147,16 +154,17 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount }: {
 
     </header>
     {mobileOpen && <MobileNavigation groups={groups} route={route} query={query} onQueryChange={setQuery} onNavigate={navigate} user={user} onLogout={onLogout} />}
-    <MobileTabBar routeModule={routeModule} onNavigate={navigate} onOpenMore={() => { setMobileOpen(value => !value) }} moreOpen={mobileOpen} alertCount={alertCount} />
+    <MobileTabBar routeModule={routeModule} onNavigate={navigate} onOpenMore={() => { setMobileOpen(value => !value) }} moreOpen={mobileOpen} alertCount={notificationUnreadCount || alertCount} notificationUnreadCount={notificationUnreadCount} />
   </>
 }
 
-function MobileTabBar({ routeModule, onNavigate, onOpenMore, moreOpen, alertCount }: {
+function MobileTabBar({ routeModule, onNavigate, onOpenMore, moreOpen, alertCount, notificationUnreadCount }: {
   routeModule: string
   onNavigate: (route: string) => void
   onOpenMore: () => void
   moreOpen: boolean
   alertCount: number
+  notificationUnreadCount: number
 }) {
   const tabs: { key: string; label: string; icon: LucideIcon; route: string }[] = [
     { key: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard, route: 'dashboard' },
@@ -173,7 +181,7 @@ function MobileTabBar({ routeModule, onNavigate, onOpenMore, moreOpen, alertCoun
       </button>
     })}
     <button type="button" className={`mobile-tab-item ${moreOpen ? 'active' : ''}`} onClick={onOpenMore} aria-expanded={moreOpen}>
-      <span className="mobile-tab-more-icon"><MoreHorizontal size={20} />{alertCount > 0 && !moreOpen && <span className="mobile-tab-dot" />}</span>
+      <span className="mobile-tab-more-icon"><MoreHorizontal size={20} />{(notificationUnreadCount || alertCount) > 0 && !moreOpen && <span className="mobile-tab-dot" />}</span>
       <span>المزيد</span>
     </button>
   </nav>

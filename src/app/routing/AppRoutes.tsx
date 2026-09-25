@@ -5,6 +5,7 @@ import type { Asset, Customer, Driver, FuelOperation, InventoryItem, Maintenance
 import type { Repository } from '../../core/repository/types'
 import type { ReportKey } from '../../pages/ReportsPage'
 import type { Trip, TripCost } from '../../features/trips/types'
+import type { AppNotification } from '../../features/notifications/types'
 import { GENERIC_MODULES } from '../../config/modules'
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from './routeRegistry'
 import { RouteGuard } from './RouteGuard'
@@ -38,6 +39,7 @@ const DataManagementPage = lazy(() => import('../../pages/DataManagementPage').t
 const GpsTrackingPage = lazy(() => import('../../pages/GpsTrackingPage').then(m => ({ default: m.GpsTrackingPage })))
 const ReportsPage = lazy(() => import('../../pages/ReportsPage').then(m => ({ default: m.ReportsPage })))
 const TrueCostReportPage = lazy(() => import('../../pages/TrueCostReportPage').then(m => ({ default: m.TrueCostReportPage })))
+const OperationsCenterPage = lazy(() => import('../../pages/OperationsCenterPage').then(m => ({ default: m.OperationsCenterPage })))
 
 registerModuleIcons({
   LayoutDashboard, Bell, ClipboardList, FileCheck2, Gauge, Truck, Building2, Container, UserRound,
@@ -84,6 +86,12 @@ type AppRoutesProps = {
   workflowModule: (record: KemexModuleRecord, previous: KemexModuleRecord, action: KemexWorkflowAction) => Promise<void>
   deleteModule: (module: string, id: string) => Promise<void>
   invalidateData: () => Promise<void>
+  notifications: AppNotification[]
+  notificationUnreadCount: number
+  notificationsLoading: boolean
+  onRefreshNotifications: () => Promise<void>
+  onMarkNotificationRead: (id: string) => Promise<void>
+  onMarkAllRead: () => Promise<void>
 }
 
 type AssetDetailRouteProps = Pick<AppRoutesProps, 'assets' | 'projects' | 'workOrders' | 'fuelOps' | 'trips' | 'moduleData'> & {
@@ -231,6 +239,12 @@ export function AppRoutes({
   workflowModule,
   deleteModule,
   invalidateData,
+  notifications,
+  notificationUnreadCount,
+  notificationsLoading,
+  onRefreshNotifications,
+  onMarkNotificationRead,
+  onMarkAllRead,
 }: AppRoutesProps) {
   const guard = (module: string, element: ReactNode) => <RouteGuard role={user.role} module={module} onRoute={navigate}>{element}</RouteGuard>
   const drivers = (moduleData.drivers as Driver[]) || []
@@ -269,8 +283,9 @@ export function AppRoutes({
   return <Routes>
     <Route path="/" element={<Navigate to="/dashboard" replace />} />
     <Route path="dashboard" element={guard('dashboard', <DashboardPage assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} onRoute={navigate} />)} />
-    <Route path="alerts" element={guard('alerts', <AlertsPage assets={assets} workOrders={workOrders} fuelOps={fuelOps} drivers={drivers as any} contracts={contracts} onRoute={navigate} alertDays={systemSettings.alertDays} alertKm={systemSettings.alertKm} alertHours={systemSettings.alertHours} plans={moduleData.plans ?? []} oils={moduleData.oils ?? []} />)} />
+    <Route path="alerts" element={guard('alerts', <AlertsPage user={user} notifications={notifications} unreadCount={notificationUnreadCount} onRefreshNotifications={onRefreshNotifications} onMarkNotificationRead={onMarkNotificationRead} onMarkAllRead={onMarkAllRead} assets={assets} workOrders={workOrders} fuelOps={fuelOps} drivers={drivers as any} contracts={contracts} onRoute={navigate} alertDays={systemSettings.alertDays} alertKm={systemSettings.alertKm} alertHours={systemSettings.alertHours} plans={moduleData.plans ?? []} oils={moduleData.oils ?? []} />)} />
     <Route path="operations" element={guard('operations', <OperationsWorkspacePage {...operationsWorkspaceProps} />)} />
+    <Route path="operations-center" element={guard('operations-center', <OperationsCenterPage user={user} assets={assets} workOrders={workOrders} trips={trips} drivers={drivers} contracts={contracts} notifications={notifications} onRoute={navigate} />)} />
     <Route path="tracking" element={guard('tracking', <GpsTrackingPage user={user} />)} />
     <Route path="assets" element={guard('assets', <FleetWorkspacePage {...fleetWorkspaceProps} />)} />
     <Route path="assets/edit/:id" element={guard('assets', <AssetEditRoute assets={assets} projects={projects} onSave={saveAsset} onRoute={navigate} canEdit={assetsCanEdit} />)} />

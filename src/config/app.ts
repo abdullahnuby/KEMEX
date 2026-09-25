@@ -54,6 +54,7 @@ export const NAVIGATION_GROUPS: readonly NavigationGroup[] = [
       {key:'assignments', label:'التخصيصات', icon:'ClipboardCheck', route:'assignments', hint:'تسليم واستلام وتخصيص الأصول'},
       {key:'fuel', label:'الوقود والاستهلاك', icon:'Fuel', route:'fuel', hint:'حركات الوقود والاستهلاك'},
       {key:'projects', label:'المشروعات والمواقع', icon:'Building2', route:'projects', hint:'المشروعات والمواقع ومراكز التكلفة'},
+      {key:'operations-center', label:'مركز التشغيل', icon:'Gauge', route:'operations-center', hint:'نظرة موحدة على الرحلات والاستثناءات والصيانة والتنبيهات'},
     ]
   },
   {
@@ -127,8 +128,8 @@ export type RoleKey = 'admin' | 'mgmt' | 'fleet' | 'pm' | 'eng' | 'maint' | 'acc
 export const ROLE_MODULES: Record<RoleKey, readonly string[] | '*'> = {
   admin: '*',
   mgmt: '*',
-  fleet: ['dashboard','alerts','assets','maintenance','operations','trips','inventory','costs','reports','projects','contracts','requests','assignments','drivers','fuel','charging','invoices','customers','breakdowns','plans','oils','tires','audit','true-cost','tracking'],
-  pm: ['dashboard','alerts','assets','operations','trips','costs','reports','projects','requests','assignments','drivers','breakdowns','charging','customers','invoices','true-cost','tracking'],
+  fleet: ['dashboard','alerts','assets','maintenance','operations','trips','inventory','costs','reports','projects','contracts','requests','assignments','drivers','fuel','charging','invoices','customers','breakdowns','plans','oils','tires','audit','true-cost','tracking','operations-center'],
+  pm: ['dashboard','alerts','assets','operations','trips','costs','reports','projects','requests','assignments','drivers','breakdowns','charging','customers','invoices','true-cost','tracking','operations-center'],
   eng: ['dashboard','alerts','assets','operations','reports','projects','requests','drivers','breakdowns'],
   maint: ['dashboard','alerts','assets','maintenance','inventory','reports','requests','purchases','drivers','breakdowns','plans','oils','tires','audit','operations'],
   acct: ['dashboard','alerts','assets','trips','costs','reports','projects','contracts','charging','invoices','customers','fuel','breakdowns','true-cost'],

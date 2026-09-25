@@ -1,12 +1,13 @@
 import { useMemo } from 'react'
 import { AlertTriangle, CheckCircle2, Clock3, FileWarning, Fuel, ShieldAlert, Wrench } from 'lucide-react'
-import type { Asset, Contract, Driver, FuelOperation, WorkOrder } from '../types/tfms'
+import type { Asset, Contract, Driver, FuelOperation, WorkOrder, User } from '../types/tfms'
+import type { AppNotification } from '../features/notifications/types'
 import { PageHeader, StatusBadge } from '../components/ui'
 
 import { APP_LOCALE } from '../shared/formatters/locale'
 type Alert = { id:string; title:string; entity:string; detail:string; severity:'عالي'|'متوسط'|'منخفض'; route:string; icon:'license'|'maintenance'|'contract'|'fuel'|'general' }
 
-export function AlertsPage({assets,workOrders,fuelOps,drivers,contracts,onRoute,alertDays=30,alertKm=1500,alertHours=80,plans=[],oils=[]}:{assets:Asset[];workOrders:WorkOrder[];fuelOps:FuelOperation[];drivers:Driver[];contracts:Contract[];onRoute:(route:string)=>void;alertDays?:number;alertKm?:number;alertHours?:number;plans?:Record<string,unknown>[];oils?:Record<string,unknown>[]}) {
+export function AlertsPage({user,notifications=[],unreadCount=0,onRefreshNotifications,onMarkNotificationRead,onMarkAllRead,assets,workOrders,fuelOps,drivers,contracts,onRoute,alertDays=30,alertKm=1500,alertHours=80,plans=[],oils=[]}:{user?:User;notifications?:AppNotification[];unreadCount?:number;onRefreshNotifications?:()=>Promise<void>;onMarkNotificationRead?:(id:string)=>Promise<void>;onMarkAllRead?:()=>Promise<void>;assets:Asset[];workOrders:WorkOrder[];fuelOps:FuelOperation[];drivers:Driver[];contracts:Contract[];onRoute:(route:string)=>void;alertDays?:number;alertKm?:number;alertHours?:number;plans?:Record<string,unknown>[];oils?:Record<string,unknown>[]}) {
   const alerts=useMemo(()=>buildAlerts(assets,workOrders,fuelOps,drivers,contracts,alertDays,alertKm,alertHours,plans,oils),[assets,workOrders,fuelOps,drivers,contracts,alertDays,alertKm,alertHours,plans,oils])
   const high=alerts.filter(x=>x.severity==='عالي').length
   const medium=alerts.filter(x=>x.severity==='متوسط').length
@@ -18,6 +19,10 @@ export function AlertsPage({assets,workOrders,fuelOps,drivers,contracts,onRoute,
       <Metric icon={AlertTriangle} label="الإجمالي" value={alerts.length}/>
       <Metric icon={CheckCircle2} label="لا توجد أخطاء نظام" value="جاهز"/>
     </div>
+    <section className="panel">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><strong>مركز الرسائل الموجهة</strong><p className="mt-1 text-sm text-slate-500">التنبيهات الناتجة من أحداث النظام والرحلات والحساب الحالي: {user?.name ?? 'المستخدم الحالي'}</p></div><div className="flex gap-2"><button type="button" className="secondary-button" onClick={()=>void onRefreshNotifications?.()}>تحديث</button><button type="button" className="secondary-button" onClick={()=>void onMarkAllRead?.()} disabled={!unreadCount}>تعيين الكل كمقروء</button></div></div>
+      {notifications.length ? <div className="space-y-2">{notifications.slice(0,12).map(n=><button key={n.id} type="button" className={`w-full rounded-xl border p-3 text-right ${n.read_at?'border-slate-200':'border-slate-300 bg-slate-50'}`} onClick={async()=>{if(!n.read_at && onMarkNotificationRead) await onMarkNotificationRead(n.id); if(n.link) onRoute(n.link.replace(/^\//,''));}}><div className="flex items-start justify-between gap-3"><div><strong>{n.title}</strong><p className="mt-1 text-sm text-slate-600">{n.body}</p></div>{!n.read_at&&<span className="rounded-full bg-red-100 px-2 py-1 text-[10px] font-black text-red-700">جديد</span>}</div></button>)}</div> : <div className="empty"><CheckCircle2 size={24}/><strong>لا توجد رسائل تشغيلية حديثة</strong></div>}
+    </section>
     <section className="panel">
       {!alerts.length ? <div className="empty"><CheckCircle2 size={26}/><strong>لا توجد تنبيهات نشطة</strong><span>كل الاستحقاقات الحالية داخل الحدود المسموح بها.</span></div> :
       <div className="alert-list">{alerts.map(a=><button className="alert-row" key={a.id} onClick={()=>onRoute(a.route)}>

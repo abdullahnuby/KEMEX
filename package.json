@@ -15,10 +15,11 @@
     "test:security": "node --test tests/db/action-authorization.test.mjs tests/frontend/permission-matrix.test.mjs",
     "verify:migrations": "node scripts/verify-migrations.mjs",
     "test:security:static": "node --test tests/frontend/permission-matrix.test.mjs",
-    "test:enterprise-sprint": "node --test tests/enterprise/sprint-052.test.mjs tests/frontend/gps-tracking-contract.test.mjs",
+    "test:enterprise-sprint": "node --test tests/enterprise/sprint-052.test.mjs tests/frontend/gps-tracking-contract.test.mjs tests/frontend/notifications-contract.test.mjs",
     "verify:production": "node scripts/verify-production.mjs",
     "test:map": "node --test tests/frontend/location-map-picker.test.mjs",
-    "test:gps": "node --test tests/db/gps-tracking.test.mjs tests/frontend/gps-tracking-contract.test.mjs"
+    "test:gps": "node --test tests/db/gps-tracking.test.mjs tests/frontend/gps-tracking-contract.test.mjs",
+    "test:notifications": "node --test tests/frontend/notifications-contract.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",

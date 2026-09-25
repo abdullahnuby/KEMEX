@@ -1,41 +1,54 @@
 import { AlertTriangle, ArrowUpRight, Bell, Check, LogOut, Search, UserRound, X, type LucideIcon } from 'lucide-react'
 import type { User } from '../../types/tfms'
+import type { AppNotification } from '../../features/notifications/types'
 import { ROLE_LABELS } from '../../config/app'
 
-export function NotificationPopover({ alertCount, onOpenAlerts }: { alertCount: number; onOpenAlerts: () => void }) {
+export function NotificationPopover({
+  notifications,
+  unreadCount,
+  loading,
+  onRefresh,
+  onMarkRead,
+  onMarkAllRead,
+  onOpenAlerts,
+}: {
+  notifications: AppNotification[]
+  unreadCount: number
+  loading: boolean
+  onRefresh: () => Promise<void>
+  onMarkRead: (id: string) => Promise<void>
+  onMarkAllRead: () => Promise<void>
+  onOpenAlerts: () => void
+}) {
   return (
     <section className="shell-popover shell-notification-popover" role="dialog" aria-label="التنبيهات">
       <div className="shell-popover-head">
         <div>
           <strong>التنبيهات</strong>
-          <span>{alertCount > 0 ? `${alertCount} تنبيه بحاجة للمراجعة` : 'لا توجد تنبيهات جديدة'}</span>
+          <span>{unreadCount ? `${unreadCount} تنبيه غير مقروء` : 'لا توجد تنبيهات غير مقروءة'}</span>
         </div>
-        <div className={`shell-popover-status ${alertCount > 0 ? 'is-alert' : 'is-clear'}`} aria-hidden="true">
-          {alertCount > 0 ? <AlertTriangle size={16} /> : <Check size={16} />}
+        <div className={`shell-popover-status ${unreadCount ? 'is-alert' : 'is-clear'}`} aria-hidden="true">
+          {unreadCount ? <AlertTriangle size={16} /> : <Check size={16} />}
         </div>
       </div>
       <div className="shell-popover-body">
-        {alertCount > 0 ? (
-          <button className="shell-alert-summary" onClick={onOpenAlerts}>
-            <span className="shell-alert-summary-icon"><Bell size={17} /></span>
-            <span className="shell-alert-summary-copy">
-              <strong>مركز التنبيهات</strong>
-              <small>راجع الاستحقاقات والتنبيهات التشغيلية قبل متابعة العمل.</small>
-            </span>
-            <ArrowUpRight size={16} />
-          </button>
-        ) : (
-          <div className="shell-empty-state">
-            <span className="shell-empty-icon"><Check size={17} /></span>
-            <div>
-              <strong>كل شيء هادئ</strong>
-              <small>لا توجد تنبيهات غير مقروءة حاليًا.</small>
-            </div>
-          </div>
-        )}
+        {loading ? <div className="shell-empty-state"><span className="shell-empty-icon"><Bell size={17} /></span><div><strong>جارٍ التحديث</strong><small>جاري تحميل التنبيهات...</small></div></div> : notifications.length ? <div className="max-h-80 space-y-2 overflow-auto">
+          {notifications.slice(0, 8).map(item => (
+            <button key={item.id} type="button" className={`w-full rounded-xl border p-3 text-right ${item.read_at ? 'border-slate-200 bg-white' : 'border-slate-300 bg-slate-50'}`} onClick={async () => { if (!item.read_at) await onMarkRead(item.id); if (item.link) onOpenAlerts() }}>
+              <div className="flex items-start justify-between gap-2"><strong className="text-sm">{item.title}</strong>{!item.read_at && <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black text-red-700">جديد</span>}</div>
+              <p className="mt-1 text-xs leading-5 text-slate-600">{item.body}</p>
+            </button>
+          ))}
+        </div> : <div className="shell-empty-state"><span className="shell-empty-icon"><Check size={17} /></span><div><strong>كل شيء هادئ</strong><small>لا توجد رسائل تشغيلية حديثة للحساب.</small></div></div>}
       </div>
       <div className="shell-popover-foot">
-        <button className="shell-popover-link" onClick={onOpenAlerts}>فتح مركز التنبيهات <ArrowUpRight size={14} /></button>
+        <div className="flex items-center justify-between gap-2">
+          <button className="shell-popover-link" type="button" onClick={onOpenAlerts}>فتح مركز التنبيهات <ArrowUpRight size={14} /></button>
+          <div className="flex gap-1">
+            <button type="button" className="shell-popover-link" onClick={() => void onRefresh()}>تحديث</button>
+            <button type="button" className="shell-popover-link" onClick={() => void onMarkAllRead()} disabled={!unreadCount}>تعيين الكل كمقروء</button>
+          </div>
+        </div>
       </div>
     </section>
   )

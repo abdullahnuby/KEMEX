@@ -18,11 +18,11 @@ test('driver execution exposes the requested normal state machine', () => {
   for (const state of normalFlow) assert.match(migration, new RegExp(`'${state}'`))
   assert.match(migration, /CREATE OR REPLACE FUNCTION public\.driver_trip_transition/)
   assert.match(migration, /IF\s+p_to_status\s*=\s*'to_pickup'\s+AND\s+t\.execution_status\s*=\s*'assigned'/)
-  assert.match(migration, /ELSIF p_to_status = 'pickup_confirmed' AND t\.execution_status = 'arrived_pickup'/)
-  assert.match(migration, /ELSIF p_to_status = 'in_transit' AND t\.execution_status = 'pickup_confirmed'/)
-  assert.match(migration, /ELSIF p_to_status = 'arrived_delivery' AND t\.execution_status = 'in_transit'/)
-  assert.match(migration, /ELSIF p_to_status = 'delivered' AND t\.execution_status = 'arrived_delivery'/)
-  assert.match(migration, /ELSIF p_to_status = 'completed' AND t\.execution_status = 'delivered'/)
+  assert.match(migration, /ELSIF\s+p_to_status\s*=\s*'pickup_confirmed'\s+AND\s+t\.execution_status\s*=\s*'arrived_pickup'/)
+  assert.match(migration, /ELSIF\s+p_to_status\s*=\s*'in_transit'\s+AND\s+t\.execution_status\s*=\s*'pickup_confirmed'/)
+  assert.match(migration, /ELSIF\s+p_to_status\s*=\s*'arrived_delivery'\s+AND\s+t\.execution_status\s*=\s*'in_transit'/)
+  assert.match(migration, /ELSIF\s+p_to_status\s*=\s*'delivered'\s+AND\s+t\.execution_status\s*=\s*'arrived_delivery'/)
+  assert.match(migration, /ELSIF\s+p_to_status\s*=\s*'completed'\s+AND\s+t\.execution_status\s*=\s*'delivered'/)
 })
 
 test('driver execution has no rejection workflow and server-side ownership checks', () => {

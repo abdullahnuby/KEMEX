@@ -18,6 +18,7 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
   { path: 'dashboard', module: 'dashboard', title: 'لوحة المعلومات', description: 'الصفحة الرئيسية لنظرة الإدارة على التشغيل والأسطول.', kind: 'page' },
   { path: 'alerts', module: 'alerts', title: 'التنبيهات', description: 'التنبيهات التشغيلية والمستندات والاستحقاقات.', kind: 'page' },
   { path: 'operations', module: 'operations', title: 'التشغيل اليومي', description: 'الساعات والعدادات التشغيلية اليومية والاعتماد.', kind: 'page' },
+  { path: 'operations-center', module: 'operations-center', title: 'مركز التشغيل', description: 'نظرة موحدة على الرحلات والاستثناءات والصيانة والتنبيهات.', kind: 'page' },
   { path: 'assets', module: 'assets', title: 'الأصول والأسطول', description: 'الأصول والمركبات والمعدات.', kind: 'page' },
   { path: 'assets/edit/:id', module: 'assets', title: 'تعديل الأصل', description: 'تعديل بيانات أصل موجود.', kind: 'detail' },
   { path: 'asset/:id', module: 'assets', title: 'تفاصيل الأصل', description: 'تفاصيل الأصل والتشغيل والوقود والصيانة.', kind: 'detail' },

@@ -12,6 +12,8 @@ import { ModuleRecordsPage } from '../pages/ModuleRecordsPage'
 import { ProjectDetailPage } from '../pages/ProjectDetailPage'
 import { TripsPage } from '../pages/TripsPage'
 import { TripDetailPage } from '../pages/TripDetailPage'
+import { OperationsCenterPage } from '../pages/OperationsCenterPage'
+import type { AppNotification } from '../features/notifications/types'
 import type { ReportKey } from '../pages/ReportsPage'
 import { GENERIC_MODULES } from '../config/modules'
 import { repository } from '../services/repositoryFactory'
@@ -37,7 +39,7 @@ const FinanceWorkspacePage = lazy(() => import('../pages/WorkspacesPage').then(m
 const AdminWorkspacePage = lazy(() => import('../pages/WorkspacesPage').then(m => ({ default: m.AdminWorkspacePage })))
 
 const TITLES: Record<string,string> = {
-  dashboard:'لوحة المعلومات', alerts:'التنبيهات', assets:'الأصول والأسطول', maintenance:'أوامر العمل', fuel:'الوقود', projects:'المشروعات',
+  dashboard:'لوحة المعلومات', alerts:'التنبيهات', assets:'الأصول والأسطول', maintenance:'أوامر العمل', fuel:'الوقود', projects:'المشروعات', 'operations-center':'مركز التشغيل',
   requests:'طلبات المعدات', assignments:'التخصيصات', operations:'التشغيل اليومي', trips:'النقل', drivers:'السائقون والمشغلون', contracts:'عقود الإيجار', customers:'العملاء',
   plans:'خطط الصيانة', oils:'الزيوت والفلاتر', tires:'الإطارات', inventory:'المخازن وقطع الغيار', movements:'حركة المخزون', purchases:'المشتريات',
   breakdowns:'الأعطال والتكاليف', 'breakdowns/new':'تسجيل عطل جديد', 'true-cost':'تقرير التكلفة الحقيقية', 'reports/true-cost':'تقرير التكلفة الحقيقية',
@@ -45,7 +47,7 @@ const TITLES: Record<string,string> = {
 }
 
 function descriptionFor(key:string){
-  const map:Record<string,string>={breakdowns:'إدارة الأعطال الميدانية والنقل والورش والتكاليف الحقيقية','true-cost':'تحليل التكلفة الحقيقية وساعات التوقف للأصول',requests:'طلبات المعدات ومسار الاعتماد',assignments:'تخصيص الأصول للمشروعات ومتابعة الإنهاء',operations:'الساعات والعدادات التشغيلية اليومية والاعتماد',trips:'الرحلات وكميات النقل والمسافات',drivers:'السائقون والمشغلون والرخص',customers:'العملاء والخدمات الخارجية',plans:'الصيانة الوقائية القائمة على الوقت والكم والساعة',oils:'خطط وتغييرات الزيوت والفلاتر',tires:'المخزون والحالات وحركة الإطارات',inventory:'قطع الغيار والأرصدة والحد الأدنى',movements:'حركة دخول وخروج المخزون',purchases:'طلبات الشراء ومسار الاعتماد',costs:'التكاليف المباشرة والإهلاك',charging:'التحميل الداخلي حسب المشروع',invoices:'الدورة المستندية للفواتير والمستحقات',reports:'تقارير الإدارة والتشغيل والمالية',users:'المستخدمون والأدوار والصلاحيات',audit:'سجل العمليات الحساسة والتدقيق',contracts:'عقود الإيجار وشروطها',settings:'إعدادات النظام وقواعد التنبيهات'}
+  const map:Record<string,string>={'operations-center':'نظرة موحدة على الرحلات والاستثناءات والصيانة والتنبيهات',breakdowns:'إدارة الأعطال الميدانية والنقل والورش والتكاليف الحقيقية','true-cost':'تحليل التكلفة الحقيقية وساعات التوقف للأصول',requests:'طلبات المعدات ومسار الاعتماد',assignments:'تخصيص الأصول للمشروعات ومتابعة الإنهاء',operations:'الساعات والعدادات التشغيلية اليومية والاعتماد',trips:'الرحلات وكميات النقل والمسافات',drivers:'السائقون والمشغلون والرخص',customers:'العملاء والخدمات الخارجية',plans:'الصيانة الوقائية القائمة على الوقت والكم والساعة',oils:'خطط وتغييرات الزيوت والفلاتر',tires:'المخزون والحالات وحركة الإطارات',inventory:'قطع الغيار والأرصدة والحد الأدنى',movements:'حركة دخول وخروج المخزون',purchases:'طلبات الشراء ومسار الاعتماد',costs:'التكاليف المباشرة والإهلاك',charging:'التحميل الداخلي حسب المشروع',invoices:'الدورة المستندية للفواتير والمستحقات',reports:'تقارير الإدارة والتشغيل والمالية',users:'المستخدمون والأدوار والصلاحيات',audit:'سجل العمليات الحساسة والتدقيق',contracts:'عقود الإيجار وشروطها',settings:'إعدادات النظام وقواعد التنبيهات'}
   return map[key]??'وحدة من وحدات إدارة النقل والأسطول.'
 }
 
@@ -97,6 +99,12 @@ export interface AppRoutesProps {
   navigate: (r:string)=>void
   data: AppRouteData
   actions: AppRouteActions
+  notifications: AppNotification[]
+  notificationUnreadCount: number
+  notificationsLoading: boolean
+  onRefreshNotifications: () => Promise<void>
+  onMarkNotificationRead: (id:string) => Promise<void>
+  onMarkAllRead: () => Promise<void>
 }
 
 // Route wrapper components: each reads the URL param(s) via useParams() and hands the
@@ -150,7 +158,7 @@ function GenericModuleRoute({data,navigate,actions,user}:{data:AppRouteData; nav
   return <ModuleRecordsPage module={route} records={data.moduleData[route]??[]} assets={data.assets} projects={data.projects} drivers={data.drivers as never} workOrders={data.workOrders} moduleData={data.moduleData} onSave={(record)=>actions.saveModule(route,record)} onWorkflow={(record,previous,action)=>actions.workflowModule(record,previous,action)} onNavigate={navigate} onDelete={(id)=>actions.deleteModule(route,id)} user={user as never}/>
 }
 
-export function AppRoutes({ user, route, navigate, data, actions }: AppRoutesProps) {
+export function AppRoutes({ user, route, navigate, data, actions, notifications, notificationUnreadCount, notificationsLoading, onRefreshNotifications, onMarkNotificationRead, onMarkAllRead }: AppRoutesProps) {
   const guard = (k:string, el: ReactNode) => canViewModule(user.role,k)
     ? el
     : <ModulePlaceholderPage title="غير مصرح" description="هذا القسم غير متاح للدور الحالي وفق مصفوفة الصلاحيات المرجعية." onRoute={navigate}/>
@@ -197,8 +205,9 @@ export function AppRoutes({ user, route, navigate, data, actions }: AppRoutesPro
   return <Routes>
     <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
     <Route path="dashboard" element={guard('dashboard', <DashboardPage assets={data.assets} projects={data.projects} workOrders={data.workOrders} fuelOps={data.fuelOps} operations={data.operations} onRoute={navigate}/>)}/>
-    <Route path="alerts" element={guard('alerts', <AlertsPage assets={data.assets} workOrders={data.workOrders} fuelOps={data.fuelOps} drivers={data.drivers as any} contracts={data.contracts as any} onRoute={navigate} alertDays={data.systemSettings.alertDays} alertKm={data.systemSettings.alertKm} alertHours={data.systemSettings.alertHours} plans={data.moduleData.plans??[]} oils={data.moduleData.oils??[]}/>)}/>
+    <Route path="alerts" element={guard('alerts', <AlertsPage user={user} notifications={notifications} unreadCount={notificationUnreadCount} onRefreshNotifications={onRefreshNotifications} onMarkNotificationRead={onMarkNotificationRead} onMarkAllRead={onMarkAllRead} assets={data.assets} workOrders={data.workOrders} fuelOps={data.fuelOps} drivers={data.drivers as any} contracts={data.contracts as any} onRoute={navigate} alertDays={data.systemSettings.alertDays} alertKm={data.systemSettings.alertKm} alertHours={data.systemSettings.alertHours} plans={data.moduleData.plans??[]} oils={data.moduleData.oils??[]}/>)} />
     <Route path="operations" element={guard('operations', <OperationsWorkspacePage {...operationsWorkspaceProps}/>)}/>
+    <Route path="operations-center" element={guard('operations-center', <OperationsCenterPage user={user} assets={data.assets} workOrders={data.workOrders} trips={data.trips} drivers={data.drivers} contracts={data.contracts} notifications={notifications} onRoute={navigate}/>)}/>
     <Route path="assets" element={guard('assets', <FleetWorkspacePage {...fleetWorkspaceProps}/>)}/>
     <Route path="assets/edit/:id" element={guard('assets', <AssetEditRoute data={data} navigate={navigate} actions={actions} canEdit={['admin','fleet','pm'].includes(user.role)}/>)}/>
     <Route path="asset/:id" element={guard('assets', <AssetDetailRoute data={data} navigate={navigate}/>)}/>

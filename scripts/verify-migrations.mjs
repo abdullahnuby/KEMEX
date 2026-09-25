@@ -27,5 +27,4 @@ for (const needle of ['CREATE OR REPLACE FUNCTION private.kemex_can_transition',
   if (!sql.toLowerCase().includes(needle.toLowerCase())) throw new Error(`Missing required migration construct: ${needle}`)
 }
 console.log('Historical production-only migration 028 is intentionally not replayed from the repository baseline.')
-console.log('Historical production-only migration 028 is intentionally not replayed from the repository baseline.')
 console.log(`KEMEX migrations OK (${files.length} ordered migrations; enterprise hardening through 024).`)

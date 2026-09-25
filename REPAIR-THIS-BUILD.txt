@@ -1,0 +1,26 @@
+KEMEX Notifications Build Repair
+
+استبدل الملفات الأربعة التالية داخل جذر المشروع مع الحفاظ على باقي الملفات:
+
+1) src/app/routes.tsx
+2) src/components/Layout.tsx
+3) src/components/shell/AppNavbar.tsx
+4) src/features/notifications/service.ts
+
+بعد الاستبدال شغل:
+
+npm.cmd run typecheck
+npm.cmd run build
+
+ثم: 
+npm.cmd run test:notifications
+npm.cmd run test:driver
+npm.cmd run test:gps
+npm.cmd run test:enterprise-sprint
+
+الإصلاحات:
+- تمرير notification state فعليًا من App/Layout/AppNavbar.
+- إصلاح destructuring المفقود في Layout وAppNavbar.
+- تمرير notificationUnreadCount إلى MobileTabBar.
+- alias متوافق notificationService -> notificationsService.
+- route صريح لـ operations-center قبل :moduleKey.
