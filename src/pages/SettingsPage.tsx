@@ -5,6 +5,7 @@ import type { Repository } from '../core/repository/types'
 import type { User } from '../types/tfms'
 import { CURRENCY_OPTIONS, normalizeCurrencyCode } from '../features/settings'
 import { Button, Card, PageHeader } from '../components/ui'
+import { ConfirmModal } from '../shared/ui'
 import { DataManagementPage } from './DataManagementPage'
 import { DEFAULT_PRINT_SETTINGS, normalizePrintSettings, PrintSettingsPreview, type PrintSettings } from '../shared/printing'
 
@@ -44,6 +45,7 @@ export function SettingsPage({ user, repository, onSaved }: { user: User; reposi
   const [loadError, setLoadError] = useState('')
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'general' | 'print' | 'data'>('general')
+  const [restoreDefaultsOpen, setRestoreDefaultsOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -229,14 +231,17 @@ function PrintSettingsPanel({ settings, can, onUpdate, onUpdateSignature }: {
   onUpdate: <K extends keyof PrintSettings>(key: K, value: PrintSettings[K]) => void
   onUpdateSignature: (index: number, value: string) => void
 }) {
+  const [logoError, setLogoError] = useState('')
+
   async function handleLogoChange(file?: File) {
     if (!file || !can) return
+    setLogoError('')
     if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type) && !/\.svg$/i.test(file.name)) {
-      window.alert('صيغة الشعار المدعومة: PNG أو JPG أو WEBP أو SVG.')
+      setLogoError('صيغة الشعار المدعومة: PNG أو JPG أو WEBP أو SVG.')
       return
     }
     if (file.size > 2 * 1024 * 1024) {
-      window.alert('حجم الشعار كبير. استخدم ملفًا لا يتجاوز 2 ميجابايت.')
+      setLogoError('حجم الشعار كبير. استخدم ملفًا لا يتجاوز 2 ميجابايت.')
       return
     }
 
@@ -245,8 +250,14 @@ function PrintSettingsPanel({ settings, can, onUpdate, onUpdateSignature }: {
     onUpdate('showLogo', true)
   }
 
+  function requestRestoreDefaults() {
+    if (!can) return
+    setRestoreDefaultsOpen(true)
+  }
+
   function restoreDefaults() {
     if (!can) return
+    setRestoreDefaultsOpen(false)
     onUpdate('applyGlobalTemplate', true)
     Object.entries(DEFAULT_PRINT_SETTINGS).forEach(([key, value]) => {
       if (key !== 'companyName' && key !== 'groupName') {
@@ -257,7 +268,9 @@ function PrintSettingsPanel({ settings, can, onUpdate, onUpdateSignature }: {
 
   return (
     <>
+      {logoError && <div className="global-error" role="alert">{logoError}</div>}
       <PageHeader title="إعدادات الطباعة" description="قالب مؤسسي مركزي يضبط شكل جميع التقارير والمستندات المطبوعة من مكان واحد، مع معاينة مباشرة. ويمكن تعطيله أو تجاوزه في أي مستند يحتاج تنسيقًا خاصًا." />
+      <ConfirmModal open={restoreDefaultsOpen} title="استعادة إعدادات الطباعة الافتراضية" description="سيتم إعادة إعدادات قالب الطباعة الحالية إلى القيم الافتراضية. لن يتم حفظ التغيير في قاعدة البيانات قبل الضغط على زر الحفظ." confirmLabel="استعادة الافتراضيات" cancelLabel="إلغاء" onCancel={() => setRestoreDefaultsOpen(false)} onConfirm={restoreDefaults} />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(360px,.9fr)] items-start">
         <Card>
@@ -322,7 +335,7 @@ function PrintSettingsPanel({ settings, can, onUpdate, onUpdateSignature }: {
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
             <div className="text-sm text-slate-600"><strong>القاعدة المركزية:</strong> الشعار واسم الشركة أعلى اليسار، عنوان المستند في الجهة المقابلة، واسم التطبيق — عند تفعيله — صغير جدًا أسفل اليسار. الإعدادات قابلة للتعديل أو الإلغاء ولا تجعل جميع المستندات متطابقة بالقوة.</div>
-            {can && <Button variant="ghost" size="sm" icon={<RotateCcw size={14} />} onClick={restoreDefaults}>استعادة الإعدادات الافتراضية</Button>}
+            {can && <Button variant="ghost" size="sm" icon={<RotateCcw size={14} />} onClick={requestRestoreDefaults}>استعادة الإعدادات الافتراضية</Button>}
           </div>
         </Card>
 

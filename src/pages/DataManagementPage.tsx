@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArchiveRestore, CloudDownload, DatabaseBackup, Download, FileSpreadsheet, RefreshCw, ShieldCheck, Upload } from 'lucide-react'
 import type { User } from '../types/tfms'
 import { Button, Card, PageHeader } from '../components/ui'
+import { ConfirmModal } from '../shared/ui'
 import { labelForTable, guessHeaderMapping, normalizeHeader, tableExportColumns, type DataColumn, type DataTable } from '../features/dataManagement/catalog'
 import { downloadBlob, readExcelFile, workbookBlob, type SheetData } from '../features/dataManagement/excel'
 import { exportDatabaseBackup, exportTable, importTableRows, getDataCatalog, parseBackup, registerBackup, type KemexBackup } from '../services/dataManagementService'
@@ -82,6 +83,7 @@ export function DataManagementPage({ user }: Props) {
   const [mapping, setMapping] = useState<Record<string, string>>({})
   const [backupPreview, setBackupPreview] = useState<KemexBackup | null>(null)
   const [backupProgress, setBackupProgress] = useState('')
+  const [restoreOpen, setRestoreOpen] = useState(false)
 
   const selectedTable = tables.find(table => table.table_name === selectedTableName) ?? null
   const visibleColumns = useMemo(() => selectedTable?.columns.slice().sort((a, b) => a.ordinal - b.ordinal) ?? [], [selectedTable])
@@ -101,7 +103,7 @@ export function DataManagementPage({ user }: Props) {
 
   async function downloadTemplate() {
     if (!selectedTable) return
-    resetFeedback(); setBusy(true)
+    resetFeedback(); setRestoreOpen(false); setBusy(true)
     try {
       const headers = tableExportColumns(selectedTable)
       const blob = workbookBlob([{ name: selectedTable.table_name, headers, rows: [] }])
@@ -192,11 +194,17 @@ export function DataManagementPage({ user }: Props) {
     } catch (e) { setError(errorText(e)); setBackupPreview(null) } finally { setBusy(false) }
   }
 
-  async function restoreBackup() {
+  function requestRestoreBackup() {
+    if (!backupPreview || busy) return
+    const importableEntries = Object.entries(backupPreview.tables).filter(([name]) => tables.find(table => table.table_name === name)?.importable)
+    if (!importableEntries.length) { setError('لا توجد جداول قابلة للاستعادة في النسخة.'); return }
+    setRestoreOpen(true)
+  }
+
+  async function confirmRestoreBackup() {
     if (!backupPreview) return
     const importableEntries = Object.entries(backupPreview.tables).filter(([name]) => tables.find(table => table.table_name === name)?.importable)
     if (!importableEntries.length) { setError('لا توجد جداول قابلة للاستعادة في النسخة.'); return }
-    if (!window.confirm('سيتم دمج البيانات الموجودة في النسخة مع قاعدة البيانات الحالية باستخدام المفتاح الأساسي. لن يتم حذف البيانات الحالية. يوصى بأخذ نسخة حالية أولًا. هل تريد المتابعة؟')) return
     resetFeedback(); setBusy(true)
     try {
       const restoreOrder = [
@@ -297,10 +305,12 @@ export function DataManagementPage({ user }: Props) {
         <div className="dm-actions"><Button icon={<DatabaseBackup size={15}/>} onClick={createBackup} disabled={busy || loading} loading={busy}>إنشاء نسخة احتياطية الآن</Button><Button icon={<ArchiveRestore size={15}/>} onClick={() => backupRef.current?.click()} disabled={busy}>اختيار نسخة للاستعادة</Button><input ref={backupRef} type="file" accept=".json,.kemex-backup.json" hidden onChange={event => { const file = event.target.files?.[0]; if (file) void readBackup(file); event.currentTarget.value = '' }} /></div>
       </Card>
 
-      {backupPreview && <Card>
+      <ConfirmModal open={restoreOpen} title="تأكيد استعادة النسخة الاحتياطية" description="سيتم دمج السجلات الموجودة في النسخة مع قاعدة البيانات الحالية باستخدام المفتاح الأساسي. لن يتم حذف السجلات الحالية، لكن يُنصح بأخذ نسخة جديدة قبل المتابعة." confirmLabel="استعادة النسخة" cancelLabel="إلغاء" busy={busy} onCancel={()=>!busy&&setRestoreOpen(false)} onConfirm={()=>void confirmRestoreBackup()}/>
+
+    {backupPreview && <Card>
         <div className="dm-card-head"><div><strong>محتوى النسخة</strong><span>تاريخ النسخة: {new Date(backupPreview.created_at).toLocaleString('ar-EG')}</span></div></div>
         <div className="dm-info-grid">{Object.entries(backupPreview.tables).map(([name, rows]) => <div key={name}><b>{rows.length}</b><span>{labelForTable(name)}{!tables.find(table => table.table_name === name)?.importable && ' — محمي'}</span></div>)}</div>
-        <div className="modal-actions"><Button icon={<ArchiveRestore size={15}/>} onClick={restoreBackup} disabled={busy} loading={busy}>استعادة البيانات</Button></div>
+        <div className="modal-actions"><Button icon={<ArchiveRestore size={15}/>} onClick={requestRestoreBackup} disabled={busy} loading={busy}>استعادة البيانات</Button></div>
       </Card>}
 
       <Card>

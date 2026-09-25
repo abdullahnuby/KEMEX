@@ -77,8 +77,8 @@ export function UsersPage({user,repository,drivers}:{user:User;repository:Reposi
       {id:'role',header:'الدور',render:x=><StatusBadge tone="blue">{ROLE_LABELS[x.role]}</StatusBadge>,sortValue:x=>ROLE_LABELS[x.role]},
       {id:'firstLogin',header:'أول دخول',render:x=>x.mustChangePassword?<StatusBadge tone="amber">سيُطلب تغيير كلمة المرور</StatusBadge>:<StatusBadge tone="gray">تم ضبط كلمة المرور</StatusBadge>},
       {id:'active',header:'الحالة',render:x=><StatusBadge tone={x.active===false?'gray':'emerald'}>{x.active===false?'موقوف':'نشط'}</StatusBadge>,sortValue:x=>x.active===false?0:1},
-      {id:'action',header:'إجراء',mobileVisible:false,render:x=>canManageUsers(user.role)?<Button variant="ghost" size="sm" icon={<Pencil size={15}/>} onClick={()=>setEditing({...x})}>تعديل</Button>:null},
-    ]} rowKey={x=>x.id} searchableText={x=>`${x.name} ${x.username} ${ROLE_LABELS[x.role]}`} emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا يوجد مستخدمون.</div>}/>
+      {id:'action',header:'إجراء',mobileVisible:true,render:x=>canManageUsers(user.role)?<Button variant="ghost" size="sm" icon={<Pencil size={15}/>} onClick={()=>setEditing({...x})}>تعديل</Button>:null},
+    ]} rowKey={x=>x.id} searchableText={x=>`${x.name} ${x.username} ${ROLE_LABELS[x.role]}`} filters={[{id:'role',label:'الدور',options:ROLE_OPTIONS.map(([value,label])=>({value,label})),getValue:x=>x.role},{id:'active',label:'الحالة',options:[{value:'active',label:'نشط'},{value:'inactive',label:'موقوف'}],getValue:x=>x.active===false?'inactive':'active'}]} mobilePresentation="cards" enableColumnVisibility columnVisibilityStorageKey="kemex.users.columns.v1" exportable exportFileName="KEMEX-users" emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا يوجد مستخدمون.</div>}/>
 
     {createOpen&&<FormModal title="إنشاء مستخدم جديد" onClose={()=>!busy&&setCreateOpen(false)}>
       <FormBlock title="بيانات الحساب" hint="هذا الحساب سيُنشأ في Supabase Authentication وملف المستخدم في KEMEX.">

@@ -4,6 +4,7 @@ import type { Asset, Driver, Project, WorkOrder } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { displayReference } from '../utils/referenceLabels'
 import { Button, DataTable, MetricCard, PageHeader, StatusBadge } from '../components/ui'
+import { OperationalSummaryStrip } from '../shared/ui'
 
 import { APP_LOCALE } from '../shared/formatters/locale'
 type Props={records:Record<string,unknown>[];approvalEvents?:Record<string,unknown>[];assets?:Asset[];projects?:Project[];drivers?:Driver[];workOrders?:WorkOrder[];moduleData?:Record<string,Record<string,unknown>[]>}
@@ -17,6 +18,7 @@ export function AuditPage({records,approvalEvents=[],assets=[],projects=[],drive
  return (
   <div className="space-y-6">
     <PageHeader title="سجل التدقيق" description="جميع العمليات الحساسة: المستخدم، العملية، التفاصيل والمصدر — سجل قراءة محمي." action={<Button variant="secondary" icon={<Download size={16} />} onClick={exportCsv}>تصدير CSV</Button>} />
+    <OperationalSummaryStrip items={timeline==='audit'?[{id:'total',label:'إجمالي الأحداث',value:records.length},{id:'visible',label:'الأحداث المعروضة',value:rows.length},{id:'actions',label:'أنواع العمليات',value:actions.length}]:[{id:'workflow',label:'أحداث دورة العمل',value:workflowRows.length},{id:'approvals',label:'اعتمادات',value:workflowRows.filter(r=>String(r.toStatus??'').includes('معتمد')||String(r.toStatus??'').includes('مكتمل')).length},{id:'actors',label:'المستخدمون المؤثرون',value:new Set(workflowRows.map(r=>String(r.actedBy??'')).filter(Boolean)).size}]} />
     <div className="flex flex-wrap gap-2"><Button variant={timeline==='audit'?'primary':'secondary'} onClick={()=>setTimeline('audit')}>سجل التدقيق</Button><Button variant={timeline==='workflow'?'primary':'secondary'} onClick={()=>setTimeline('workflow')}>سجل الاعتمادات ودورات العمل</Button></div>
     {timeline==='audit' ? <><div className="grid gap-4 sm:grid-cols-2">
       <MetricCard label="إجمالي الأحداث" value={records.length} icon={ShieldCheck} />
@@ -42,9 +44,15 @@ export function AuditPage({records,approvalEvents=[],assets=[],projects=[],drive
         { id: 'action', label: 'العملية', options: actions.map(value => ({ value, label: value })), getValue: r => String(r.action ?? '') },
         { id: 'source', label: 'المصدر', options: sources.map(value => ({ value, label: value })), getValue: r => String(r.source ?? '') },
       ]}
+      mobilePresentation="cards"
+      enableColumnVisibility
+      columnVisibilityStorageKey="kemex.audit.columns.v1"
+      exportable
+      exportFileName="KEMEX-audit"
+      printTitle="سجل التدقيق"
       emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد أحداث مطابقة.</div>}
     />}
-    {timeline==='workflow' && <DataTable rows={workflowRows} columns={[
+    {timeline==='workflow' && <DataTable mobilePresentation="cards" enableColumnVisibility columnVisibilityStorageKey="kemex.workflow-audit.columns.v1" exportable exportFileName="KEMEX-workflow-audit" printTitle="سجل دورات العمل والاعتمادات" rows={workflowRows} columns={[
       {id:'actedAt',header:'التاريخ والوقت',render:r=>formatDateTime(String(r.actedAt??'')),sortValue:r=>String(r.actedAt??'')},
       {id:'module',header:'الوحدة',render:r=>String(r.module??'—')},
       {id:'record',header:'السجل',render:r=>String(r.recordId??'—')},
