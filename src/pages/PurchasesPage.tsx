@@ -4,7 +4,6 @@ import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import type { InventoryItem, Project, StockMovement, User, Warehouse } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
-import { PrintRecordButton } from '../shared/printing'
 import { useCurrency } from '../features/settings'
 
 import { APP_LOCALE } from '../shared/formatters/locale'
@@ -39,6 +38,7 @@ export function PurchasesPage({records,user,projects,inventoryItems=[],warehouse
   const [error,setError]=useState('')
   const [busy,setBusy]=useState(false)
   const [receiving,setReceiving]=useState<RecordType|null>(null)
+  const [rejecting,setRejecting]=useState<RecordType|null>(null)
 
   const rows=useMemo(()=>records,[records])
 
@@ -66,15 +66,23 @@ export function PurchasesPage({records,user,projects,inventoryItems=[],warehouse
     }catch(err){setError(err instanceof Error?err.message:'تعذر إنشاء طلب الشراء.')}finally{setBusy(false)}
   }
 
-  async function action(record:RecordType, next:string, actionKey:'approve'|'reject') {
+  async function applyAction(record:RecordType, next:string, actionKey:'approve'|'reject') {
     if(!APPROVER_ROLES.includes(user.role)||busy)return
-    if(actionKey==='reject'&&!window.confirm('هل تريد رفض طلب الشراء؟'))return
     setBusy(true);setError('')
     try {
       const trail=Array.isArray(record.apprs)?record.apprs:[]
       await onSave({...record,status:next,apprs:[...trail,{by:user.name,act:actionKey==='approve'?'اعتماد طلب شراء':'رفض طلب شراء'}],reason:actionKey==='reject'?`رفض بواسطة ${user.name}`:record.reason})
+      setRejecting(null)
     } catch(err) { setError(err instanceof Error?err.message:'تعذر تنفيذ الإجراء.') }
     finally { setBusy(false) }
+  }
+
+  async function action(record:RecordType, next:string, actionKey:'approve'|'reject') {
+    if(actionKey==='reject') {
+      setRejecting(record)
+      return
+    }
+    await applyAction(record,next,actionKey)
   }
 
   function openPo(record:RecordType) {
@@ -126,7 +134,7 @@ export function PurchasesPage({records,user,projects,inventoryItems=[],warehouse
 
   const canApprove=APPROVER_ROLES.includes(user.role)
 
-  return <div className="space-y-6 workflow-page purchases-page">
+  return <div className="space-y-6">
     <PageHeader title="المشتريات وطلبات الشراء" description="الموقع يطلب ولا يشتري مباشرة: طلب ← مراجعة ← اعتماد ← إصدار أمر شراء." action={canEdit&&<Button icon={<Plus size={16}/>} onClick={openNew}>طلب شراء</Button>} />
     {error&&<div className="global-error" role="alert">{error}</div>}
     <div className="metric-grid compact">
@@ -145,25 +153,49 @@ export function PurchasesPage({records,user,projects,inventoryItems=[],warehouse
       rows={rows}
       columns={[
         { id:'number', header:'رقم الطلب', render:r=><strong>{String(r.number??r.id??'—')}</strong>, sortValue:r=>String(r.number??r.id??'') },
-        { id:'date', header:'التاريخ', render:r=>dateText(String(r.date??'')), sortValue:r=>String(r.date??'') },
-        { id:'req', header:'مقدم الطلب', render:r=>String(r.req??'—'), sortValue:r=>String(r.req??'') },
+        { id:'date', header:'التاريخ', render:r=>dateText(String(r.date??'')), sortValue:r=>String(r.date??''), hideOnMobile:true },
+        { id:'req', header:'مقدم الطلب', render:r=>String(r.req??'—'), sortValue:r=>String(r.req??''), hideOnMobile:true },
         { id:'desc', header:'الوصف', render:r=>String(r.desc??'—') },
         { id:'qty', header:'الكمية', render:r=>`${fmt(Number(r.qty||0))} ${String(r.unit??'')}`, sortValue:r=>Number(r.qty||0) },
-        { id:'est', header:'التقديري', render:r=>formatMoney(Number(r.est||0)), sortValue:r=>Number(r.est||0) },
+        { id:'est', header:'التقديري', render:r=>formatMoney(Number(r.est||0)), sortValue:r=>Number(r.est||0), hideOnMobile:true },
         { id:'proj', header:'المشروع', render:r=><ReferenceValue field="proj" value={r.proj} lookups={{projects}} /> },
         { id:'status', header:'الحالة', render:r=>{const status=String(r.status??'');return <StatusBadge tone={status==='مرفوض'?'red':status==='أمر شراء'||status==='معتمد'?'emerald':'amber'}>{status||'—'}</StatusBadge>}, sortValue:r=>String(r.status??'') },
-                { id:'supplier', header:'المورد', render:r=>String(r.supplier??'—') },
-        { id:'po', header:'أمر الشراء', render:r=>String(r.po??'—') },
-        { id:'received', header:'الاستلام', render:r=>`${fmt(Number(r.receivedQty||0))} / ${fmt(Number(r.qty||0))} ${String(r.unit??'')}` },
+                { id:'supplier', header:'المورد', render:r=>String(r.supplier??'—'), hideOnMobile:true },
+        { id:'po', header:'أمر الشراء', render:r=>String(r.po??'—'), hideOnMobile:true },
+        { id:'received', header:'الاستلام', render:r=>`${fmt(Number(r.receivedQty||0))} / ${fmt(Number(r.qty||0))} ${String(r.unit??'')}`, hideOnMobile:true },
         { id:'receiptStatus', header:'حالة الاستلام', render:r=>String(r.receiptStatus??'غير مستلم') },
 
-        ...((canEdit||canApprove)?[{ id:'actions', header:'إجراءات', render:(r:RecordType)=><div className="flex flex-wrap gap-2"><PrintRecordButton documentTitle={String(r.status)==='أمر شراء'?'أمر شراء':'طلب شراء'} documentNumber={String(r.po||r.number||r.id||'')} documentDate={String(r.date||'')} documentStatus={String(r.status||'')} meta={[{label:'مقدم الطلب',value:String(r.req||'—')},{label:'المورد',value:String(r.supplier||'—')},{label:'المشروع',value:String(r.proj||'—')},{label:'الصنف / الوصف',value:String(r.desc||'—')},{label:'الكمية',value:`${fmt(Number(r.qty||0))} ${String(r.unit||'')}`},{label:'التكلفة التقديرية',value:formatMoney(Number(r.est||0))},{label:'تاريخ الاحتياج',value:String(r.requiredDate||'—')},{label:'المخزن',value:String(r.warehouse||'—')}]} signatures={[{label:'إعداد الطلب'},{label:'مراجعة'},{label:'اعتماد'},{label:'المورد'}]} footerNote="مستند مشتريات صادر من نظام KEMEX."><div className="print-section-title">بيانات الطلب والتوريد</div><table><tbody><tr><th>البند</th><th>التفاصيل</th></tr><tr><td>سبب الطلب</td><td>{String(r.reason||'—')}</td></tr><tr><td>البند / الميزانية</td><td>{String(r.budget||'—')}</td></tr><tr><td>عدد عروض الأسعار</td><td>{String(r.quotationCount??0)}</td></tr><tr><td>شروط الدفع</td><td>{String(r.paymentTerms||'—')}</td></tr><tr><td>أمر الشراء</td><td>{String(r.po||'—')}</td></tr><tr><td>حالة الاستلام</td><td>{String(r.receiptStatus||'غير مستلم')}</td></tr><tr><td>الكمية المستلمة</td><td>{`${fmt(Number(r.receivedQty||0))} ${String(r.unit||'')}`}</td></tr><tr><td>ملاحظات</td><td>{String(r.notes||'—')}</td></tr></tbody></table></PrintRecordButton>{canApprove&&String(r.status)==='قيد الاعتماد'&&<><Button size="sm" icon={<CheckCircle2 size={13}/>} disabled={busy} onClick={()=>void action(r,'معتمد','approve')}>اعتماد</Button><Button variant="danger" size="sm" icon={<Ban size={13}/>} disabled={busy} onClick={()=>void action(r,'مرفوض','reject')}>رفض</Button></>}{canApprove&&String(r.status)==='معتمد'&&<Button size="sm" icon={<ShoppingCart size={13}/>} disabled={busy} onClick={()=>openPo(r)}>إصدار أمر شراء</Button>}{onReceive&&String(r.status)==='أمر شراء'&&Number(r.receivedQty||0)<Number(r.qty||0)&&<Button size="sm" variant="secondary" disabled={busy} onClick={()=>{setReceiving({...r});setError('')}}>استلام</Button>}{canEdit&&['قيد الاعتماد','مسودة'].includes(String(r.status))&&<Button variant="ghost" size="sm" icon={<Pencil size={14}/>} onClick={()=>setEditing({...r})}>تعديل</Button>}</div>}]:[]),
+        ...((canEdit||canApprove)?[{ id:'actions', header:'إجراءات', render:(r:RecordType)=><div className="flex flex-wrap gap-2">{canApprove&&String(r.status)==='قيد الاعتماد'&&<><Button size="sm" icon={<CheckCircle2 size={13}/>} disabled={busy} onClick={()=>void action(r,'معتمد','approve')}>اعتماد</Button><Button variant="danger" size="sm" icon={<Ban size={13}/>} disabled={busy} onClick={()=>void action(r,'مرفوض','reject')}>رفض</Button></>}{canApprove&&String(r.status)==='معتمد'&&<Button size="sm" icon={<ShoppingCart size={13}/>} disabled={busy} onClick={()=>openPo(r)}>إصدار أمر شراء</Button>}{onReceive&&String(r.status)==='أمر شراء'&&Number(r.receivedQty||0)<Number(r.qty||0)&&<Button size="sm" variant="secondary" disabled={busy} onClick={()=>{setReceiving({...r});setError('')}}>استلام</Button>}{canEdit&&['قيد الاعتماد','مسودة'].includes(String(r.status))&&<Button variant="ghost" size="sm" icon={<Pencil size={14}/>} onClick={()=>setEditing({...r})}>تعديل</Button>}</div>}]:[]),
       ]}
       rowKey={r=>String(r.id)}
       searchable
       search={q}
       onSearchChange={setQ}
       searchableText={r=>Object.values(r).map(v=>String(v??'')).join(' ')}
+      searchPlaceholder="ابحث برقم الطلب أو الوصف أو المورد أو أمر الشراء..."
+      filters={[
+        {
+          id:'status',
+          label:'الحالة',
+          options:[
+            {value:'قيد الاعتماد',label:'قيد الاعتماد'},
+            {value:'معتمد',label:'معتمد'},
+            {value:'أمر شراء',label:'أمر شراء'},
+            {value:'مرفوض',label:'مرفوض'},
+          ],
+          getValue:r=>String(r.status??''),
+        },
+        {
+          id:'receiptStatus',
+          label:'الاستلام',
+          options:[
+            {value:'غير مستلم',label:'غير مستلم'},
+            {value:'مستلم جزئي',label:'مستلم جزئي'},
+            {value:'مستلم بالكامل',label:'مستلم بالكامل'},
+          ],
+          getValue:r=>String(r.receiptStatus??'غير مستلم'),
+        },
+      ]}
       emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد طلبات مطابقة.</div>}
       enableColumnVisibility
       columnVisibilityStorageKey="kemex.purchases.columns.v1"
@@ -181,6 +213,17 @@ export function PurchasesPage({records,user,projects,inventoryItems=[],warehouse
       <div className="form-sections"><FormBlock title="المورد وأمر الشراء" hint="البيانات الأساسية لإصدار الأمر"><Input name="supplier" label="المورد" value={String(po.supplier??'')} required/><Input name="date" label="تاريخ أمر الشراء" type="date" value={new Date().toISOString().slice(0,10)} required/><Input name="paymentTerms" label="شروط الدفع" value={String(po.paymentTerms??'')} /><Input name="deliveryDate" label="تاريخ التوريد المتوقع" type="date" value={String(po.deliveryDate??'')} /></FormBlock><FormBlock title="القيمة والتسليم" hint="تفاصيل التنفيذ مع المورد"><Input name="quotationRef" label="مرجع عرض السعر" value={String(po.quotationRef??'')} /><Input name="deliveryLocation" label="مكان التسليم" value={String(po.deliveryLocation??'')} /><Input name="shipping" label="الشحن / النقل" type="number" value={String(po.shipping??0)} /><Input name="tax" label="الضريبة" type="number" value={String(po.tax??0)} /></FormBlock><label className="field field-full"><span>ملاحظات الأمر</span><textarea name="notes" defaultValue={String(po.notes??'')} rows={4} placeholder="شروط التوريد، الضمان، المستندات المطلوبة وملاحظات الاستلام..."/></label></div>
       <div className="modal-actions"><button type="button" className="secondary-button" onClick={()=>setPo(null)}>إلغاء</button><button className="primary-button" disabled={busy}>{busy?'جارٍ الإصدار...':'إصدار أمر الشراء'}</button></div>
     </form></div>}
+    <ConfirmModal
+      open={Boolean(rejecting)}
+      title="رفض طلب الشراء"
+      description={rejecting ? <>سيتم تغيير حالة الطلب <strong>{String(rejecting.number ?? rejecting.id ?? '—')}</strong> إلى «مرفوض» وتسجيل الإجراء باسم {user.name}.</> : ''}
+      confirmLabel="تأكيد الرفض"
+      danger
+      busy={busy}
+      onCancel={() => !busy && setRejecting(null)}
+      onConfirm={() => rejecting ? applyAction(rejecting,'مرفوض','reject') : undefined}
+    />
+
   </div>
 }
 

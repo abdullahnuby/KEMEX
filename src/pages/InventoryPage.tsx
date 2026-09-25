@@ -1,10 +1,9 @@
 import { AlertTriangle, ArrowDownToLine, Boxes, Pencil, Plus, ShoppingCart, type LucideIcon } from 'lucide-react'
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import type { Asset, InventoryItem, Project, StockMovement, StockMovementType, Warehouse, WorkOrder } from '../types/tfms'
 import { useCurrency } from '../features/settings'
 import { Button, DataTable, PageHeader, StatusBadge } from '../components/ui'
 import { OperationalSummaryStrip } from '../shared/ui'
-import { ReferenceValue } from '../components/ReferenceValue'
 
 /** Input accepted by the atomic stock-posting RPC. */
 type PostMovementInput = {
@@ -201,20 +200,51 @@ export function InventoryPage({
         <Metric icon={Boxes} label="الأصناف" value={items.length} />
         <Metric icon={AlertTriangle} label="تحت حد إعادة الطلب" value={lowStockCount} />
         <Metric icon={ShoppingCart} label="قيمة المخزون" value={formatMoney(inventoryValue)} />
+        <Metric icon={ArrowDownToLine} label="حركات المخزون" value={stockMovements.length} />
       </div>
+
+      <OperationalSummaryStrip items={[
+        { id: 'items', label: 'الأصناف', value: items.length },
+        { id: 'low', label: 'تحت حد إعادة الطلب', value: lowStockCount, tone: lowStockCount ? 'alert' : 'success' },
+        { id: 'value', label: 'قيمة المخزون', value: formatMoney(inventoryValue) },
+        { id: 'moves', label: 'الحركات', value: stockMovements.length },
+      ]} />
 
       <DataTable
         rows={filteredItems}
-        columns={[
+        search={query}
+        onSearchChange={setQuery}
+        searchPlaceholder="ابحث بالكود أو اسم الصنف أو الباركود..."
+        filters={[
+          {
+            id: 'stockHealth',
+            label: 'حالة المخزون',
+            options: [
+              { value: 'low', label: 'تحت حد إعادة الطلب' },
+              { value: 'normal', label: 'طبيعي' },
+            ],
+            getValue: item => {
+              const threshold = Math.max(item.reorderPoint, item.minimumQty)
+              return threshold > 0 && item.currentQty <= threshold ? 'low' : 'normal'
+            },
+          },
+          {
+            id: 'category',
+            label: 'التصنيف',
+            options: Array.from(new Set(items.map(item => item.category).filter(Boolean))).sort().map(value => ({ value, label: value })),
+            getValue: item => item.category,
+          },
+        ]}
+        columns={
           { id:'code', header:'الكود', render:item=><strong>{item.code}</strong>, sortValue:item=>item.code },
           { id:'name', header:'الصنف', render:item=>item.name, sortValue:item=>item.name },
-          { id:'category', header:'التصنيف', render:item=>item.category, sortValue:item=>item.category },
+          { id:'category', header:'التصنيف', render:item=>item.category, sortValue:item=>item.category, hideOnMobile:true },
           { id:'warehouse', header:'المخزن', render:item=>warehouses.find(w=>w.id===item.warehouseId)?.name || '—', sortValue:item=>warehouses.find(w=>w.id===item.warehouseId)?.name || '' },
           { id:'balance', header:'الرصيد', render:item=>{const threshold=Math.max(item.reorderPoint,item.minimumQty);const low=threshold>0&&item.currentQty<=threshold;return <StatusBadge tone={low?'amber':'emerald'}>{`${formatNumber(item.currentQty)} ${item.unit}`}</StatusBadge>}, sortValue:item=>item.currentQty },
-          { id:'threshold', header:'الحد / إعادة الطلب', render:item=>`${formatNumber(item.minimumQty)} / ${formatNumber(item.reorderPoint)}`, sortValue:item=>item.reorderPoint },
-          { id:'averageCost', header:'متوسط التكلفة', render:item=>formatMoney(item.averageCost), sortValue:item=>item.averageCost },
-          { id:'balanceValue', header:'قيمة الرصيد', render:item=>formatMoney(item.currentQty*item.averageCost), sortValue:item=>item.currentQty*item.averageCost },
-          { id:'actions', header:'إجراءات', render:item=><div className="flex flex-wrap gap-2"><Button variant="secondary" size="sm" icon={<ArrowDownToLine size={13}/>} onClick={()=>setMoving({item,type:'استلام'})}>حركة</Button>{Math.max(item.reorderPoint,item.minimumQty)>0&&item.currentQty<=Math.max(item.reorderPoint,item.minimumQty)&&<Button variant="secondary" size="sm" icon={<ShoppingCart size={13}/>} onClick={()=>void onCreatePurchase(item)}>طلب شراء</Button>}<Button variant="ghost" size="sm" icon={<Pencil size={14}/>} onClick={()=>setEditing({...item,openingQty:0,openingUnitCost:item.lastPurchaseCost})}>تعديل</Button></div> },
+          { id:'threshold', header:'الحد / إعادة الطلب', render:item=>`${formatNumber(item.minimumQty)} / ${formatNumber(item.reorderPoint)}`, sortValue:item=>item.reorderPoint, hideOnMobile:true },
+          { id:'averageCost', header:'متوسط التكلفة', render:item=>formatMoney(item.averageCost), sortValue:item=>item.averageCost, hideOnMobile:true },
+          { id:'balanceValue', header:'قيمة الرصيد', render:item=>formatMoney(item.currentQty*item.averageCost), sortValue:item=>item.currentQty*item.averageCost, hideOnMobile:true },
+          { id:'actions', header:'إجراءات', render:item=><div className="flex flex-wrap gap-2"><Button variant="secondary" size="sm" icon={<ArrowDownToLine size={13}/>} onClick={()=>setMoving({item,type:'استلام'})}>تسجيل حركة</Button>{Math.max(item.reorderPoint,item.minimumQty)>0&&item.currentQty<=Math.max(item.reorderPoint,item.minimumQty)&&<Button variant="secondary" size="sm" icon={<ShoppingCart size={13}/>} onClick={()=>void onCreatePurchase(item)}>طلب شراء</Button>}<Button variant="ghost" size="sm" icon={<Pencil size={14}/>} onClick={()=>setEditing({...item,openingQty:0,openingUnitCost:item.lastPurchaseCost})}>تعديل</Button></div> },
         ]}
         rowKey={item=>item.id}
         searchableText={item=>[item.code,item.name,item.category,item.brand,item.unit,item.barcode,item.location].join(' ')}
@@ -224,7 +254,6 @@ export function InventoryPage({
         exportable
         exportFileName="KEMEX-inventory"
         pageSizeOptions={[15, 30, 60]}
-        mobilePresentation="cards"
       />
 
       <section className="space-y-4">
@@ -238,10 +267,9 @@ export function InventoryPage({
             { id:'item', header:'الصنف', render:move=>items.find(item=>item.id===move.itemId)?.name || move.itemId, sortValue:move=>items.find(item=>item.id===move.itemId)?.name || move.itemId },
             { id:'quantity', header:'الكمية', render:move=>formatNumber(move.quantity), sortValue:move=>move.quantity },
             { id:'unitCost', header:'التكلفة', render:move=>formatMoney(move.unitCost), sortValue:move=>move.unitCost },
-            { id:'reference', header:'الربط', render:move=><ReferenceValue field={move.workOrderId ? 'workOrderId' : move.assetId ? 'assetId' : 'projectId'} value={move.workOrderId || move.assetId || move.projectId || null} lookups={{assets, projects, workOrders}} /> },
+            { id:'reference', header:'الربط', render:move=>move.workOrderId || move.assetId || move.projectId || '—' },
           ]}
           rowKey={move=>move.id}
-          mobilePresentation="cards"
           emptyState={<div className="px-6 py-16 text-center text-sm font-medium text-gray-500">لا توجد حركات مخزون.</div>}
           enableColumnVisibility
           columnVisibilityStorageKey="kemex.stock-movements.columns.v1"
