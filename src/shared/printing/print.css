@@ -1,0 +1,284 @@
+@page {
+  size: A4;
+  margin: 12mm 12mm 15mm;
+}
+
+.kemex-print-layer {
+  display: none;
+}
+
+.kemex-print-document {
+  direction: rtl;
+  color: #172a30;
+  background: #fff;
+  font-family: 'Alexandria', ui-sans-serif, system-ui, sans-serif;
+}
+
+.kemex-print-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #0b7285;
+}
+
+.kemex-print-brand,
+.kemex-print-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kemex-print-brand {
+  flex-direction: row;
+}
+
+.kemex-print-logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.kemex-print-company {
+  font-size: 17px;
+  font-weight: 900;
+  color: #16353f;
+}
+
+.kemex-print-group {
+  margin-top: 2px;
+  color: #71858d;
+  font-size: 9px;
+}
+
+.kemex-print-title {
+  min-width: 220px;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: right;
+}
+
+.kemex-print-title > span {
+  color: #7b9198;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.kemex-print-title h1 {
+  margin: 0;
+  color: #0b6671;
+  font-size: 21px;
+  line-height: 1.35;
+}
+
+.kemex-print-title strong {
+  color: #35545c;
+  font-size: 10px;
+  direction: ltr;
+  unicode-bidi: plaintext;
+}
+
+.kemex-print-document-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  padding: 9px 0;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #e0e8ea;
+  color: #637981;
+  font-size: 9px;
+}
+
+.kemex-print-document-bar b {
+  color: #304f58;
+}
+
+.kemex-print-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.kemex-print-meta-item {
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid #dbe6e8;
+  border-radius: 7px;
+  background: #fbfdfd;
+}
+
+.kemex-print-meta-item dt {
+  margin: 0 0 3px;
+  color: #71858d;
+  font-size: 7.5px;
+  font-weight: 800;
+}
+
+.kemex-print-meta-item dd {
+  margin: 0;
+  color: #1f3e47;
+  font-size: 9px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.kemex-print-content {
+  min-height: 130mm;
+}
+
+.kemex-print-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.kemex-print-content th,
+.kemex-print-content td {
+  padding: 7px 8px;
+  border: 1px solid #cfdcdf;
+  text-align: right;
+  vertical-align: top;
+  font-size: 8.5pt;
+}
+
+.kemex-print-content th {
+  background: #edf4f5;
+  color: #33545d;
+  font-weight: 900;
+}
+
+.kemex-print-content tr {
+  break-inside: avoid;
+}
+
+.kemex-print-content .print-section-title {
+  margin: 0 0 8px;
+  padding: 7px 9px;
+  background: #f3f8f9;
+  border-right: 3px solid #0b7285;
+  color: #26464f;
+  font-size: 10pt;
+  font-weight: 900;
+}
+
+.kemex-print-signatures {
+  display: grid;
+  gap: 16px;
+  margin-top: 22mm;
+  break-inside: avoid;
+}
+
+.kemex-print-signatures.signatures-1 {
+  grid-template-columns: 1fr;
+}
+
+.kemex-print-signatures.signatures-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.kemex-print-signatures.signatures-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.kemex-print-signatures.signatures-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.kemex-print-signature {
+  min-height: 35mm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.kemex-print-signature strong {
+  color: #34545d;
+  font-size: 9px;
+}
+
+.kemex-print-signature span {
+  color: #1f3e47;
+  font-size: 8.5px;
+  font-weight: 800;
+}
+
+.kemex-print-signature small {
+  min-height: 12px;
+  color: #7c9096;
+  font-size: 7.5px;
+}
+
+.kemex-print-signature-line {
+  width: 72%;
+  margin-top: auto;
+  border-bottom: 1px solid #6b8087;
+}
+
+.kemex-print-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 10mm;
+  padding-top: 6px;
+  border-top: 1px solid #dbe5e7;
+  color: #81949b;
+  font-size: 7.5px;
+}
+
+.kemex-print-page-number::after {
+  content: 'صفحة ' counter(page) ' من ' counter(pages);
+  white-space: nowrap;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  body.kemex-printing > * {
+    display: none !important;
+  }
+
+  body.kemex-printing > .kemex-print-layer {
+    display: block !important;
+  }
+
+  body.kemex-printing > .kemex-print-layer .kemex-print-document {
+    display: block !important;
+  }
+
+  .kemex-print-document {
+    width: 100%;
+  }
+
+  .kemex-print-content a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .kemex-print-content img,
+  .kemex-print-logo {
+    max-width: 100%;
+  }
+
+  .kemex-print-content h1,
+  .kemex-print-content h2,
+  .kemex-print-content h3 {
+    break-after: avoid;
+  }
+
+  .kemex-print-content section,
+  .kemex-print-meta-item {
+    break-inside: avoid;
+  }
+
+  .kemex-print-footer {
+    break-inside: avoid;
+  }
+}
