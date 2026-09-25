@@ -23,6 +23,7 @@ import { SettingsPage } from './SettingsPage'
 import { FuelPage } from './FuelPage'
 import { ModuleRecordsPage } from './ModuleRecordsPage'
 import { ContractsPage } from './ContractsPage'
+import { OperationalWorkflowPage } from './OperationalWorkflowPage'
 
 function Workspace({ children }: { children: ReactNode }) {
   return <main className="workspace-contentless enterprise-page" dir="rtl">{children}</main>
@@ -53,11 +54,12 @@ export function MaintenanceWorkspacePage(props:{assets:Asset[];projects:Project[
 export function OperationsWorkspacePage(props:{assets:Asset[];projects:Project[];drivers:Driver[];workOrders:WorkOrder[];clients:Customer[];costCenters:Array<{id:string;code:string;name:string;active:boolean}>;moduleData:Record<string,Record<string,unknown>[]>;fuelOps:FuelOperation[];user:User;onSaveFuel:(record:FuelOperation)=>Promise<void>;onSaveProject:(project:Project)=>Promise<void>;onSaveModule:(module:string,record:Record<string,unknown>)=>Promise<void>;onDeleteModule:(module:string,id:string)=>Promise<void>;onWorkflow:(record:Record<string,unknown>,previous:Record<string,unknown>,action:WorkflowAction)=>Promise<void>;onRoute:(route:string)=>void;initialTab?:'operations'|'requests'|'assignments'|'fuel'|'projects'}) {
   const visibleTabs = ['operations', ...(canViewModule(props.user.role,'requests') ? ['requests'] : []), ...(canViewModule(props.user.role,'assignments') ? ['assignments'] : []), ...(canViewModule(props.user.role,'fuel') ? ['fuel'] : []), ...(canViewModule(props.user.role,'projects') ? ['projects'] : [])] as const
   const tab = props.initialTab && visibleTabs.includes(props.initialTab) ? props.initialTab : 'operations'
+  const operational=(module:'operations'|'requests'|'assignments')=><OperationalWorkflowPage module={module} records={props.moduleData[module]??[]} onSave={(record)=>props.onSaveModule(module,record)} onWorkflow={props.onWorkflow} onNavigate={props.onRoute} user={props.user} assets={props.assets} projects={props.projects} drivers={props.drivers} workOrders={props.workOrders} clients={props.clients} moduleData={props.moduleData}/>
   const shared=(module:string)=><ModuleRecordsPage module={module} records={props.moduleData[module]??[]} onSave={(record)=>props.onSaveModule(module,record)} onDelete={(id)=>props.onDeleteModule(module,id)} onWorkflow={props.onWorkflow} onNavigate={props.onRoute} user={props.user} assets={props.assets} projects={props.projects} drivers={props.drivers} workOrders={props.workOrders} moduleData={props.moduleData}/>
   return <Workspace>
-    {tab==='operations'&&shared('operations')}
-    {tab==='requests'&&shared('requests')}
-    {tab==='assignments'&&shared('assignments')}
+    {tab==='operations'&&operational('operations')}
+    {tab==='requests'&&operational('requests')}
+    {tab==='assignments'&&operational('assignments')}
     {tab==='projects'&&<ProjectsPage projects={props.projects} assets={props.assets} clients={props.clients} costCenters={props.costCenters} onSave={canWriteModule('projects',props.user.role)?props.onSaveProject:undefined} onOpenDetail={project=>props.onRoute(`project/${project.id}`)}/>}{tab==='fuel'&&<FuelPage fuelOps={props.fuelOps} assets={props.assets} projects={props.projects} onSave={canWriteModule('fuel',props.user.role)?props.onSaveFuel:undefined}/>} 
   </Workspace>
 }
