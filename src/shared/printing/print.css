@@ -314,25 +314,25 @@
     display: block !important;
   }
 
-  body.kemex-printing > .kemex-print-layer .kemex-print-layer--landscape {
-  page: kemex-landscape;
-}
-
-.kemex-print-document {
-    display: block !important;
+  body.kemex-printing > .kemex-print-layer.kemex-print-layer--landscape {
+    page: kemex-landscape;
   }
 
-  .kemex-print-layer--landscape {
-  page: kemex-landscape;
-}
-
-.kemex-print-document {
+  .kemex-print-document {
+    display: block !important;
     width: 100%;
   }
 
   .kemex-print-content a {
     color: inherit;
     text-decoration: none;
+  }
+
+  .kemex-print-content button,
+  .kemex-print-content input,
+  .kemex-print-content select,
+  .kemex-print-content textarea {
+    display: none !important;
   }
 
   .kemex-print-content img,
@@ -351,7 +351,20 @@
     break-inside: avoid;
   }
 
-  .kemex-print-footer {
+  .kemex-print-content table {
+    break-inside: auto;
+  }
+
+  .kemex-print-content thead {
+    display: table-header-group;
+  }
+
+  .kemex-print-content tr {
+    break-inside: avoid;
+  }
+
+  .kemex-print-footer,
+  .kemex-print-signatures {
     break-inside: avoid;
   }
 }

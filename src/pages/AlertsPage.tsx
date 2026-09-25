@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, Clock3, FileWarning, Fuel, ShieldAlert, Wr
 import type { Asset, Contract, Driver, FuelOperation, WorkOrder, User } from '../types/tfms'
 import type { AppNotification } from '../features/notifications/types'
 import { PageHeader, StatusBadge } from '../components/ui'
+import { PrintRecordButton } from '../shared/printing'
 
 import { APP_LOCALE } from '../shared/formatters/locale'
 type Alert = { id:string; title:string; entity:string; detail:string; severity:'عالي'|'متوسط'|'منخفض'; route:string; icon:'license'|'maintenance'|'contract'|'fuel'|'general' }
@@ -12,7 +13,7 @@ export function AlertsPage({user,notifications=[],unreadCount=0,onRefreshNotific
   const high=alerts.filter(x=>x.severity==='عالي').length
   const medium=alerts.filter(x=>x.severity==='متوسط').length
   return <div className="space-y-6">
-    <PageHeader title="التنبيهات والاستحقاقات" description="متابعة الاستحقاقات التشغيلية والصيانة والتعاقدات من شاشة واحدة." />
+    <PageHeader title="التنبيهات والاستحقاقات" description="متابعة الاستحقاقات التشغيلية والصيانة والتعاقدات من شاشة واحدة." action={<PrintRecordButton documentTitle="تقرير التنبيهات والاستحقاقات" documentNumber={`ALR-${new Date().toISOString().slice(0,10)}`} meta={[{label:"إجمالي التنبيهات",value:alerts.length},{label:"عالية",value:high},{label:"متوسطة",value:medium},{label:"غير المقروء",value:unreadCount}]} signatures={[{label:"إعداد"},{label:"مراجعة"},{label:"اعتماد"}]}><div className="print-section-title">التنبيهات النشطة</div>{alerts.length?<table><thead><tr><th>العنوان</th><th>الكيان</th><th>التفاصيل</th><th>الخطورة</th></tr></thead><tbody>{alerts.map(a=><tr key={a.id}><td>{a.title}</td><td>{a.entity}</td><td>{a.detail}</td><td>{a.severity}</td></tr>)}</tbody></table>:<p>لا توجد تنبيهات نشطة.</p>}</PrintRecordButton>} />
     <div className="metric-grid compact">
       <Metric icon={ShieldAlert} label="عالية" value={high}/>
       <Metric icon={Clock3} label="متوسطة" value={medium}/>

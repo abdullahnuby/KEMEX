@@ -1,5 +1,6 @@
-import { memo, useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { memo, useDeferredValue, useEffect, useId, useMemo, useState, type ReactNode } from 'react'
 import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Columns3, Download, Minus, Search } from 'lucide-react'
+import { PrintButton, PrintableDocument } from '../../shared/printing'
 
 export type SortDirection = 'asc' | 'desc'
 
@@ -41,6 +42,10 @@ export interface DataTableProps<T> {
   filters?: readonly DataTableFilter<T>[]
   initialSort?: { columnId: string; direction?: SortDirection }
   className?: string
+  /** Shows the shared KEMEX print action and print-only full dataset. */
+  printable?: boolean
+  printTitle?: string
+  printOrientation?: 'portrait' | 'landscape'
   loading?: boolean
   stickyHeader?: boolean
   enableColumnVisibility?: boolean
@@ -80,6 +85,38 @@ function exportColumnValue<T>(row: T, column: DataTableColumn<T>): unknown {
 function renderColumn<T>(row: T, column: DataTableColumn<T>): ReactNode {
   if (column.render) return column.render(row)
   return String(columnValue(row, column) ?? '')
+}
+
+function isLikelyActionColumn<T>(column: DataTableColumn<T>): boolean {
+  const token = `${columnId(column)} ${column.header}`.toLocaleLowerCase('ar')
+  return /action|actions|إجراء|إجراءات|تعديل|خيارات|اختيار|حذف/.test(token)
+}
+
+function resolvePrintTitle<T>(exportFileName: string, explicit?: string): string {
+  if (explicit?.trim()) return explicit.trim()
+  const token = exportFileName.toLocaleLowerCase('en-US')
+  const map: Array<[RegExp, string]> = [
+    [/driver/, 'سجل السائقين والمشغلين'],
+    [/asset/, 'سجل الأصول والمعدات'],
+    [/contract/, 'سجل العقود'],
+    [/maintenance|work-order|workorder/, 'سجل أوامر الصيانة'],
+    [/breakdown/, 'سجل الأعطال والبلاغات'],
+    [/trip|transport/, 'سجل عمليات النقل'],
+    [/fuel/, 'سجل عمليات الوقود'],
+    [/tire/, 'سجل الإطارات'],
+    [/oil/, 'سجل الزيوت'],
+    [/purchase/, 'سجل المشتريات وأوامر الشراء'],
+    [/inventory|warehouse|stock/, 'سجل المخزون والمستودعات'],
+    [/invoice/, 'سجل الفواتير والمستحقات'],
+    [/cost/, 'سجل التكاليف'],
+    [/project/, 'سجل المشروعات'],
+    [/customer|client/, 'سجل العملاء'],
+    [/charging/, 'سجل الشحن والتعريفات'],
+    [/audit/, 'سجل التدقيق والعمليات'],
+    [/user/, 'سجل المستخدمين والصلاحيات'],
+    [/notification|alert/, 'سجل التنبيهات'],
+  ]
+  return map.find(([pattern]) => pattern.test(token))?.[1] ?? 'تقرير بيانات KEMEX'
 }
 
 function compareValues(a: unknown, b: unknown): number {
@@ -156,6 +193,9 @@ export function DataTable<T>({
   search,
   onSearchChange,
   className = '',
+  printable = true,
+  printTitle,
+  printOrientation,
   loading = false,
   stickyHeader = true,
   enableColumnVisibility = false,
@@ -222,6 +262,8 @@ export function DataTable<T>({
     })
   }, [columns, filteredRows, sort])
 
+  const printInstanceId = useId().replace(/:/g, '')
+  const printId = `kemex-table-print-${printInstanceId}`
   const effectivePageSize = Math.max(1, currentPageSize)
   const pageCount = Math.max(1, Math.ceil(sortedRows.length / effectivePageSize))
   const safePage = Math.min(page, pageCount)
@@ -300,6 +342,7 @@ export function DataTable<T>({
             </div>}
           </div>}
           {exportable && <button type="button" className="ui-data-table__tool-button" onClick={() => downloadCsv(sortedRows, visibleColumns, exportFileName)}><Download size={15} /> تصدير</button>}
+          {printable && <PrintButton printId={printId} documentTitle={resolvePrintTitle(exportFileName, printTitle)} label="طباعة" disabled={!sortedRows.length} className="ui-data-table__print-button" />}
           {toolbarActions}
         </div>
       </div>
@@ -377,6 +420,37 @@ export function DataTable<T>({
           )}
         </>
       ) : emptyState ?? <div className="ui-data-table__empty">لا توجد سجلات مطابقة.</div>}
+
+      {printable && sortedRows.length > 0 && (
+        <PrintableDocument
+          printId={printId}
+          documentTitle={resolvePrintTitle(exportFileName, printTitle)}
+          orientation={printOrientation ?? (visibleColumns.filter(column => !isLikelyActionColumn(column)).length > 7 ? 'landscape' : 'portrait')}
+          meta={[
+            { label: 'عدد السجلات', value: sortedRows.length },
+            { label: 'تاريخ الطباعة', value: new Date().toISOString().slice(0, 10) },
+            { label: 'البحث / الفلاتر', value: query || 'بدون' },
+          ]}
+          signatures={[{ label: 'إعداد المستند' }, { label: 'مراجعة' }, { label: 'اعتماد' }]}
+          footerNote="نسخة مطبوعة من بيانات KEMEX — تم إنشاء هذا المستند من السجلات المعروضة بعد تطبيق البحث والفلاتر والترتيب الحالي."
+        >
+          <div className="print-section-title">بيانات السجل</div>
+          <div className="kemex-print-report-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  {visibleColumns.filter(column => !isLikelyActionColumn(column)).map(column => <th key={columnId(column)}>{column.header}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {sortedRows.map(row => <tr key={rowKey(row)}>
+                  {visibleColumns.filter(column => !isLikelyActionColumn(column)).map(column => <td key={columnId(column)}>{renderColumn(row, column)}</td>)}
+                </tr>)}
+              </tbody>
+            </table>
+          </div>
+        </PrintableDocument>
+      )}
 
       <footer className="ui-data-table__footer flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="ui-data-table__footer-meta"><span>{filteredRows.length} نتيجة</span>{sortedRows.length > effectivePageSize && <><span>·</span><span>صفحة {safePage} من {pageCount}</span></>}</div>

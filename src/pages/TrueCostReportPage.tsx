@@ -6,7 +6,6 @@ import {
   Download,
   FileSpreadsheet,
   Layers,
-  Printer,
   RotateCcw,
   TrendingUp,
   Truck,
@@ -16,6 +15,7 @@ import type { TrueCostAssetRow } from '../types/breakdown'
 import { useTrueCostReport } from '../hooks/useBreakdown'
 import { Button, DataTable, FilterBar, MetricCard, PageHeader, StatusBadge, type DataTableColumn } from '../components/ui'
 import { useCurrency } from '../features/settings'
+import { PrintButton, PrintableDocument } from '../shared/printing'
 
 export function TrueCostReportPage() {
   const { formatMoney } = useCurrency()
@@ -157,7 +157,12 @@ export function TrueCostReportPage() {
         }
         action={
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" icon={<Printer size={16} />} onClick={() => window.print()}>طباعة التقرير</Button>
+            <PrintButton
+              printId="true-cost-report"
+              documentTitle="تقرير التكلفة الحقيقية للأصول"
+              label="طباعة التقرير"
+              disabled={!sortedRows.length}
+            />
             <Button variant="primary" icon={<Download size={16} />} onClick={handleExportCsv} disabled={!sortedRows.length}>تصدير CSV</Button>
           </div>
         }
@@ -224,6 +229,59 @@ export function TrueCostReportPage() {
           />
         )}
       </section>
+
+      <PrintableDocument
+        printId="true-cost-report"
+        documentTitle="تقرير التكلفة الحقيقية للأصول"
+        documentNumber="TRUE-COST"
+        documentDate={new Date().toLocaleDateString('ar-EG')}
+        companyName="KEMEX"
+        reference={`عدد الأصول: ${sortedRows.length}`}
+        meta={[
+          { label: 'الفترة من', value: fromDate || 'بداية البيانات' },
+          { label: 'الفترة إلى', value: toDate || 'حتى تاريخ الإصدار' },
+          { label: 'إجمالي التكاليف المباشرة', value: formatMoney(totalDirect) },
+          { label: 'إجمالي التكاليف غير المباشرة', value: formatMoney(totalIndirect) },
+          { label: 'التكلفة الحقيقية الكاملة', value: formatMoney(totalGrand) },
+          { label: 'إجمالي ساعات التوقف', value: `${totalDowntimeHours.toFixed(1)} س` },
+        ]}
+        signatures={[
+          { label: 'إعداد التقرير' },
+          { label: 'مراجعة' },
+          { label: 'اعتماد' },
+        ]}
+        footerNote="هذا المستند صادر من نظام KEMEX ويعرض التكلفة الحقيقية المسجلة للأصول خلال الفترة المحددة."
+        orientation="landscape"
+      >
+        <h2 className="print-section-title">بيانات التكلفة الحقيقية مجمعة حسب الأصل</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>المعدة / الأصل</th>
+              <th>عدد الأعطال</th>
+              <th>التكاليف المباشرة</th>
+              <th>التكاليف غير المباشرة</th>
+              <th>الإجمالي الكامل</th>
+              <th>ساعات التوقف</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedRows.map(row => (
+              <tr key={`print-${row.asset_id}`}>
+                <td>
+                  <strong>{row.asset_name}</strong>
+                  <div style={{ color: '#71858d', fontSize: '8pt', marginTop: 2 }}>كود: {row.asset_code}</div>
+                </td>
+                <td>{row.breakdown_count}</td>
+                <td>{formatMoney(row.total_direct)}</td>
+                <td>{formatMoney(row.total_indirect)}</td>
+                <td><strong>{formatMoney(row.total_full)}</strong></td>
+                <td>{row.downtime_hours.toFixed(1)} س</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </PrintableDocument>
     </div>
   )
 }
