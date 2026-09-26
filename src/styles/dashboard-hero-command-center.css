@@ -447,3 +447,129 @@
     text-align: center !important;
   }
 }
+
+
+/* KEMEX final visual correction:
+   - Arabic copy is explicitly RTL.
+   - Quick-action card icon returns to the RIGHT.
+   - Card text sits next to the icon, vertically centered, not under it.
+*/
+.dashboard-ad-hero--command .dashboard-ad-copy,
+.dashboard-ad-hero--command .dashboard-ad-copy * {
+  direction: rtl !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-copy {
+  text-align: right !important;
+  align-items: flex-end !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-copy h1 {
+  direction: rtl !important;
+  unicode-bidi: plaintext !important;
+  text-align: right !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-copy h1 > span,
+.dashboard-ad-hero--command .dashboard-ad-copy h1 > em {
+  direction: rtl !important;
+  unicode-bidi: isolate !important;
+  white-space: nowrap !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-copy p,
+.dashboard-ad-hero--command .dashboard-ad-kicker,
+.dashboard-ad-hero--command .dashboard-ad-trust,
+.dashboard-ad-hero--command .dashboard-hero-quick,
+.dashboard-ad-hero--command .dashboard-hero-quick-head,
+.dashboard-ad-hero--command .dashboard-hero-quick-head * {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+/* Quick cards: RTL row, icon on the RIGHT, label beside it. */
+.dashboard-ad-hero--command .dashboard-hero-quick-grid {
+  direction: rtl !important;
+}
+
+.dashboard-ad-hero--command .dashboard-hero-quick-grid button {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 30px !important;
+  grid-template-rows: 1fr !important;
+  align-items: center !important;
+  justify-items: stretch !important;
+  column-gap: 10px !important;
+  flex-direction: initial !important;
+  min-height: 58px !important;
+  padding: 9px 10px !important;
+  text-align: right !important;
+  direction: rtl !important;
+}
+
+.dashboard-ad-hero--command .dashboard-hero-quick-grid button > span {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  width: 30px !important;
+  height: 30px !important;
+  margin: 0 !important;
+  justify-self: end !important;
+  align-self: center !important;
+}
+
+.dashboard-ad-hero--command .dashboard-hero-quick-grid button strong {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  display: block !important;
+  text-align: right !important;
+  direction: rtl !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.35 !important;
+}
+
+.dashboard-ad-hero--command .dashboard-device-preview,
+.dashboard-ad-hero--command .dashboard-device-topbar,
+.dashboard-ad-hero--command .dashboard-preview-kpis,
+.dashboard-ad-hero--command .dashboard-preview-kpis article,
+.dashboard-ad-hero--command .dashboard-preview-panels,
+.dashboard-ad-hero--command .dashboard-preview-panel-head,
+.dashboard-ad-hero--command .dashboard-preview-health {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.dashboard-ad-hero--command .dashboard-preview-chart {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.dashboard-ad-hero--command .dashboard-preview-chart .analytics-chart {
+  direction: ltr !important;
+}
+
+.dashboard-activity,
+.dashboard-activity * {
+  direction: rtl !important;
+}
+
+.dashboard-activity {
+  text-align: right !important;
+}
+
+@media (max-width: 760px) {
+  .dashboard-ad-hero--command .dashboard-hero-quick-grid button {
+    grid-template-columns: minmax(0, 1fr) 30px !important;
+    min-height: 62px !important;
+    text-align: right !important;
+  }
+
+  .dashboard-ad-hero--command .dashboard-hero-quick-grid button > span {
+    justify-self: end !important;
+  }
+
+  .dashboard-ad-hero--command .dashboard-hero-quick-grid button strong {
+    text-align: right !important;
+  }
+}

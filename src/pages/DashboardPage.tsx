@@ -17,8 +17,8 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
   const openWo = dashboard.openWo
 
   return <div className="dashboard-page dashboard-page--executive dashboard-page--adlike">
-    <section className="dashboard-ad-hero dashboard-ad-hero--command" aria-label="KEMEX الرئيسية">
-      <div className="dashboard-device-preview" aria-label="ملخص تشغيلي مباشر">
+    <section className="dashboard-ad-hero dashboard-ad-hero--command" aria-label="KEMEX الرئيسية" dir="ltr">
+      <div className="dashboard-device-preview" aria-label="ملخص تشغيلي مباشر" dir="rtl">
         <div className="dashboard-device-topbar">
           <div><strong>لوحة القيادة</strong><small>KEMEX Operations</small></div>
           <span className="dashboard-live-dot"><i /> مباشر</span>
@@ -41,7 +41,7 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
         </div>
       </div>
 
-      <div className="dashboard-ad-copy">
+      <div className="dashboard-ad-copy" dir="rtl">
         <span className="dashboard-ad-kicker">KEMEX · منصة إدارة اللوجستيات والعمليات</span>
         <h1><span>إدارة أذكى ..</span> <em>تشغيل أقوى</em></h1>
         <p>كل ما تحتاجه لإدارة أسطولك وأصولك وعملياتك وتكاليفك في منصة واحدة، برؤية تشغيلية واضحة وسريعة.</p>
@@ -56,7 +56,7 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
           <span><CircleCheckBig size={15} /> بيانات تشغيلية مباشرة</span>
         </div>
 
-        <div className="dashboard-hero-quick" aria-label="العمليات السريعة">
+        <div className="dashboard-hero-quick" aria-label="العمليات السريعة" dir="rtl">
           <div className="dashboard-hero-quick-head">
             <span>ابدأ من هنا</span>
             <strong>العمليات السريعة</strong>
@@ -88,7 +88,7 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
     </section>
 
 
-    <section className="dashboard-activity" aria-label="آخر النشاطات">
+    <section className="dashboard-activity" aria-label="آخر النشاطات" dir="rtl">
       <div className="dashboard-details-head dashboard-activity-head">
         <div>
           <span>آخر النشاطات</span>
