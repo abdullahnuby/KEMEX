@@ -1,3 +1,7 @@
-# KEMEX Dashboard — Final Hero Scale Correction
+# KEMEX Dashboard Build Fix
 
-Refines only `src/styles/dashboard-home.css` so the Hero copy is compact and the live operational preview gets the dominant visual space. No business logic, Supabase, routes, or navbar/sidebar changes.
+Build-only fix for `src/pages/DashboardPage.tsx`.
+
+Changed the `StatusBadge` tone for completed work orders from `green` to the supported `emerald` tone.
+
+No database, routing, layout, or dashboard behavior changes.
