@@ -1,0 +1,205 @@
+
+/* KEMEX brand identity
+   Product umbrella: Logistics & Operations Management Platform.
+   This file is intentionally isolated from page-specific styles. */
+:root {
+  --kemex-navy: #0b2f55;
+  --kemex-blue: #0e83d8;
+  --kemex-cyan: #18b6db;
+  --kemex-teal: #12a69b;
+  --kemex-gold: #f5ab1c;
+  --kemex-red: #e05a5a;
+  --kemex-ink: #102f49;
+  --kemex-muted: #6f8492;
+  --kemex-surface: #f5f8fb;
+}
+
+.site-navbar {
+  background: rgba(248, 251, 253, .96);
+  border-bottom-color: #d9e4ec;
+  box-shadow: 0 9px 30px rgba(11, 47, 85, .075);
+}
+
+.navbar-context {
+  align-items: center;
+  gap: 12px;
+}
+
+.kemex-navbar-logo {
+  display: block;
+  width: 158px;
+  height: 46px;
+  object-fit: contain;
+  object-position: left center;
+  flex: 0 0 auto;
+}
+
+.navbar-context-copy {
+  min-width: 0;
+}
+
+.navbar-context-copy span {
+  display: block;
+  color: var(--kemex-navy);
+  font-size: 10px;
+  line-height: 1.6;
+  font-weight: 800;
+  white-space: nowrap;
+  letter-spacing: -.1px;
+}
+
+.nav-direct,
+.nav-group-trigger {
+  color: #4f6678;
+}
+
+.nav-direct:hover,
+.nav-group-trigger:hover {
+  background: #edf6fd;
+  color: var(--kemex-navy);
+}
+
+.nav-direct.active,
+.nav-group-trigger.active {
+  color: var(--kemex-navy);
+  background: #e8f3fb;
+  box-shadow: inset 0 0 0 1px #c9e1f2;
+}
+
+.nav-menu-panel {
+  border-color: #d7e4ee;
+  box-shadow: 0 22px 50px rgba(11, 47, 85, .13);
+}
+
+.nav-menu-section-title {
+  color: var(--kemex-navy);
+}
+
+.nav-menu-item:hover,
+.nav-menu-item.active {
+  background: #eef7fd;
+  color: var(--kemex-navy);
+}
+
+.nav-menu-icon {
+  color: var(--kemex-blue);
+}
+
+.navbar-search-btn:hover,
+.navbar-icon-btn:hover,
+.navbar-user:hover {
+  background: #edf6fd;
+  color: var(--kemex-navy);
+}
+
+.navbar-search-btn.active,
+.navbar-icon-btn.active,
+.navbar-user.active {
+  background: #e8f3fb;
+  color: var(--kemex-navy);
+}
+
+.navbar-menu-btn {
+  color: var(--kemex-navy);
+  border-color: #d2e0eb;
+  background: #fff;
+}
+
+.module-sub-nav {
+  background: #f8fbfd;
+  border-bottom-color: #dbe6ee;
+}
+
+.module-sub-nav-item {
+  color: #5e7381;
+}
+
+.module-sub-nav-item.active {
+  color: var(--kemex-navy);
+  border-bottom-color: var(--kemex-gold);
+  background: #edf6fc;
+}
+
+.login-page {
+  background:
+    radial-gradient(circle at 78% 12%, rgba(14, 131, 216, .28), transparent 28%),
+    radial-gradient(circle at 14% 82%, rgba(245, 171, 28, .13), transparent 26%),
+    linear-gradient(135deg, #061c35, #0b3158 58%, #0a5870);
+}
+
+.login-card {
+  border-color: rgba(255,255,255,.84);
+  box-shadow: 0 35px 90px rgba(2, 18, 35, .36);
+}
+
+.login-brand {
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.login-brand-logo {
+  display: block;
+  width: min(300px, 100%);
+  height: auto;
+  max-height: 72px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.login-brand .brand-sub {
+  color: var(--kemex-navy);
+  font-size: 11px;
+  line-height: 1.7;
+  font-weight: 800;
+}
+
+.login-heading p {
+  color: #748a99;
+  line-height: 1.8;
+  max-width: 42rem;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, var(--kemex-navy), var(--kemex-blue));
+}
+
+.primary-button:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+@media (max-width: 1180px) {
+  .kemex-navbar-logo {
+    width: 142px;
+    height: 42px;
+  }
+}
+
+@media (max-width: 900px) {
+  .navbar-context-copy {
+    display: none !important;
+  }
+
+  .kemex-navbar-logo {
+    width: 126px;
+    height: 40px;
+  }
+
+  .site-navbar {
+    box-shadow: 0 7px 24px rgba(11, 47, 85, .08);
+  }
+}
+
+@media (max-width: 560px) {
+  .kemex-navbar-logo {
+    width: 116px;
+    height: 37px;
+  }
+
+  .login-brand-logo {
+    width: min(250px, 100%);
+  }
+
+  .login-brand .brand-sub {
+    font-size: 10px;
+  }
+}

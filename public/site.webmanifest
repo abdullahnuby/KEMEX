@@ -1,17 +1,17 @@
 {
-  "name": "KEMEX — إدارة النقل والأسطول والمعدات",
+  "name": "KEMEX — منصة إدارة اللوجستيات والعمليات",
   "short_name": "KEMEX",
   "start_url": "/",
   "display": "standalone",
   "dir": "rtl",
   "lang": "ar",
-  "theme_color": "#0b7f86",
-  "background_color": "#f2f6f8",
+  "theme_color": "#0b2f55",
+  "background_color": "#f5f8fb",
   "icons": [
     {
-      "src": "/kemex.svg",
-      "sizes": "64x64",
-      "type": "image/svg+xml",
+      "src": "/kemex-mark.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from 'react'
-import { KeyRound, ShieldCheck, Truck } from 'lucide-react'
+import { KeyRound, ShieldCheck } from 'lucide-react'
 import { APP } from '../config/app'
 import type { User } from '../types/tfms'
 
@@ -37,7 +37,7 @@ export function ChangePasswordPage({ user, onChangePassword, onLogout }: { user:
   return <div className="login-page" dir="rtl">
     <div className="login-orbit orbit-a"/><div className="login-orbit orbit-b"/>
     <section className="login-card" style={{ maxWidth: 540 }}>
-      <div className="login-brand"><div className="brand-mark large"><Truck size={30}/></div><div><div className="brand-name">{APP.name}</div><div className="brand-sub">{APP.arabicName}</div></div></div>
+      <div className="login-brand"><img className="login-brand-logo" src="/kemex-logo.png" alt={APP.name} /><div className="brand-sub">{APP.arabicName}</div></div>
       {!done ? <>
         <div className="login-heading"><h1>تغيير كلمة المرور</h1><p>مرحبًا {user.name || user.username}. هذه أول مرة تدخل فيها بهذا الحساب، ويجب تغيير كلمة المرور المؤقتة قبل استخدام النظام.</p></div>
         <form onSubmit={submit} className="login-form">

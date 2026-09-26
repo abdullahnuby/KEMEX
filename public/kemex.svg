@@ -1,5 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="16" fill="#0b7f86"/>
-  <path d="M17 18h8v11l10-11h10L33 31l13 15H35L25 34v12h-8z" fill="#fff"/>
-  <path d="M43 42h5v5h-5z" fill="#19a48f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 80" role="img" aria-label="KEMEX">
+  <defs>
+    <linearGradient id="blue" x1="0" x2="1" y1="1" y2="0">
+      <stop offset="0" stop-color="#0b2f55"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+  <rect x="11" y="8" width="18" height="64" rx="5" fill="url(#blue)"/>
+  <path d="M12 58C27 50 31 38 44 26C54 17 65 12 80 9L63 28C51 41 41 53 28 64C23 68 18 71 13 72Z" fill="#0ea5e9"/>
+  <path d="M34 55L55 34L69 50L54 65Z" fill="#08294a"/>
+  <path d="M57 55L69 67H48Z" fill="#f5ab1c"/>
+  <path d="M25 52L48 34M32 44L53 29" stroke="#d9f5ff" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="5 6" fill="none"/>
 </svg>

@@ -11,7 +11,7 @@ function iconFor(name: string, fallback?: LucideIcon) { return ICONS[name] ?? fa
 
 // Groups already reachable directly from the mobile bottom tab bar — hidden
 // from the "المزيد" sheet by default to avoid listing the same destination twice.
-const PRIMARY_TAB_GROUPS = new Set(['الأسطول', 'الصيانة', 'التشغيل'])
+const PRIMARY_TAB_GROUPS = new Set(['العمليات واللوجستيات', 'الأسطول والأصول', 'الصيانة'])
 
 export function AppNavbar({ user, route, onRoute, onLogout, alertCount, notifications, notificationUnreadCount, notificationsLoading, onRefreshNotifications, onMarkNotificationRead, onMarkAllRead }: {
   user: User
@@ -38,7 +38,7 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount, notifica
 
   const groups = useMemo(() => {
     const canSee = (item: NavigationItem) => canViewModule(user.role, permissionKeyForNavItem(item))
-    return NAVIGATION_GROUPS.filter(group => group.group !== 'التقارير').map(group => ({
+    return NAVIGATION_GROUPS.filter(group => group.group !== 'التقارير والتحليلات').map(group => ({
       ...group,
       items: group.items.filter(item => canSee(item) && matchesQuery(item, q)),
     })).filter(group => group.items.length)
@@ -108,8 +108,8 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount, notifica
     {mobileOpen && <button className="mobile-nav-scrim" onClick={() => setMobileOpen(false)} aria-label="إغلاق القائمة" />}
     <header className="site-navbar" ref={navRef}>
       <div className="navbar-brand navbar-context" onClick={() => navigate('dashboard')} role="button" tabIndex={0} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); navigate('dashboard') } }} aria-label="العودة إلى لوحة المعلومات">
-        <div className="brand-mark"><Truck size={19} strokeWidth={2.3} /></div>
-        <div className="navbar-context-copy"><strong>{APP.name}</strong><span>{APP.arabicName}</span></div>
+        <img className="kemex-navbar-logo" src="/kemex-logo.png" alt={APP.name} />
+        <div className="navbar-context-copy"><span>{APP.arabicName}</span></div>
       </div>
 
       <nav className="desktop-nav" aria-label="التنقل الرئيسي">
@@ -117,7 +117,7 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount, notifica
           {HomeIcon && <HomeIcon size={15} />}<span>الرئيسية</span>
         </button>
         <button type="button" className={`nav-direct ${routeModule === 'reports' ? 'active' : ''}`} onClick={() => navigate('reports')}>
-          <BarChart3 size={15} /><span>التقارير</span>
+          <BarChart3 size={15} /><span>التقارير والتحليلات</span>
         </button>
         {groups.map(group => {
           const GroupIcon = iconFor(group.icon)
@@ -175,14 +175,24 @@ function MobileTabBar({ routeModule, onNavigate, onOpenMore, moreOpen, alertCoun
 }) {
   const tabs: { key: string; label: string; icon: LucideIcon; route: string }[] = [
     { key: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard, route: 'dashboard' },
-    { key: 'operations', label: 'التشغيل', icon: Gauge, route: 'operations' },
+    { key: 'operations', label: 'العمليات', icon: Gauge, route: 'operations' },
     { key: 'assets', label: 'الأسطول', icon: Truck, route: 'assets' },
     { key: 'maintenance', label: 'الصيانة', icon: Wrench, route: 'maintenance' },
   ]
   return <nav className="mobile-tab-bar" aria-label="التنقل السريع">
     {tabs.map(tab => {
       const Icon = tab.icon
-      const active = routeModule === tab.key && !moreOpen
+      const active = !moreOpen && (
+        tab.key === 'dashboard'
+          ? routeModule === 'dashboard'
+          : tab.key === 'operations'
+            ? ['operations', 'trips', 'trips-dispatch', 'requests', 'assignments', 'projects'].includes(routeModule)
+            : tab.key === 'assets'
+              ? ['assets', 'drivers', 'contracts'].includes(routeModule)
+              : tab.key === 'maintenance'
+                ? ['maintenance', 'breakdowns', 'plans', 'oils', 'tires'].includes(routeModule)
+                : routeModule === tab.key
+      )
       return <button key={tab.key} type="button" className={`mobile-tab-item ${active ? 'active' : ''}`} onClick={() => onNavigate(tab.route)}>
         <Icon size={20} /><span>{tab.label}</span>
       </button>
@@ -219,15 +229,13 @@ function MobileNavigation({ groups, route, query, onQueryChange, onNavigate, use
       <button type="button" className="mobile-logout-button" onClick={onLogout}><LogOut size={16} /> تسجيل الخروج</button>
     </div>
     <div className="mobile-nav-search"><Search size={16} /><input value={query} onChange={event => onQueryChange(event.target.value)} placeholder="بحث في وحدات النظام..." aria-label="بحث في وحدات النظام" /></div>
-    <button type="button" className={`mobile-group-title ${routeModule === 'reports' ? 'open' : ''}`} onClick={() => onNavigate('reports')}><span>التقارير</span><BarChart3 size={15} /></button>
-    {/* "الرئيسية" و"الأسطول" و"الصيانة" و"التشغيل" لهم وصول مباشر من الشريط
-       السفلي بالفعل — بيتعرضوا هنا بس وقت البحث عشان ميتكررش نفس الاختيار
-       مرتين، مع فضل الاختيارات الثانوية (النقل، المخازن...) ظاهرة دايمًا. */}
+    <button type="button" className={`mobile-group-title ${routeModule === 'reports' ? 'open' : ''}`} onClick={() => onNavigate('reports')}><span>التقارير والتحليلات</span><BarChart3 size={15} /></button>
+    {/* الوجهات الأساسية تظهر في الشريط السفلي؛ أما التفاصيل والساحات الفرعية فتظل متاحة من "المزيد". */}
     {query.trim() && <button type="button" className={`mobile-group-title ${routeModule === 'dashboard' ? 'open' : ''}`} onClick={() => onNavigate('dashboard')}><span>الرئيسية</span><LayoutDashboard size={15} /></button>}
     {groups.filter(group => query.trim() || !PRIMARY_TAB_GROUPS.has(group.group)).map(group => <section className="mobile-nav-group" key={group.group}>
       <button type="button" className={`mobile-group-title ${openGroup === group.group ? 'open' : ''}`} onClick={() => setOpenGroup(openGroup === group.group ? null : group.group)}><span>{group.group}</span><ChevronDown size={15} className={openGroup === group.group ? 'rotate' : ''} /></button>
       {openGroup === group.group && <div className="mobile-group-items">
-        {group.group === 'التقارير'
+        {group.group === 'التقارير والتحليلات'
           ? renderMobileReports(group.items as unknown as readonly ReportNavigationItem[], route, onNavigate)
           : <div className="mobile-nav-section"><div className="mobile-nav-section-title">الوحدات</div>{group.items.map(item => { const Icon = iconFor(item.icon); const active = routeModule === item.key; return <button type="button" key={item.key} className={`mobile-nav-item ${active ? 'active' : ''}`} onClick={() => onNavigate(item.route)}>{Icon && <Icon size={16} />}<span>{item.label}</span></button> })}</div>}
       </div>}
@@ -258,14 +266,14 @@ function permissionKeyForNavItem(item: NavigationItem) { return item.permissionM
 function findGroupForRoute(route: string) {
   if (route === 'dashboard') return 'الرئيسية'
   if (route === 'alerts') return null
-  if (route.startsWith('reports/') || route === 'true-cost' || route === 'reports/true-cost') return 'التقارير'
+  if (route.startsWith('reports/') || route === 'true-cost' || route === 'reports/true-cost') return 'التقارير والتحليلات'
   for (const group of NAVIGATION_GROUPS) if (group.items.some(item => item.route === route || item.key === route)) return group.group
-  if (route.startsWith('asset/') || route.startsWith('assets/edit/')) return 'الأسطول'
-  if (route.startsWith('project/')) return 'التشغيل'
+  if (route.startsWith('asset/') || route.startsWith('assets/edit/')) return 'الأسطول والأصول'
+  if (route.startsWith('project/')) return 'العمليات واللوجستيات'
   if (route.startsWith('breakdowns/')) return 'الصيانة'
-  if (route.startsWith('trips/')) return 'النقل'
-  if (route === 'movements') return 'المخازن'
-  if (route.startsWith('assignments/new/')) return 'التشغيل'
+  if (route.startsWith('trips/')) return 'العمليات واللوجستيات'
+  if (route === 'movements') return 'المخازن والتوريد'
+  if (route.startsWith('assignments/new/')) return 'العمليات واللوجستيات'
   return null
 }
 

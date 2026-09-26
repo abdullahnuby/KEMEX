@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { AlertTriangle, ArrowLeft, Boxes, CircleCheckBig, ClipboardCheck, Fuel, Gauge, ShieldCheck, Settings, Truck, Wrench } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Boxes, CircleCheckBig, ClipboardCheck, Fuel, Gauge, ShieldCheck, Truck, Wrench } from 'lucide-react'
 import type { Asset, FuelOperation, Operation, Project, WorkOrder } from '../types/tfms'
 import { Button, Card, ChartShell, AnalyticsDonut, AnalyticsLineChart, MetricCard, StatusBadge } from '../components/ui'
 import { sameReference } from '../utils/referenceLabels'
@@ -23,23 +23,23 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
   return <div className="dashboard-page dashboard-page--executive">
     <header className="dashboard-page-header">
       <div className="dashboard-page-header__copy">
-        <div className="dashboard-page-header__eyebrow"><Gauge size={15} /> مركز الإدارة</div>
-        <h1>لوحة المعلومات</h1>
-        <p>ملخص تنفيذي سريع يوضح حالة الأسطول، الاستثناءات، وتكلفة التشغيل دون الدخول في التفاصيل التشغيلية.</p>
+        <div className="dashboard-page-header__eyebrow"><Gauge size={15} /> مركز القيادة والتحكم</div>
+        <h1>لوحة التحكم التشغيلي</h1>
+        <p>رؤية موحدة للتشغيل والموارد والتكلفة والاستثناءات من شاشة واحدة.</p>
       </div>
       <div className="dashboard-page-header__actions">
         <div className="dashboard-period-control" role="group" aria-label="نطاق المؤشرات">
           {([30, 90, 180] as const).map(value => <button key={value} type="button" className={period === value ? 'active' : ''} aria-pressed={period === value} onClick={() => setPeriod(value)}>{value === 30 ? '30 يوم' : value === 90 ? '90 يوم' : '6 أشهر'}</button>)}
         </div>
         <Button variant="secondary" icon={<Truck size={16} />} onClick={() => onRoute('assets')}>الأصول</Button>
-        <Button icon={<Settings size={16} />} onClick={() => onRoute('reports')}>التقارير</Button>
+        <Button icon={<Gauge size={16} />} onClick={() => onRoute('operations-center')}>مركز التحكم</Button>
       </div>
     </header>
 
-    <section className={`dashboard-status-line ${dashboard.priorityCount > 0 ? 'is-alert' : 'is-clear'}`} aria-label="الحالة العامة">
+    <section className={`dashboard-status-line ${dashboard.priorityCount > 0 ? 'is-alert' : 'is-clear'}`} aria-label="الحالة التشغيلية العامة">
       {dashboard.priorityCount > 0 ? <AlertTriangle size={16} /> : <CircleCheckBig size={16} />}
       <strong>{dashboard.priorityCount > 0 ? `${fmt(dashboard.priorityCount)} نقطة تحتاج متابعة` : 'الوضع التشغيلي مستقر'}</strong>
-      <span>{dashboard.totalAssets ? `جاهزية الأسطول ${fmt(dashboard.readiness)}%` : 'لا توجد بيانات كافية'}</span>
+      <span>{dashboard.totalAssets ? `جاهزية الموارد ${fmt(dashboard.readiness)}%` : 'لا توجد بيانات كافية'}</span>
       <button type="button" onClick={() => onRoute('alerts')}>عرض التنبيهات <ArrowLeft size={14} /></button>
     </section>
 
@@ -73,7 +73,7 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
       </Card>
     </section>
 
-    <section className="dashboard-status-grid" aria-label="حالة الأسطول">
+    <section className="dashboard-status-grid" aria-label="حالة الموارد التشغيلية">
       <Card title="حالة الأصول" description="توزيع مختصر للحالة الحالية" action={<Button variant="ghost" size="sm" onClick={() => onRoute('assets')}>فتح الأصول</Button>}>
         <AnalyticsDonut segments={dashboard.healthSegments} centerValue={fmt(dashboard.totalAssets)} centerLabel="إجمالي أصل" />
       </Card>

@@ -36,8 +36,8 @@ export function buildBreadcrumbs(route: string): Crumb[] {
   const crumbs: Crumb[] = [home]
 
   // Detail / nested patterns first — most specific wins.
-  if (parts[0] === 'asset' && parts[1]) return [...crumbs, { label: 'الأصول والأسطول', route: 'assets' }, { label: 'تفاصيل الأصل' }]
-  if (parts[0] === 'assets' && parts[1] === 'edit' && parts[2]) return [...crumbs, { label: 'الأصول والأسطول', route: 'assets' }, { label: 'تعديل بيانات الأصل' }]
+  if (parts[0] === 'asset' && parts[1]) return [...crumbs, { label: 'الأسطول والأصول', route: 'assets' }, { label: 'تفاصيل الأصل' }]
+  if (parts[0] === 'assets' && parts[1] === 'edit' && parts[2]) return [...crumbs, { label: 'الأسطول والأصول', route: 'assets' }, { label: 'تعديل بيانات الأصل' }]
   if (parts[0] === 'breakdowns' && parts[1] === 'new') return [...crumbs, { label: 'الأعطال والتكاليف', route: 'breakdowns' }, { label: 'تسجيل عطل جديد' }]
   if (parts[0] === 'breakdowns' && parts[1]) return [...crumbs, { label: 'الأعطال والتكاليف', route: 'breakdowns' }, { label: 'تفاصيل العطل' }]
   if (parts[0] === 'trips' && parts[1] === 'dispatch') return [...crumbs, { label: 'رحلات النقل', route: 'trips' }, { label: 'لوحة الإرسال والتوزيع' }]
@@ -46,7 +46,7 @@ export function buildBreadcrumbs(route: string): Crumb[] {
   if (parts[0] === 'assignments' && parts[1] === 'new') return [...crumbs, { label: 'التخصيصات', route: 'assignments' }, { label: 'تخصيص جديد' }]
   if (parts[0] === 'reports' && parts[1]) {
     const report = REPORT_NAV_ITEMS.find(item => item.route === clean || item.key === parts[1])
-    return [...crumbs, { label: 'التقارير', route: 'reports' }, { label: report?.label ?? titleFor(clean) }]
+    return [...crumbs, { label: 'التقارير والتحليلات', route: 'reports' }, { label: report?.label ?? titleFor(clean) }]
   }
 
   const label = titleFor(clean)

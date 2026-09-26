@@ -1,6 +1,6 @@
 import { lazy, type ComponentProps, type ReactNode } from 'react'
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
-import { LayoutDashboard, Bell, ClipboardList, FileCheck2, Gauge, Truck, Building2, Container, UserRound, BriefcaseBusiness, CalendarClock, Wrench, Droplets, CircleDot, Fuel, Boxes, ArrowLeftRight, ShoppingCart, Coins, ChartColumn, ReceiptText, ChartNoAxesCombined, Users, ClipboardPenLine, Settings2, DatabaseBackup, AlertTriangle, TrendingUp, Wallet } from 'lucide-react'
+import { LayoutDashboard, Bell, ClipboardList, FileCheck2, Gauge, Truck, Building2, Container, UserRound, BriefcaseBusiness, CalendarClock, Wrench, Droplets, CircleDot, Fuel, Boxes, ArrowLeftRight, ShoppingCart, Coins, ChartColumn, ReceiptText, ChartNoAxesCombined, Users, ClipboardPenLine, Settings2, DatabaseBackup, AlertTriangle, TrendingUp, Wallet, Route as RouteIcon, Command, MapPinned } from 'lucide-react'
 import type { Asset, Customer, Driver, FuelOperation, InventoryItem, MaintenanceTechnician, Project, StockMovement, Warehouse, WorkOrder, User, Operation } from '../../types/tfms'
 import type { Repository } from '../../core/repository/types'
 import type { ReportKey } from '../../pages/ReportsPage'
@@ -45,7 +45,7 @@ registerModuleIcons({
   LayoutDashboard, Bell, ClipboardList, FileCheck2, Gauge, Truck, Building2, Container, UserRound,
   BriefcaseBusiness, CalendarClock, Wrench, Droplets, CircleDot, Fuel, Boxes, ArrowLeftRight,
   ShoppingCart, Coins, ChartColumn, ReceiptText, ChartNoAxesCombined, Users, ClipboardPenLine, Settings2, DatabaseBackup,
-  AlertTriangle, TrendingUp, Wallet,
+  AlertTriangle, TrendingUp, Wallet, RouteIcon, Command, MapPinned,
 })
 
 type RouteHandler = (route: string) => void
@@ -321,7 +321,7 @@ export function AppRoutes({
     <Route path="trips/dispatch" element={guard('trips', <TripsPage assets={assets} drivers={drivers} projects={projects} clients={clients} onRoute={navigate} initialView="board" currencyCode={systemSettings.currencyCode} />)} />
     <Route path="trips/:id" element={guard('trips', <TripDetailRoute assets={assets} drivers={drivers} projects={projects} currencyCode={systemSettings.currencyCode} onRoute={navigate} />)} />
     <Route path="assignments/new/:requestId" element={guard('assignments', <AssignmentCreateRoute moduleData={moduleData} approvalEvents={approvalEvents} assets={assets} projects={projects} userName={user.name} onSaveAssignment={record => saveModule('assignments', record)} onSaveAsset={saveAsset} onUpdateRequest={record => saveModule('requests', record)} allowed={assignmentAllowed} onRoute={navigate} />)} />
-    <Route path=":moduleKey" element={<GenericModuleRoute moduleData={moduleData} approvalEvents={approvalEvents} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} onSave={saveModule} onWorkflow={workflowModule} onNavigate={navigate} onDelete={deleteModule} user={user} titleFallback={key => ROUTE_DESCRIPTIONS[key] ?? 'وحدة من وحدات إدارة النقل والأسطول.'} />} />
+    <Route path=":moduleKey" element={<GenericModuleRoute moduleData={moduleData} approvalEvents={approvalEvents} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} onSave={saveModule} onWorkflow={workflowModule} onNavigate={navigate} onDelete={deleteModule} user={user} titleFallback={key => ROUTE_DESCRIPTIONS[key] ?? 'وحدة من وحدات منصة إدارة اللوجستيات والعمليات.'} />} />
     <Route path="*" element={<ModulePlaceholderPage title="غير موجود" description="المسار المطلوب غير موجود." onRoute={navigate} />} />
   </Routes>
 

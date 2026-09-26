@@ -1,7 +1,7 @@
 export const APP = {
   name: 'KEMEX',
-  arabicName: 'إدارة النقل والأسطول والمعدات',
-  subtitle: 'النقل • الأسطول • المعدات • الصيانة • الوقود • التكاليف',
+  arabicName: 'منصة إدارة اللوجستيات والعمليات',
+  subtitle: 'النقل • العمليات اللوجستية • الأسطول • الأصول • الصيانة • المشاريع • التحكم في التكلفة • التحليلات التشغيلية',
   company: 'شركة المجموعة للنقل والمعدات',
   version: '0.52.0',
 }
@@ -32,7 +32,17 @@ export type NavigationGroup = {
  */
 export const NAVIGATION_GROUPS: readonly NavigationGroup[] = [
   {
-    group: 'الأسطول', icon: 'Truck', items: [
+    group: 'العمليات واللوجستيات', icon: 'Route', items: [
+      {key:'operations', label:'التشغيل اليومي', icon:'Gauge', route:'operations', hint:'الساعات والعدادات التشغيلية اليومية والاعتماد'},
+      {key:'trips', label:'رحلات النقل', icon:'Truck', route:'trips', hint:'الرحلات والمسافات وقيمة النقل'},
+      {key:'trips-dispatch', label:'الإرسال والتوزيع', icon:'ArrowLeftRight', route:'trips/dispatch', hint:'توزيع الرحلات ومتابعة التنفيذ', permissionModule:'trips'},
+      {key:'requests', label:'طلبات المعدات', icon:'ClipboardList', route:'requests', hint:'الاحتياجات والمراجعة والاعتماد'},
+      {key:'assignments', label:'التخصيصات', icon:'ClipboardCheck', route:'assignments', hint:'تسليم واستلام وتخصيص الأصول'},
+      {key:'projects', label:'المشروعات والمواقع', icon:'Building2', route:'projects', hint:'المشروعات والمواقع ومراكز التكلفة'},
+    ]
+  },
+  {
+    group: 'الأسطول والأصول', icon: 'Truck', items: [
       {key:'assets', label:'الأصول والأسطول', icon:'Container', route:'assets', hint:'الأصول والمركبات والمعدات'},
       {key:'drivers', label:'السائقون والمشغلون', icon:'UserRound', route:'drivers', hint:'السائقون والمشغلون والتراخيص'},
       {key:'contracts', label:'عقود الإيجار', icon:'FileCheck2', route:'contracts', hint:'العقود والشروط والمدد'},
@@ -48,42 +58,28 @@ export const NAVIGATION_GROUPS: readonly NavigationGroup[] = [
     ]
   },
   {
-    group: 'التشغيل', icon: 'Gauge', items: [
-      {key:'operations', label:'التشغيل اليومي', icon:'Gauge', route:'operations', hint:'ساعات التشغيل والعدادات'},
-      {key:'requests', label:'طلبات المعدات', icon:'ClipboardList', route:'requests', hint:'الاحتياجات والمراجعة والاعتماد'},
-      {key:'assignments', label:'التخصيصات', icon:'ClipboardCheck', route:'assignments', hint:'تسليم واستلام وتخصيص الأصول'},
-      {key:'fuel', label:'الوقود والاستهلاك', icon:'Fuel', route:'fuel', hint:'حركات الوقود والاستهلاك'},
-      {key:'projects', label:'المشروعات والمواقع', icon:'Building2', route:'projects', hint:'المشروعات والمواقع ومراكز التكلفة'},
-      {key:'operations-center', label:'مركز التشغيل', icon:'Gauge', route:'operations-center', hint:'نظرة موحدة على الرحلات والاستثناءات والصيانة والتنبيهات'},
-    ]
-  },
-  {
-    group: 'النقل', icon: 'Truck', items: [
-      {key:'trips', label:'رحلات النقل', icon:'Truck', route:'trips', hint:'الرحلات والمسافات وقيمة النقل'},
-      {key:'trips-dispatch', label:'لوحة الإرسال والتوزيع', icon:'ArrowLeftRight', route:'trips/dispatch', hint:'توزيع الرحلات ومتابعة التنفيذ', permissionModule:'trips'},
-    ]
-  },
-  {
-    group: 'المخازن', icon: 'Boxes', items: [
+    group: 'المخازن والتوريد', icon: 'Boxes', items: [
       {key:'inventory', label:'المخازن وقطع الغيار', icon:'Boxes', route:'inventory', hint:'الأصناف والأرصدة والحركة'},
       {key:'purchases', label:'المشتريات', icon:'ShoppingCart', route:'purchases', hint:'طلبات الشراء وأوامر الشراء والاستلام'},
     ]
   },
   {
-    group: 'المالية', icon: 'Wallet', items: [
+    group: 'المالية والتكاليف', icon: 'Wallet', items: [
+      {key:'fuel', label:'الوقود والاستهلاك', icon:'Fuel', route:'fuel', hint:'حركات الوقود والاستهلاك'},
       {key:'costs', label:'التكاليف والإهلاك', icon:'Coins', route:'costs', hint:'التكلفة المباشرة والإهلاك'},
       {key:'charging', label:'التحميل الداخلي', icon:'ChartColumn', route:'charging', hint:'تحميل تكلفة الاستخدام على المشروعات'},
       {key:'invoices', label:'الفواتير والمستحقات', icon:'ReceiptText', route:'invoices', hint:'الفواتير ودورة الاعتماد والسداد'},
       {key:'customers', label:'العملاء', icon:'Users', route:'customers', hint:'العملاء والخدمات الخارجية'},
     ]
   },
-    {
-    group: 'المراقبة', icon: 'Gauge', items: [
-      {key:'tracking', label:'تتبع المركبات', icon:'Gauge', route:'tracking', hint:'الموقع المباشر وحالة اتصال أجهزة GPS ومسار المركبة'},
+  {
+    group: 'مركز التحكم', icon: 'Command', items: [
+      {key:'operations-center', label:'مركز التشغيل', icon:'Gauge', route:'operations-center', hint:'نظرة موحدة على الرحلات والاستثناءات والصيانة والتنبيهات'},
+      {key:'tracking', label:'تتبع المركبات', icon:'MapPinned', route:'tracking', hint:'الموقع المباشر وحالة أجهزة GPS ومسار المركبات'},
     ]
   },
   {
-    group: 'التقارير', icon: 'ChartNoAxesCombined', items: [],
+    group: 'التقارير والتحليلات', icon: 'ChartNoAxesCombined', items: [],
   },
   {
     group: 'الإدارة', icon: 'Settings2', items: [
@@ -115,7 +111,7 @@ export const REPORT_NAV_ITEMS: readonly ReportNavigationItem[] = [
 ]
 
 export const ROLE_LABELS: Record<string, string> = {
-  admin: 'مدير النظام', mgmt: 'الإدارة العليا', fleet: 'مدير النقل والمعدات', pm: 'مدير مشروع',
+  admin: 'مدير النظام', mgmt: 'الإدارة العليا', fleet: 'مدير الأسطول والأصول', pm: 'مدير مشروع',
   eng: 'مهندس موقع', maint: 'مدير الصيانة', acct: 'محاسب', driver: 'سائق',
 }
 

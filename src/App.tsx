@@ -21,7 +21,7 @@ function daysTo(value: string) {
 }
 
 function descriptionFor(key: string) {
-  return ROUTE_DESCRIPTIONS[key] ?? 'وحدة من وحدات إدارة النقل والأسطول.'
+  return ROUTE_DESCRIPTIONS[key] ?? 'وحدة من وحدات منصة إدارة اللوجستيات والعمليات.'
 }
 
 function AppInner() {

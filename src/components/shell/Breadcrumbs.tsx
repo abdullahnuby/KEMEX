@@ -5,15 +5,15 @@ import { findMatchingRouteDefinition } from '../../app/routing/routeRegistry'
 function groupForRoute(route: string) {
   if (route === 'dashboard') return 'الرئيسية'
   if (route === 'alerts') return 'التنبيهات'
-  if (route.startsWith('reports/') || route === 'true-cost') return 'التقارير'
+  if (route.startsWith('reports/') || route === 'true-cost') return 'التقارير والتحليلات'
   for (const group of NAVIGATION_GROUPS) {
     if (group.items.some(item => item.route === route || item.key === route || route.startsWith(`${item.route}/`))) return group.group
   }
-  if (route.startsWith('asset/') || route.startsWith('assets/edit/')) return 'الأسطول'
-  if (route.startsWith('project/')) return 'التشغيل'
+  if (route.startsWith('asset/') || route.startsWith('assets/edit/')) return 'الأسطول والأصول'
+  if (route.startsWith('project/')) return 'العمليات واللوجستيات'
   if (route.startsWith('breakdowns/')) return 'الصيانة'
-  if (route.startsWith('trips/')) return 'النقل'
-  if (route === 'movements') return 'المخازن'
+  if (route.startsWith('trips/')) return 'العمليات واللوجستيات'
+  if (route === 'movements') return 'المخازن والتوريد'
   return null
 }
 

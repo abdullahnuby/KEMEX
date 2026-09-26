@@ -14,8 +14,8 @@ export type RouteDefinition = {
  * centralized here so navigation, guards and breadcrumbs use one route vocabulary.
  */
 export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
-  { path: '/', module: 'dashboard', title: 'لوحة المعلومات', description: 'الصفحة الرئيسية لنظرة الإدارة على التشغيل والأسطول.', kind: 'redirect' },
-  { path: 'dashboard', module: 'dashboard', title: 'لوحة المعلومات', description: 'الصفحة الرئيسية لنظرة الإدارة على التشغيل والأسطول.', kind: 'page' },
+  { path: '/', module: 'dashboard', title: 'لوحة المعلومات', description: 'الصفحة الرئيسية لنظرة الإدارة على العمليات والموارد والتكلفة.', kind: 'redirect' },
+  { path: 'dashboard', module: 'dashboard', title: 'لوحة المعلومات', description: 'الصفحة الرئيسية لنظرة الإدارة على العمليات والموارد والتكلفة.', kind: 'page' },
   { path: 'alerts', module: 'alerts', title: 'التنبيهات', description: 'التنبيهات التشغيلية والمستندات والاستحقاقات.', kind: 'page' },
   { path: 'operations', module: 'operations', title: 'التشغيل اليومي', description: 'الساعات والعدادات التشغيلية اليومية والاعتماد.', kind: 'page' },
   { path: 'operations-center', module: 'operations-center', title: 'مركز التشغيل', description: 'نظرة موحدة على الرحلات والاستثناءات والصيانة والتنبيهات.', kind: 'page' },
@@ -54,7 +54,7 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
   { path: 'trips/dispatch', module: 'trips', title: 'لوحة الإرسال والتوزيع', description: 'توزيع الرحلات ومتابعة التنفيذ.', kind: 'page' },
   { path: 'trips/:id', module: 'trips', title: 'تفاصيل الرحلة', description: 'تفاصيل الرحلة والسائق والأصل.', kind: 'detail' },
   { path: 'assignments/new/:requestId', module: 'assignments', title: 'إنشاء تخصيص', description: 'إنشاء تخصيص أصل لطلب معتمد.', kind: 'create' },
-  { path: ':moduleKey', module: ':moduleKey', title: 'وحدة تشغيلية', description: 'وحدة من وحدات إدارة النقل والأسطول.', kind: 'generic' },
+  { path: ':moduleKey', module: ':moduleKey', title: 'وحدة تشغيلية', description: 'وحدة من وحدات منصة إدارة اللوجستيات والعمليات.', kind: 'generic' },
   { path: '*', module: '*', title: 'غير موجود', description: 'المسار المطلوب غير موجود.', kind: 'fallback' },
 ] as const
 
