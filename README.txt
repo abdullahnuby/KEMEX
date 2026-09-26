@@ -1,12 +1,6 @@
-KEMEX Hero final RTL/alignment fix
-
-Changes:
-- Explicitly pins the live dashboard preview to the LEFT on desktop.
-- Explicitly pins Arabic marketing copy to the RIGHT.
-- Removes flex layout from the H1 so bidi/RTL does not reorder the two phrases.
-- H1 is one clean line: "إدارة أذكى .. تشغيل أقوى".
-- Compact copy gives the live data preview the larger visual area.
-- Mobile stacks copy then preview while keeping the title on one line.
-- No Supabase, routing, sidebar, navbar, or business-logic changes.
-
-Upload both files at the same paths.
+KEMEX Command Center Hero
+- Moves quick operations inside the Hero frame under the Arabic headline.
+- Removes the standalone quick-action strip from the page.
+- Desktop: live operational dashboard dominates the left; compact RTL copy + 2x2 quick operations on the right.
+- Mobile: RTL copy + quick operations first, live dashboard below, all inside one frame.
+- No Supabase, routing, sidebar, navbar, or business-data logic changes.

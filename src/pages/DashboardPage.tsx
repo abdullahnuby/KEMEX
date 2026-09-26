@@ -1,37 +1,22 @@
 import { useMemo, useState } from 'react'
-import { AlertTriangle, ArrowLeft, Boxes, CircleCheckBig, ClipboardCheck, Fuel, Gauge, ShieldCheck, Truck, Wrench } from 'lucide-react'
+import { CircleCheckBig, ClipboardCheck, Gauge, ShieldCheck, Truck, Wrench } from 'lucide-react'
 import type { Asset, FuelOperation, Operation, Project, WorkOrder } from '../types/tfms'
-import { Button, Card, ChartShell, AnalyticsDonut, AnalyticsLineChart, StatusBadge } from '../components/ui'
+import { Button, Card, AnalyticsDonut, AnalyticsLineChart, StatusBadge } from '../components/ui'
 import { sameReference } from '../utils/referenceLabels'
-import { useCurrency } from '../features/settings'
 import { APP_LOCALE } from '../shared/formatters/locale'
 import '../styles/dashboard-home.css'
-import '../styles/dashboard-hero-final-fix.css'
+import '../styles/dashboard-hero-command-center.css'
 
 type DashboardPeriod = 30 | 90 | 180
 
 export function DashboardPage({ assets, projects, workOrders, fuelOps, operations, onRoute }: { assets: Asset[]; projects: Project[]; workOrders: WorkOrder[]; fuelOps: FuelOperation[]; operations: Operation[]; onRoute: (route: string) => void }) {
-  const { formatMoney } = useCurrency()
   const [period, setPeriod] = useState<DashboardPeriod>(30)
   const dashboard = useMemo(() => buildDashboardSnapshot(assets, fuelOps, workOrders, operations, projects, period), [assets, fuelOps, workOrders, operations, projects, period])
   const available = dashboard.available
   const openWo = dashboard.openWo
 
   return <div className="dashboard-page dashboard-page--executive dashboard-page--adlike">
-    <section className="dashboard-ad-hero" aria-label="KEMEX الرئيسية">
-      <div className="dashboard-ad-copy">
-        <span className="dashboard-ad-kicker">KEMEX · منصة إدارة اللوجستيات والعمليات</span>
-        <h1><span>إدارة أذكى ..</span> <em>تشغيل أقوى</em></h1>
-        <p>كل ما تحتاجه لإدارة أسطولك وأصولك وعملياتك وتكاليفك في منصة واحدة، برؤية تشغيلية واضحة وسريعة.</p>
-        <div className="dashboard-ad-actions">
-          <Button icon={<Truck size={17} />} onClick={() => onRoute('assets')}>الأسطول والأصول</Button>
-          <Button variant="secondary" icon={<Gauge size={17} />} onClick={() => onRoute('operations-center')}>مركز التحكم</Button>
-        </div>
-        <div className="dashboard-ad-trust">
-          <span><ShieldCheck size={15} /> تحكم متكامل</span>
-          <span><CircleCheckBig size={15} /> بيانات تشغيلية مباشرة</span>
-        </div>
-      </div>
+    <section className="dashboard-ad-hero dashboard-ad-hero--command" aria-label="KEMEX الرئيسية">
       <div className="dashboard-device-preview" aria-label="ملخص تشغيلي مباشر">
         <div className="dashboard-device-topbar">
           <div><strong>لوحة القيادة</strong><small>KEMEX Operations</small></div>
@@ -54,25 +39,53 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
           </div>
         </div>
       </div>
+
+      <div className="dashboard-ad-copy">
+        <span className="dashboard-ad-kicker">KEMEX · منصة إدارة اللوجستيات والعمليات</span>
+        <h1><span>إدارة أذكى ..</span> <em>تشغيل أقوى</em></h1>
+        <p>كل ما تحتاجه لإدارة أسطولك وأصولك وعملياتك وتكاليفك في منصة واحدة، برؤية تشغيلية واضحة وسريعة.</p>
+
+        <div className="dashboard-ad-actions">
+          <Button icon={<Truck size={17} />} onClick={() => onRoute('assets')}>الأسطول والأصول</Button>
+          <Button variant="secondary" icon={<Gauge size={17} />} onClick={() => onRoute('operations-center')}>مركز التحكم</Button>
+        </div>
+
+        <div className="dashboard-ad-trust">
+          <span><ShieldCheck size={15} /> تحكم متكامل</span>
+          <span><CircleCheckBig size={15} /> بيانات تشغيلية مباشرة</span>
+        </div>
+
+        <div className="dashboard-hero-quick" aria-label="العمليات السريعة">
+          <div className="dashboard-hero-quick-head">
+            <span>ابدأ من هنا</span>
+            <strong>العمليات السريعة</strong>
+          </div>
+          <div className="dashboard-hero-quick-grid">
+            <button type="button" onClick={() => onRoute('assets')}>
+              <span><Truck size={18} /></span>
+              <strong>الأسطول والأصول</strong>
+            </button>
+            <button type="button" onClick={() => onRoute('operations')}>
+              <span><Gauge size={18} /></span>
+              <strong>التشغيل والرحلات</strong>
+            </button>
+            <button type="button" onClick={() => onRoute('maintenance')}>
+              <span><Wrench size={18} /></span>
+              <strong>الصيانة</strong>
+            </button>
+            <button type="button" onClick={() => onRoute('reports')}>
+              <span><ClipboardCheck size={18} /></span>
+              <strong>التقارير والتحليلات</strong>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="dashboard-ad-glow dashboard-ad-glow--one" />
       <div className="dashboard-ad-glow dashboard-ad-glow--two" />
       <div className="dashboard-ad-diagonal" />
     </section>
 
-    <section className="dashboard-quick-strip" aria-label="العمليات السريعة">
-      <div className="dashboard-quick-strip__title">
-        <span>ابدأ من هنا</span>
-        <h2>العمليات السريعة</h2>
-        <p>الوصول المباشر لأكثر المهام استخدامًا.</p>
-      </div>
-      <div className="dashboard-quick-strip__grid">
-        <button type="button" onClick={() => onRoute('assets')}><span><Truck size={21} /></span><strong>الأسطول والأصول</strong><small>المتابعة والتخصيص</small></button>
-        <button type="button" onClick={() => onRoute('operations')}><span><Gauge size={21} /></span><strong>التشغيل والرحلات</strong><small>العمليات والاعتمادات</small></button>
-        <button type="button" onClick={() => onRoute('maintenance')}><span><Wrench size={21} /></span><strong>الصيانة</strong><small>الأعطال وأوامر العمل</small></button>
-        <button type="button" onClick={() => onRoute('reports')}><span><ClipboardCheck size={21} /></span><strong>التقارير والتحليلات</strong><small>التكلفة والأداء</small></button>
-      </div>
-      <button type="button" className="dashboard-quick-cta" onClick={() => onRoute('operations-center')}>افتح مركز التحكم <ArrowLeft size={17} /></button>
-    </section>
 
     <section className="dashboard-activity" aria-label="آخر النشاطات">
       <div className="dashboard-details-head dashboard-activity-head">
