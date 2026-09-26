@@ -6,6 +6,7 @@ import { sameReference } from '../utils/referenceLabels'
 import { useCurrency } from '../features/settings'
 import { APP_LOCALE } from '../shared/formatters/locale'
 import '../styles/dashboard-home.css'
+import '../styles/dashboard-hero-final-fix.css'
 
 type DashboardPeriod = 30 | 90 | 180
 
