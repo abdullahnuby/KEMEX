@@ -1,0 +1,89 @@
+.platform-companies-page { padding-bottom: 32px; }
+.platform-header-actions { display:flex; gap:10px; align-items:center; }
+.platform-owner-badge { display:inline-flex; align-items:center; gap:7px; border:1px solid #cfe9e4; background:#eefaf8; color:#0f766e; padding:7px 11px; border-radius:999px; font-size:12px; font-weight:800; }
+.platform-error { display:flex; align-items:center; gap:10px; margin:0 0 18px; padding:13px 15px; border:1px solid #fecaca; background:#fff7f7; color:#b91c1c; border-radius:12px; }
+.platform-error span { flex:1; font-weight:700; }
+.platform-error button { display:inline-grid; place-items:center; width:30px; height:30px; border:1px solid #fecaca; background:#fff; border-radius:8px; cursor:pointer; }
+.platform-stats-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
+.platform-companies-card { min-width:0; }
+.platform-toolbar { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:16px; }
+.platform-search { min-width:280px; flex:1; max-width:560px; display:flex; align-items:center; gap:9px; border:1px solid #d7e0e7; background:#fff; border-radius:11px; padding:0 12px; }
+.platform-search svg { color:#7b8c99; flex:0 0 auto; }
+.platform-search input { width:100%; min-height:42px; border:0; outline:0; background:transparent; font:inherit; color:#0f2938; }
+.platform-filters { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.platform-filters button { border:1px solid #d7e0e7; background:#fff; color:#526875; border-radius:9px; min-height:38px; padding:0 11px; font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
+.platform-filters button.active { background:#073b68; border-color:#073b68; color:#fff; }
+.platform-company-table-wrap { overflow:auto; border:1px solid #e6edf2; border-radius:12px; }
+.platform-company-table { width:100%; border-collapse:collapse; min-width:900px; }
+.platform-company-table th,.platform-company-table td { padding:13px 14px; border-bottom:1px solid #edf2f5; text-align:right; vertical-align:middle; }
+.platform-company-table th { background:#f8fbfc; color:#687c89; font-size:11px; font-weight:900; white-space:nowrap; }
+.platform-company-table td { color:#25404e; font-size:13px; }
+.platform-company-table tbody tr:last-child td { border-bottom:0; }
+.platform-company-table tbody tr:hover { background:#fbfdfe; }
+.platform-company-name { display:flex; align-items:center; gap:10px; min-width:200px; }
+.platform-company-name > div { min-width:0; display:flex; flex-direction:column; gap:3px; }
+.platform-company-name strong { color:#123547; }
+.platform-company-name small,.platform-admin-cell small,.platform-cell-note { color:#7a8d99; font-size:11px; }
+.platform-company-icon { display:inline-grid; place-items:center; width:34px; height:34px; border-radius:10px; background:#eef6fb; color:#0b79c7; flex:0 0 auto; }
+.platform-plan { display:inline-flex; align-items:center; justify-content:center; min-width:68px; padding:6px 9px; border-radius:999px; font-size:11px; font-weight:900; }
+.platform-plan--trial { color:#a46300; background:#fff7df; border:1px solid #f5ddb1; }
+.platform-plan--standard { color:#0f766e; background:#e9f8f5; border:1px solid #c7ebe3; }
+.platform-plan--enterprise { color:#144a83; background:#edf4ff; border:1px solid #cfe0f8; }
+.platform-status { display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:800; color:#607481; }
+.platform-status i { width:8px; height:8px; border-radius:50%; background:#94a3b8; }
+.platform-status--active { color:#16835d; }
+.platform-status--active i { background:#22c55e; }
+.platform-status--inactive { color:#a44; }
+.platform-admin-cell { display:flex; flex-direction:column; gap:3px; }
+.platform-date { color:#556b78; font-size:12px; white-space:nowrap; }
+.platform-muted { color:#9aa9b2; }
+.platform-company-cards { display:none; }
+.platform-empty { min-height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:#78909d; text-align:center; }
+.platform-empty strong { color:#344f5d; }
+.platform-empty span { font-size:12px; max-width:460px; }
+.spin { animation:platform-spin 1s linear infinite; }
+@keyframes platform-spin { to { transform:rotate(360deg); } }
+.platform-create-form { display:flex; flex-direction:column; gap:20px; }
+.platform-form-section { display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #edf1f3; padding-bottom:10px; }
+.platform-form-section div { display:flex; flex-direction:column; gap:3px; }
+.platform-form-section span { color:#80919b; font-size:11px; font-weight:800; }
+.platform-form-section strong { color:#1c3e4f; font-size:14px; }
+.platform-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.platform-form-grid label { display:flex; flex-direction:column; gap:7px; }
+.platform-form-grid label > span { color:#425c6a; font-size:12px; font-weight:900; }
+.platform-form-grid label em { color:#df3c3c; font-style:normal; }
+.platform-form-grid input,.platform-form-grid select { width:100%; min-height:44px; padding:9px 11px; border:1px solid #cfdae1; border-radius:10px; background:#fff; color:#183847; outline:none; font:inherit; }
+.platform-form-grid input:focus,.platform-form-grid select:focus { border-color:#168ad6; box-shadow:0 0 0 3px rgba(22,138,214,.1); }
+.platform-form-grid small { color:#8596a0; font-size:10px; line-height:1.5; }
+.platform-security-note { display:flex; gap:10px; padding:12px 13px; border:1px solid #d8ebe7; background:#f3fbf9; border-radius:11px; color:#3d6060; }
+.platform-security-note svg { color:#0f8a71; flex:0 0 auto; margin-top:2px; }
+.platform-security-note div { display:flex; flex-direction:column; gap:4px; }
+.platform-security-note strong { color:#1b5e54; font-size:12px; }
+.platform-security-note span { font-size:11px; line-height:1.7; }
+@media (max-width: 1150px) { .platform-stats-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width: 800px) {
+  .platform-stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .platform-toolbar { align-items:stretch; flex-direction:column; }
+  .platform-search { max-width:none; min-width:0; }
+  .platform-filters { overflow-x:auto; flex-wrap:nowrap; padding-bottom:2px; }
+  .platform-filters button { white-space:nowrap; }
+  .platform-company-table-wrap { display:none; }
+  .platform-company-cards { display:grid; gap:10px; }
+  .platform-company-card-mobile { border:1px solid #e2eaf0; border-radius:13px; padding:13px; background:#fff; }
+  .platform-mobile-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .platform-mobile-details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin-top:13px; padding-top:12px; border-top:1px solid #edf2f5; }
+  .platform-mobile-details div { display:flex; flex-direction:column; gap:3px; }
+  .platform-mobile-details span { color:#82939d; font-size:10px; font-weight:800; }
+  .platform-mobile-details strong { color:#294755; font-size:12px; }
+  .platform-mobile-details strong.is-active { color:#14845e; }
+  .platform-mobile-details strong.is-inactive { color:#a44; }
+  .platform-admin-email { display:flex; align-items:center; gap:7px; margin-top:11px; color:#6f838e; font-size:11px; direction:ltr; justify-content:flex-start; }
+  .platform-form-grid { grid-template-columns:1fr; }
+  .platform-header-actions { gap:7px; }
+  .platform-header-actions .ui-button { min-height:40px; }
+}
+@media (max-width: 540px) {
+  .platform-stats-grid { grid-template-columns:1fr 1fr; }
+  .platform-stats-grid .ui-card { min-width:0; }
+  .platform-stats-grid .ui-stat-card__copy strong { font-size:22px; }
+}

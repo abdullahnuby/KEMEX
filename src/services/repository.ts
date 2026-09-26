@@ -42,6 +42,13 @@ export class TfmsRepository implements Repository {
       await db.auth.signOut()
       return null
     }
+    const { data: platformOperator } = await db
+      .from('platform_operators')
+      .select('user_id')
+      .eq('user_id', profile.id)
+      .eq('active', true)
+      .maybeSingle()
+
     return {
       id: profile.id,
       username: profile.email ?? authUser.email ?? '',
@@ -50,6 +57,7 @@ export class TfmsRepository implements Repository {
       active: profile.active,
       mustChangePassword: profile.must_change_password === true,
       driverId: profile.driver_id ?? null,
+      isPlatformOwner: Boolean(platformOperator),
     }
   }
 
@@ -149,7 +157,13 @@ export class TfmsRepository implements Repository {
       await db.auth.signOut()
       throw new Error('هذا المستخدم غير نشط أو لا يملك دورًا صالحًا.')
     }
-    return { id: profile.id, username: profile.email ?? username, name: profile.full_name ?? '', role: profile.role as Role, active: profile.active, mustChangePassword: profile.must_change_password === true, driverId: profile.driver_id ?? null }
+    const { data: platformOperator } = await db
+      .from('platform_operators')
+      .select('user_id')
+      .eq('user_id', profile.id)
+      .eq('active', true)
+      .maybeSingle()
+    return { id: profile.id, username: profile.email ?? username, name: profile.full_name ?? '', role: profile.role as Role, active: profile.active, mustChangePassword: profile.must_change_password === true, driverId: profile.driver_id ?? null, isPlatformOwner: Boolean(platformOperator) }
   }
 
   async signOut() {

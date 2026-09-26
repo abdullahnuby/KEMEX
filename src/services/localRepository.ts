@@ -63,7 +63,7 @@ export class LocalStorageRepository implements Repository {
       throw new Error('الوضع المحلي يحتاج VITE_LOCAL_ADMIN_EMAIL مضبوطًا في بيئة التشغيل المحلية.')
     }
     if (configuredPassword && password !== configuredPassword) throw new Error('بيانات الدخول غير صحيحة.')
-    const user: User = { id: 'local-admin', username: configuredEmail, name: 'مدير النظام المحلي', role: 'admin', active: true, mustChangePassword: false }
+    const user: User = { id: 'local-admin', username: configuredEmail, name: 'مدير النظام المحلي', role: 'admin', active: true, mustChangePassword: false, isPlatformOwner: false }
     localStorage.setItem(SESSION_KEY, JSON.stringify(user))
     return clone(user)
   }

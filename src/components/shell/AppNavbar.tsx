@@ -38,16 +38,20 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount, notifica
   const q = query.trim().toLocaleLowerCase('ar-EG')
 
   const groups = useMemo(() => {
-    const canSee = (item: NavigationItem) => canViewModule(user.role, permissionKeyForNavItem(item))
+    const canSee = (item: NavigationItem) => item.permissionModule === 'platform'
+      ? user.isPlatformOwner === true
+      : canViewModule(user.role, permissionKeyForNavItem(item))
     return NAVIGATION_GROUPS.filter(group => group.group !== 'التقارير والتحليلات').map(group => ({
       ...group,
       items: group.items.filter(item => canSee(item) && matchesQuery(item, q)),
     })).filter(group => group.items.length)
-  }, [user.role, q])
+  }, [user.role, user.isPlatformOwner, q])
 
   const searchResults = useMemo(() => {
     const items = NAVIGATION_GROUPS.flatMap(group => group.items
-      .filter(item => canViewModule(user.role, permissionKeyForNavItem(item)))
+      .filter(item => item.permissionModule === 'platform'
+        ? user.isPlatformOwner === true
+        : canViewModule(user.role, permissionKeyForNavItem(item)))
       .map(item => ({ ...item, section: group.group })))
     const reports = canViewModule(user.role, 'reports')
       ? REPORT_NAV_ITEMS.map(item => ({ ...item, section: item.section ?? '' }))
@@ -55,7 +59,7 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount, notifica
     const merged = [...items, ...reports]
     if (!q) return merged.slice(0, 12)
     return merged.filter(item => [item.label, item.hint, item.key, item.route, item.section ?? ''].some(value => value.toLocaleLowerCase('ar-EG').includes(q))).slice(0, 12)
-  }, [user.role, q])
+  }, [user.role, user.isPlatformOwner, q])
 
   useEffect(() => {
     const close = (event: MouseEvent) => {

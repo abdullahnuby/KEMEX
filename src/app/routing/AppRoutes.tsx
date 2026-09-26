@@ -1,6 +1,6 @@
 import { lazy, type ComponentProps, type ReactNode } from 'react'
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
-import { LayoutDashboard, Bell, ClipboardList, FileCheck2, Gauge, Truck, Building2, Container, UserRound, BriefcaseBusiness, CalendarClock, Wrench, Droplets, CircleDot, Fuel, Boxes, ArrowLeftRight, ShoppingCart, Coins, ChartColumn, ReceiptText, ChartNoAxesCombined, Users, ClipboardPenLine, Settings2, DatabaseBackup, AlertTriangle, TrendingUp, Wallet, Route as RouteIcon, Command, MapPinned } from 'lucide-react'
+import { LayoutDashboard, Bell, ClipboardList, FileCheck2, Gauge, Truck, Building2, Container, UserRound, BriefcaseBusiness, CalendarClock, Wrench, Droplets, CircleDot, Fuel, Boxes, ArrowLeftRight, ShoppingCart, Coins, ChartColumn, ReceiptText, ChartNoAxesCombined, Users, ClipboardPenLine, Settings2, DatabaseBackup, AlertTriangle, TrendingUp, Wallet } from 'lucide-react'
 import type { Asset, Customer, Driver, FuelOperation, InventoryItem, MaintenanceTechnician, Project, StockMovement, Warehouse, WorkOrder, User, Operation } from '../../types/tfms'
 import type { Repository } from '../../core/repository/types'
 import type { ReportKey } from '../../pages/ReportsPage'
@@ -40,12 +40,13 @@ const GpsTrackingPage = lazy(() => import('../../pages/GpsTrackingPage').then(m 
 const ReportsPage = lazy(() => import('../../pages/ReportsPage').then(m => ({ default: m.ReportsPage })))
 const TrueCostReportPage = lazy(() => import('../../pages/TrueCostReportPage').then(m => ({ default: m.TrueCostReportPage })))
 const OperationsCenterPage = lazy(() => import('../../pages/OperationsCenterPage').then(m => ({ default: m.OperationsCenterPage })))
+const PlatformCompaniesPage = lazy(() => import('../../pages/PlatformCompaniesPage').then(m => ({ default: m.PlatformCompaniesPage })))
 
 registerModuleIcons({
   LayoutDashboard, Bell, ClipboardList, FileCheck2, Gauge, Truck, Building2, Container, UserRound,
   BriefcaseBusiness, CalendarClock, Wrench, Droplets, CircleDot, Fuel, Boxes, ArrowLeftRight,
   ShoppingCart, Coins, ChartColumn, ReceiptText, ChartNoAxesCombined, Users, ClipboardPenLine, Settings2, DatabaseBackup,
-  AlertTriangle, TrendingUp, Wallet, RouteIcon, Command, MapPinned,
+  AlertTriangle, TrendingUp, Wallet,
 })
 
 type RouteHandler = (route: string) => void
@@ -247,6 +248,9 @@ export function AppRoutes({
   onMarkAllRead,
 }: AppRoutesProps) {
   const guard = (module: string, element: ReactNode) => <RouteGuard role={user.role} module={module} onRoute={navigate}>{element}</RouteGuard>
+  const platformGuard = (element: ReactNode) => user.isPlatformOwner === true
+    ? <>{element}</>
+    : <ModulePlaceholderPage title="غير مصرح" description="صفحة إدارة الشركات متاحة لمالك المنصة فقط." onRoute={navigate} />
   const drivers = (moduleData.drivers as Driver[]) || []
   const contracts = (moduleData.contracts as any[]) || []
   const operations = (moduleData.operations as Operation[]) || []
@@ -314,6 +318,7 @@ export function AppRoutes({
     <Route path="reports" element={guard('reports', <ReportsPage assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} moduleData={moduleData} trips={trips} tripCosts={tripCosts} onRoute={navigate} companyName={systemSettings.companyName} groupName={systemSettings.groupName} />)} />
     <Route path="reports/:key" element={guard('reports', <ReportsKeyRoute assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} moduleData={moduleData} trips={trips} tripCosts={tripCosts} onRoute={navigate} companyName={systemSettings.companyName} groupName={systemSettings.groupName} />)} />
     <Route path="users" element={guard('users', <AdminWorkspacePage user={user} repository={repository} moduleData={moduleData} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} onSaved={invalidateData} />)} />
+    <Route path="platform" element={platformGuard(<PlatformCompaniesPage />)} />
     <Route path="audit" element={guard('audit', <AuditPage records={moduleData.audit ?? []} approvalEvents={approvalEvents} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} moduleData={moduleData} />)} />
     <Route path="settings" element={guard('settings', <SettingsPage user={user} repository={repository} onSaved={invalidateData} />)} />
     <Route path="data-management" element={guard('data-management', <DataManagementPage user={user} />)} />
@@ -321,7 +326,7 @@ export function AppRoutes({
     <Route path="trips/dispatch" element={guard('trips', <TripsPage assets={assets} drivers={drivers} projects={projects} clients={clients} onRoute={navigate} initialView="board" currencyCode={systemSettings.currencyCode} />)} />
     <Route path="trips/:id" element={guard('trips', <TripDetailRoute assets={assets} drivers={drivers} projects={projects} currencyCode={systemSettings.currencyCode} onRoute={navigate} />)} />
     <Route path="assignments/new/:requestId" element={guard('assignments', <AssignmentCreateRoute moduleData={moduleData} approvalEvents={approvalEvents} assets={assets} projects={projects} userName={user.name} onSaveAssignment={record => saveModule('assignments', record)} onSaveAsset={saveAsset} onUpdateRequest={record => saveModule('requests', record)} allowed={assignmentAllowed} onRoute={navigate} />)} />
-    <Route path=":moduleKey" element={<GenericModuleRoute moduleData={moduleData} approvalEvents={approvalEvents} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} onSave={saveModule} onWorkflow={workflowModule} onNavigate={navigate} onDelete={deleteModule} user={user} titleFallback={key => ROUTE_DESCRIPTIONS[key] ?? 'وحدة من وحدات منصة إدارة اللوجستيات والعمليات.'} />} />
+    <Route path=":moduleKey" element={<GenericModuleRoute moduleData={moduleData} approvalEvents={approvalEvents} assets={assets} projects={projects} drivers={drivers} workOrders={workOrders} onSave={saveModule} onWorkflow={workflowModule} onNavigate={navigate} onDelete={deleteModule} user={user} titleFallback={key => ROUTE_DESCRIPTIONS[key] ?? 'وحدة من وحدات إدارة النقل والأسطول.'} />} />
     <Route path="*" element={<ModulePlaceholderPage title="غير موجود" description="المسار المطلوب غير موجود." onRoute={navigate} />} />
   </Routes>
 

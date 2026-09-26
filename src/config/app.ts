@@ -84,6 +84,7 @@ export const NAVIGATION_GROUPS: readonly NavigationGroup[] = [
   {
     group: 'الإدارة', icon: 'Settings2', items: [
       {key:'users', label:'المستخدمون والصلاحيات', icon:'Users', route:'users', hint:'الحسابات والأدوار والصلاحيات'},
+      {key:'platform', label:'منصة إدارة الشركات', icon:'Building2', route:'platform', hint:'الشركات المشتركة وخططها وإنشاء أول مدير', permissionModule:'platform'},
       {key:'audit', label:'سجل التدقيق', icon:'ClipboardPenLine', route:'audit', hint:'العمليات الحساسة والسجل الرقابي'},
       {key:'settings', label:'الإعدادات', icon:'Settings2', route:'settings', hint:'بيانات المؤسسة والأسعار والتنبيهات'},
       {key:'data-management', label:'إدارة البيانات', icon:'DatabaseBackup', route:'data-management', hint:'استيراد وتصدير Excel والنسخ الاحتياطي والاستعادة'},

@@ -13,6 +13,7 @@ export type User = {
   active?: boolean
   mustChangePassword?: boolean
   driverId?: string | null
+  isPlatformOwner?: boolean
   pass?: string
 }
 
