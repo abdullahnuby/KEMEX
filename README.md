@@ -1,16 +1,9 @@
-# KEMEX dashboard redesign
+# KEMEX Dashboard — Ad Aligned Fix
 
-This patch redesigns the main dashboard to follow the approved KEMEX marketing creative while keeping the existing live-data calculations and route actions.
+Replaces the previous duplicated dashboard layout with a single marketing-inspired hero, four live operational indicators, quick actions, then operational details.
 
-Changed files:
+Files:
 - src/pages/DashboardPage.tsx
 - src/styles/dashboard-home.css
 
-Mobile order:
-1. Premium operational hero
-2. Quick operations
-3. Live details and KPIs
-4. Cost trend + priorities
-5. Asset status + period details
-
-No mock data is introduced.
+No Supabase schema, business calculations, or routes are changed.
