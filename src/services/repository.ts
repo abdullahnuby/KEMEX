@@ -37,18 +37,17 @@ export class TfmsRepository implements Repository {
 
     const { data: profile, error } = await db.from('profiles').select('*').eq('id', authUser.id).single()
     if (error || !profile) return null
-    const allowedRoles: Role[] = ['admin','mgmt','fleet','pm','eng','maint','acct','driver']
-    if (profile.active !== true || !allowedRoles.includes(profile.role as Role)) {
-      await db.auth.signOut()
-      return null
-    }
     const { data: platformOperator } = await db
       .from('platform_operators')
       .select('user_id')
       .eq('user_id', profile.id)
       .eq('active', true)
       .maybeSingle()
-
+    const allowedRoles: Role[] = ['admin','mgmt','fleet','pm','eng','maint','acct','driver']
+    if (profile.active !== true || !allowedRoles.includes(profile.role as Role)) {
+      await db.auth.signOut()
+      return null
+    }
     return {
       id: profile.id,
       username: profile.email ?? authUser.email ?? '',
@@ -152,17 +151,17 @@ export class TfmsRepository implements Repository {
       await db.auth.signOut()
       throw profileError
     }
-    const allowedRoles: Role[] = ['admin','mgmt','fleet','pm','eng','maint','acct','driver']
-    if (profile.active !== true || !allowedRoles.includes(profile.role as Role)) {
-      await db.auth.signOut()
-      throw new Error('هذا المستخدم غير نشط أو لا يملك دورًا صالحًا.')
-    }
     const { data: platformOperator } = await db
       .from('platform_operators')
       .select('user_id')
       .eq('user_id', profile.id)
       .eq('active', true)
       .maybeSingle()
+    const allowedRoles: Role[] = ['admin','mgmt','fleet','pm','eng','maint','acct','driver']
+    if (profile.active !== true || !allowedRoles.includes(profile.role as Role)) {
+      await db.auth.signOut()
+      throw new Error('هذا المستخدم غير نشط أو لا يملك دورًا صالحًا.')
+    }
     return { id: profile.id, username: profile.email ?? username, name: profile.full_name ?? '', role: profile.role as Role, active: profile.active, mustChangePassword: profile.must_change_password === true, driverId: profile.driver_id ?? null, isPlatformOwner: Boolean(platformOperator) }
   }
 

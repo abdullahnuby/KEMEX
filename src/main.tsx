@@ -11,8 +11,6 @@ import './styles/enterprise-sprint03.css'
 import './styles/enterprise-sprint04.css'
 import './styles/dashboard-page.css'
 import './styles/brand-identity.css'
-import './styles/mobile-viewport.css'
-import './styles/platform-companies-page.css'
 import { markPerformance, measurePerformance } from './utils/performance'
 import { reportClientError } from './services/telemetry'
 
