@@ -6,6 +6,7 @@ import { sameReference } from '../utils/referenceLabels'
 import { useCurrency } from '../features/settings'
 import { APP_LOCALE } from '../shared/formatters/locale'
 import '../styles/dashboard-home.css'
+import '../styles/dashboard-hero-rtl.css'
 
 type DashboardPeriod = 30 | 90 | 180
 
@@ -23,7 +24,7 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
     <section className="dashboard-ad-hero" aria-label="KEMEX الرئيسية">
       <div className="dashboard-ad-copy">
         <span className="dashboard-ad-kicker">KEMEX · منصة إدارة اللوجستيات والعمليات</span>
-        <h1>إدارة أذكى ..<br /><em>تشغيل أقوى</em></h1>
+        <h1><span>إدارة أذكى ..</span> <em>تشغيل أقوى</em></h1>
         <p>كل ما تحتاجه لإدارة أسطولك وأصولك وعملياتك وتكاليفك في منصة واحدة، برؤية تشغيلية واضحة وسريعة.</p>
         <div className="dashboard-ad-actions">
           <Button icon={<Truck size={17} />} onClick={() => onRoute('assets')}>الأسطول والأصول</Button>
