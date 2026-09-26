@@ -23,7 +23,7 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
     <section className="dashboard-ad-hero" aria-label="KEMEX الرئيسية">
       <div className="dashboard-ad-copy">
         <span className="dashboard-ad-kicker">KEMEX · منصة إدارة اللوجستيات والعمليات</span>
-        <h1><span>إدارة أذكى ..</span> <em>تشغيل أقوى</em></h1>
+        <h1>إدارة أذكى ..<br /><em>تشغيل أقوى</em></h1>
         <p>كل ما تحتاجه لإدارة أسطولك وأصولك وعملياتك وتكاليفك في منصة واحدة، برؤية تشغيلية واضحة وسريعة.</p>
         <div className="dashboard-ad-actions">
           <Button icon={<Truck size={17} />} onClick={() => onRoute('assets')}>الأسطول والأصول</Button>
@@ -78,42 +78,41 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
       <button type="button" className="dashboard-quick-cta" onClick={() => onRoute('operations-center')}>افتح مركز التحكم <ArrowLeft size={17} /></button>
     </section>
 
-    <section className="dashboard-details" aria-label="تفاصيل التشغيل">
-      <div className="dashboard-details-head">
-        <div><span>تفاصيل التشغيل</span><h2>الصورة الكاملة لعملياتك</h2><p>قراءة مختصرة للتكلفة وحالة الموارد والأولويات.</p></div>
-        <div className="dashboard-period-switch" role="group" aria-label="نطاق المؤشرات">
-          {([30, 90, 180] as const).map(value => <button key={value} type="button" className={period === value ? 'active' : ''} aria-pressed={period === value} onClick={() => setPeriod(value)}>{value === 30 ? '30 يوم' : value === 90 ? '90 يوم' : '6 أشهر'}</button>)}
+    <section className="dashboard-activity" aria-label="آخر النشاطات">
+      <div className="dashboard-details-head dashboard-activity-head">
+        <div>
+          <span>آخر النشاطات</span>
+          <h2>متابعة ما يحدث الآن</h2>
+          <p>تفاصيل تشغيلية جديدة لا تكرر المؤشرات الظاهرة في أعلى الصفحة.</p>
         </div>
+        <button type="button" className="dashboard-activity-link" onClick={() => onRoute('operations')}>عرض كل النشاطات <ArrowLeft size={16} /></button>
       </div>
 
-      <div className="dashboard-detail-grid">
-        <ChartShell title="اتجاه تكلفة التشغيل" description={period === 30 ? 'آخر 30 يومًا' : period === 90 ? 'آخر 90 يومًا' : 'آخر 6 أشهر'} action={<Button variant="ghost" size="sm" onClick={() => onRoute('reports')}>التفاصيل</Button>}>
-          <AnalyticsLineChart points={dashboard.monthlyCost} valueSuffix=" ج.م" secondarySuffix=" ج.م" primaryLabel="الوقود" secondaryLabel="الصيانة" height={230} />
-          <div className="dashboard-cost-summary"><div><span>الوقود</span><strong>{formatMoney(dashboard.fuelCost)}</strong></div><div><span>الصيانة</span><strong>{formatMoney(dashboard.maintenanceCost)}</strong></div></div>
-        </ChartShell>
-
-        <Card title="حالة الأصول" description="التوزيع الحالي للموارد" action={<Button variant="ghost" size="sm" onClick={() => onRoute('assets')}>فتح الأصول</Button>}>
-          <AnalyticsDonut segments={dashboard.healthSegments} centerValue={fmt(dashboard.totalAssets)} centerLabel="إجمالي أصل" />
-        </Card>
-
-        <Card title="الأولويات الآن" description={dashboard.priorityCount ? 'العناصر التي تحتاج متابعة' : 'الوضع الحالي مستقر'} action={<AlertTriangle size={18} className="warning-icon" />}>
-          <div className="dashboard-priority-list">
-            {dashboard.watchlist.slice(0, 4).map(item => <button key={item.id} type="button" onClick={() => onRoute(item.route)} className="dashboard-priority-row">
-              <span className={`priority-icon ${item.tone}`}><item.icon size={16} /></span>
-              <span><strong>{item.name}</strong><small>{item.reason}{item.code ? ` · ${item.code}` : ''}</small></span>
-              <StatusBadge tone={item.tone === 'red' ? 'red' : item.tone === 'amber' ? 'amber' : 'blue'}>{item.status}</StatusBadge>
+      <div className="dashboard-activity-grid">
+        <Card title="آخر أوامر العمل" description="آخر أوامر الصيانة المسجلة" action={<Button variant="ghost" size="sm" onClick={() => onRoute('maintenance')}>الصيانة</Button>}>
+          <div className="dashboard-activity-list">
+            {dashboard.recentWo.slice(0, 4).map(order => <button key={order.id} type="button" className="dashboard-activity-row" onClick={() => onRoute('maintenance')}>
+              <span className="dashboard-activity-icon dashboard-activity-icon--amber"><Wrench size={16} /></span>
+              <span className="dashboard-activity-copy">
+                <strong>{order.id || 'أمر عمل'}</strong>
+                <small>{order.asset ? `الأصل: ${order.asset}` : 'أمر صيانة'} · {order.prio || 'عادية'}</small>
+              </span>
+              <StatusBadge tone={order.status === 'مكتمل' ? 'green' : order.prio === 'عاجلة' ? 'red' : 'blue'}>{order.status || 'مفتوح'}</StatusBadge>
             </button>)}
-            {pendingOps > 0 && <button type="button" onClick={() => onRoute('operations')} className="dashboard-priority-row"><span className="priority-icon blue"><Gauge size={16} /></span><span><strong>{fmt(pendingOps)} سجل تشغيلي</strong><small>بانتظار الاعتماد</small></span><StatusBadge tone="blue">اعتماد</StatusBadge></button>}
-            {!dashboard.priorityCount && <div className="dashboard-clear-state"><CircleCheckBig size={22} /><div><strong>لا توجد نقاط حرجة</strong><small>كل شيء مستقر في البيانات الحالية.</small></div></div>}
+            {!dashboard.recentWo.length && <div className="dashboard-activity-empty">لا توجد أوامر عمل حديثة.</div>}
           </div>
         </Card>
-      </div>
 
-      <div className="dashboard-bottom-strip">
-        <div><span>المشروعات النشطة</span><strong>{fmt(dashboard.activeProjects)}</strong></div>
-        <div><span>ساعات التشغيل</span><strong>{fmt(dashboard.hours)}</strong></div>
-        <div><span>ساعات التوقف</span><strong>{fmt(dashboard.downtime)}</strong></div>
-        <div><span>استحقاقات قريبة</span><strong>{fmt(expiring)}</strong></div>
+        <Card title="المشروعات النشطة" description="المشروعات المرتبطة بالأصول حاليًا" action={<Button variant="ghost" size="sm" onClick={() => onRoute('projects')}>المشروعات</Button>}>
+          <div className="dashboard-project-list">
+            {dashboard.projectRows.slice(0, 4).map(project => <button key={project.id} type="button" className="dashboard-project-row" onClick={() => onRoute('projects')}>
+              <span className="dashboard-activity-icon dashboard-activity-icon--blue"><Truck size={16} /></span>
+              <span className="dashboard-activity-copy"><strong>{project.name}</strong><small>{project.code || 'بدون رمز'}</small></span>
+              <strong className="dashboard-project-count">{fmt(project.count)}</strong>
+            </button>)}
+            {!dashboard.projectRows.length && <div className="dashboard-activity-empty">لا توجد بيانات مشروعات مرتبطة بالأصول حاليًا.</div>}
+          </div>
+        </Card>
       </div>
     </section>
   </div>

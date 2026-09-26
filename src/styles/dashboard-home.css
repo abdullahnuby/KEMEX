@@ -97,22 +97,88 @@
   .dashboard-ad-copy h1{font-size:1.8rem!important}.dashboard-preview-kpis{grid-template-columns:1fr 1fr!important}.dashboard-preview-kpis article:nth-child(3),.dashboard-preview-kpis article:nth-child(4){display:none!important}.dashboard-preview-chart{min-height:160px!important}.dashboard-quick-strip__grid{grid-template-columns:1fr 1fr!important}.dashboard-bottom-strip{grid-template-columns:1fr 1fr!important}
 }
 
-/* Mobile hero title: keep the two-part headline on one line without overlap. */
+
+/* Final dashboard correction: remove duplicated KPI/detail widgets and use unique recent activity. */
+.dashboard-activity{display:grid!important;gap:12px!important;margin-top:2px!important}
+.dashboard-activity-head{display:flex!important;align-items:flex-end!important;justify-content:space-between!important;gap:14px!important}
+.dashboard-activity-head h2{margin:0!important;color:#123c4c!important;font-size:1.08rem!important;font-weight:950!important}
+.dashboard-activity-head p{margin:4px 0 0!important;color:#81939a!important;font-size:.55rem!important}
+.dashboard-activity-link{display:inline-flex!important;align-items:center!important;gap:6px!important;min-height:36px!important;padding-inline:11px!important;border:1px solid #dce7ea!important;border-radius:10px!important;background:#fff!important;color:#0a6c76!important;font:inherit!important;font-size:.57rem!important;font-weight:900!important;cursor:pointer!important}
+.dashboard-activity-link:hover{background:#eef8f7!important;border-color:#b9d8d8!important}
+.dashboard-activity-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:13px!important}
+.dashboard-activity-list,.dashboard-project-list{display:flex!important;flex-direction:column!important;gap:7px!important}
+.dashboard-activity-row,.dashboard-project-row{width:100%!important;display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;align-items:center!important;gap:8px!important;padding:9px!important;border:1px solid #e2eaed!important;border-radius:10px!important;background:linear-gradient(180deg,#fff,#f8fbfc)!important;text-align:start!important;cursor:pointer!important}
+.dashboard-activity-row:hover,.dashboard-project-row:hover{background:#f3faf9!important;border-color:#cde0e2!important}
+.dashboard-activity-icon{width:32px!important;height:32px!important;display:grid!important;place-items:center!important;border-radius:9px!important;flex:0 0 auto!important}
+.dashboard-activity-icon--amber{background:#fff6e7!important;color:#b27410!important}
+.dashboard-activity-icon--blue{background:#eef5ff!important;color:#3175c8!important}
+.dashboard-activity-copy{display:flex!important;flex-direction:column!important;gap:2px!important;min-width:0!important}
+.dashboard-activity-copy strong{color:#1b3942!important;font-size:.59rem!important;font-weight:900!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.dashboard-activity-copy small{color:#8a9a9f!important;font-size:.48rem!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.dashboard-project-count{color:#173a45!important;font-size:.82rem!important;font-weight:950!important;font-variant-numeric:tabular-nums!important}
+.dashboard-activity-empty{min-height:118px!important;display:grid!important;place-items:center!important;border:1px dashed #cddcdf!important;border-radius:10px!important;background:#f8fbfb!important;color:#829399!important;font-size:.55rem!important}
+
 @media (max-width:760px){
-  .dashboard-ad-copy h1{
-    display:flex!important;
-    align-items:baseline!important;
-    justify-content:flex-start!important;
-    gap:.28em!important;
-    width:100%!important;
-    white-space:nowrap!important;
-    line-height:1.25!important;
-    font-size:clamp(1.25rem,6.8vw,1.8rem)!important;
-  }
-  .dashboard-ad-copy h1 span,.dashboard-ad-copy h1 em{
-    white-space:nowrap!important;
-  }
+  .dashboard-activity-head{align-items:flex-start!important;flex-direction:column!important;gap:8px!important}
+  .dashboard-activity-link{width:100%!important;justify-content:center!important}
+  .dashboard-activity-grid{grid-template-columns:1fr!important;gap:10px!important}
 }
-@media (max-width:380px){
-  .dashboard-ad-copy h1{font-size:clamp(1.12rem,6.25vw,1.45rem)!important;gap:.22em!important}
+
+/* Hero balance — reduce copy block so the live operational data preview gets more visual space. */
+.dashboard-ad-hero{
+  grid-template-columns:minmax(0,.82fr) minmax(0,1.88fr)!important;
+}
+.dashboard-ad-copy{
+  padding:6px 4px 6px 10px!important;
+}
+.dashboard-ad-kicker{
+  font-size:.48rem!important;
+  gap:5px!important;
+}
+.dashboard-ad-copy h1{
+  margin:11px 0 6px!important;
+  font-size:clamp(1.35rem,2.35vw,1.95rem)!important;
+  line-height:1.18!important;
+  letter-spacing:-.035em!important;
+}
+.dashboard-ad-copy p{
+  max-width:470px!important;
+  font-size:.56rem!important;
+  line-height:1.68!important;
+}
+.dashboard-ad-actions{
+  gap:7px!important;
+  margin-top:13px!important;
+}
+.dashboard-ad-actions .ui-button{
+  min-height:35px!important;
+  padding-inline:12px!important;
+  border-radius:9px!important;
+  font-size:.57rem!important;
+}
+.dashboard-ad-trust{
+  gap:12px!important;
+  margin-top:11px!important;
+  font-size:.47rem!important;
+}
+.dashboard-device-preview{
+  max-width:760px!important;
+  transform:translateY(2px)!important;
+}
+
+@media (max-width:1100px){
+  .dashboard-ad-hero{grid-template-columns:1fr 1.45fr!important}
+  .dashboard-ad-copy h1{font-size:clamp(1.3rem,2.8vw,1.8rem)!important}
+}
+
+@media (max-width:760px){
+  .dashboard-ad-hero{grid-template-columns:1fr!important}
+  .dashboard-ad-copy{padding:11px 12px 2px!important}
+  .dashboard-ad-kicker{font-size:.5rem!important}
+  .dashboard-ad-copy h1{font-size:clamp(1.2rem,6.4vw,1.6rem)!important;margin-top:8px!important}
+  .dashboard-ad-copy p{font-size:.55rem!important;line-height:1.65!important}
+  .dashboard-ad-actions{margin-top:10px!important}
+  .dashboard-ad-actions .ui-button{min-height:36px!important;font-size:.55rem!important}
+  .dashboard-ad-trust{font-size:.44rem!important}
+  .dashboard-device-preview{transform:none!important}
 }
