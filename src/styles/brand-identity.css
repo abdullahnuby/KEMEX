@@ -140,145 +140,80 @@ body { background: var(--kemex-surface) !important; color: var(--kemex-ink) !imp
 /* Keep semantic status colors independent from the brand. */
 .ui-status-badge--blue { background: #e8f2ff !important; color: var(--kemex-blue) !important; border-color: #c7def3 !important; }
 
-
 /* --------------------------------------------------------------------------
    KEMEX logo system
-   The symbol is the primary mark; the wordmark is rendered as text so the
-   shell never stretches a wide raster logo on responsive screens.
+   Use the full visual lockup in the shell and authentication surfaces.
+   The transparent assets are sized explicitly for responsive UI.
    -------------------------------------------------------------------------- */
 .kemex-navbar-brand {
   min-width: 0 !important;
   width: auto !important;
-  flex: 0 0 auto !important;
+  flex: 0 1 auto !important;
   padding: 0 !important;
-  gap: 0 !important;
 }
 .kemex-brand-lockup {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-width: 0;
+  line-height: 0;
 }
-.kemex-brand-symbol {
+.kemex-brand-image {
   display: block;
-  width: 44px;
-  height: 44px;
+  width: auto;
+  max-width: 100%;
+  height: auto;
   object-fit: contain;
   object-position: center;
-  flex: 0 0 auto;
+  user-select: none;
+  -webkit-user-drag: none;
 }
-.kemex-brand-copy {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
+.kemex-brand-image--wordmark {
+  width: 146px;
+  height: 44px;
 }
-.kemex-brand-copy strong {
-  display: block;
-  color: var(--kemex-navy) !important;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 21px !important;
-  font-weight: 900 !important;
-  letter-spacing: .6px;
-  line-height: 1 !important;
+.kemex-brand-image--full {
+  width: min(300px, 100%);
+  height: auto;
 }
-.kemex-brand-lockup--shell .kemex-brand-copy strong::first-letter {
-  color: var(--kemex-blue);
-}
-.kemex-brand-lockup--shell.is-compact .kemex-brand-copy {
-  margin-inline-start: 7px;
-}
-.kemex-brand-lockup--shell.is-compact .kemex-brand-symbol {
-  width: 38px;
-  height: 38px;
-}
-.kemex-brand-lockup--shell.is-compact .kemex-brand-copy strong {
-  font-size: 20px !important;
-  line-height: 1 !important;
-}
-
 .kemex-brand-lockup--auth {
   width: 100%;
-  justify-content: center;
-  gap: 12px;
+  margin: 0 auto 2px;
 }
-.kemex-brand-lockup--auth .kemex-brand-symbol {
-  width: 76px;
-  height: 76px;
+.kemex-brand-lockup--auth .kemex-brand-image--full {
+  width: min(310px, 88%);
+  max-height: 104px;
 }
-.kemex-brand-lockup--auth .kemex-brand-copy {
-  align-items: flex-start;
+.kemex-brand-lockup--auth + .login-heading {
+  margin-top: 22px;
 }
-.kemex-brand-lockup--auth .kemex-brand-copy strong {
-  color: #fff !important;
-  font-size: 34px !important;
-  letter-spacing: 1px;
+.login-card .kemex-brand-lockup--auth img {
+  opacity: 1 !important;
+  filter: none !important;
 }
-.kemex-brand-ar {
-  display: block;
-  margin-top: 5px;
-  color: var(--kemex-navy);
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1.45;
-}
-.kemex-brand-en {
-  display: block;
-  margin-top: 2px;
-  color: var(--kemex-muted);
-  direction: ltr;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 8.5px;
-  font-weight: 600;
-  line-height: 1.4;
-  white-space: nowrap;
-}
-.kemex-brand-lockup--auth .kemex-brand-ar {
-  color: rgba(255,255,255,.96);
-}
-.kemex-brand-lockup--auth .kemex-brand-en {
-  color: rgba(255,255,255,.72);
-}
-
-/* Explicitly neutralize the legacy wide image sizing contract. */
-.kemex-navbar-logo,
-.login-brand-logo {
-  display: none !important;
-}
-.login-brand {
-  display: block !important;
-}
-
 @media (max-width: 720px) {
-  .kemex-brand-lockup--shell.is-compact .kemex-brand-symbol {
-    width: 36px;
+  .kemex-brand-image--wordmark {
+    width: 132px;
+    height: 40px;
+  }
+  .kemex-brand-lockup--auth .kemex-brand-image--full {
+    width: min(285px, 92%);
+    max-height: 96px;
+  }
+}
+@media (max-width: 420px) {
+  .kemex-brand-image--wordmark {
+    width: 118px;
     height: 36px;
   }
-  .kemex-brand-lockup--shell.is-compact .kemex-brand-copy {
-    margin-inline-start: 6px;
-  }
-  .kemex-brand-lockup--shell.is-compact .kemex-brand-copy strong {
-    font-size: 18px !important;
-  }
-  .kemex-brand-lockup--auth .kemex-brand-symbol {
-    width: 64px;
-    height: 64px;
-  }
-  .kemex-brand-lockup--auth .kemex-brand-copy strong {
-    font-size: 29px !important;
-  }
-  .kemex-brand-ar {
-    font-size: 10px;
-  }
-  .kemex-brand-en {
-    font-size: 7.5px;
+  .kemex-brand-lockup--auth .kemex-brand-image--full {
+    width: min(270px, 96%);
+    max-height: 88px;
   }
 }
-
-@media (max-width: 380px) {
-  .kemex-brand-lockup--shell.is-compact .kemex-brand-symbol {
-    width: 34px;
+@media (max-width: 360px) {
+  .kemex-brand-image--wordmark {
+    width: 108px;
     height: 34px;
-  }
-  .kemex-brand-lockup--shell.is-compact .kemex-brand-copy strong {
-    font-size: 17px !important;
   }
 }
