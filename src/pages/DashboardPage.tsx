@@ -12,12 +12,9 @@ type DashboardPeriod = 30 | 90 | 180
 export function DashboardPage({ assets, projects, workOrders, fuelOps, operations, onRoute }: { assets: Asset[]; projects: Project[]; workOrders: WorkOrder[]; fuelOps: FuelOperation[]; operations: Operation[]; onRoute: (route: string) => void }) {
   const { formatMoney } = useCurrency()
   const [period, setPeriod] = useState<DashboardPeriod>(30)
-
   const dashboard = useMemo(() => buildDashboardSnapshot(assets, fuelOps, workOrders, operations, projects, period), [assets, fuelOps, workOrders, operations, projects, period])
   const available = dashboard.available
-  const expiring = dashboard.expiring
   const openWo = dashboard.openWo
-  const pendingOps = dashboard.pendingOps
 
   return <div className="dashboard-page dashboard-page--executive dashboard-page--adlike">
     <section className="dashboard-ad-hero" aria-label="KEMEX الرئيسية">
@@ -34,7 +31,6 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
           <span><CircleCheckBig size={15} /> بيانات تشغيلية مباشرة</span>
         </div>
       </div>
-
       <div className="dashboard-device-preview" aria-label="ملخص تشغيلي مباشر">
         <div className="dashboard-device-topbar">
           <div><strong>لوحة القيادة</strong><small>KEMEX Operations</small></div>
@@ -57,7 +53,6 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
           </div>
         </div>
       </div>
-
       <div className="dashboard-ad-glow dashboard-ad-glow--one" />
       <div className="dashboard-ad-glow dashboard-ad-glow--two" />
       <div className="dashboard-ad-diagonal" />
@@ -87,7 +82,6 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
         </div>
         <button type="button" className="dashboard-activity-link" onClick={() => onRoute('operations')}>عرض كل النشاطات <ArrowLeft size={16} /></button>
       </div>
-
       <div className="dashboard-activity-grid">
         <Card title="آخر أوامر العمل" description="آخر أوامر الصيانة المسجلة" action={<Button variant="ghost" size="sm" onClick={() => onRoute('maintenance')}>الصيانة</Button>}>
           <div className="dashboard-activity-list">
@@ -97,12 +91,11 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
                 <strong>{order.id || 'أمر عمل'}</strong>
                 <small>{order.asset ? `الأصل: ${order.asset}` : 'أمر صيانة'} · {order.prio || 'عادية'}</small>
               </span>
-              <StatusBadge tone={order.status === 'مكتمل' ? 'green' : order.prio === 'عاجلة' ? 'red' : 'blue'}>{order.status || 'مفتوح'}</StatusBadge>
+              <StatusBadge tone={order.status === 'مكتمل' ? 'emerald' : order.prio === 'عاجلة' ? 'red' : 'blue'}>{order.status || 'مفتوح'}</StatusBadge>
             </button>)}
             {!dashboard.recentWo.length && <div className="dashboard-activity-empty">لا توجد أوامر عمل حديثة.</div>}
           </div>
         </Card>
-
         <Card title="المشروعات النشطة" description="المشروعات المرتبطة بالأصول حاليًا" action={<Button variant="ghost" size="sm" onClick={() => onRoute('projects')}>المشروعات</Button>}>
           <div className="dashboard-project-list">
             {dashboard.projectRows.slice(0, 4).map(project => <button key={project.id} type="button" className="dashboard-project-row" onClick={() => onRoute('projects')}>
@@ -179,7 +172,6 @@ function buildDashboardSnapshot(assets: Asset[], fuelOps: FuelOperation[], workO
     if (urgentForAsset) return { id: asset.id, name: asset.name, code: asset.code, reason: 'مرتبط بأمر عمل عاجل', status: 'عاجل', tone: 'red' as const, icon: ClipboardCheck, route: 'maintenance' }
     return null
   }).filter((item): item is NonNullable<typeof item> => Boolean(item)).slice(0, 5)
-
   const assetProjectCounts = new Map<string, number>()
   for (const asset of assets) {
     const key = String(asset.proj ?? '').trim()
@@ -200,56 +192,32 @@ function buildDashboardSnapshot(assets: Asset[], fuelOps: FuelOperation[], workO
     const current = assetUsageIndex.get(String(asset.id)) ?? { hours: 0, down: 0 }
     return { label: asset.name, hours: current.hours, down: current.down }
   }).filter(item => item.hours > 0 || item.down > 0).sort((a, b) => (b.hours + b.down) - (a.hours + a.down)).slice(0, 7)
-
   const monthlyCost = buildMonthlyCost(fuelOps, workOrders, period)
-
   return {
-    totalAssets,
-    activeCount,
-    active: totalAssets ? Math.round((activeCount / totalAssets) * 100) : 0,
-    available,
-    maintenance,
-    maintenanceCritical,
-    fuelCost,
-    fuelEntries: recentFuel.length,
-    fuelEntriesInPeriod: recentFuel.length,
-    openWo,
-    urgentWorkOrders,
-    pendingOps,
-    expiring,
-    readiness,
-    maintenanceCost,
-    hours,
-    downtime,
-    workOrderCount: recentWorkOrders.length,
-    avgHours,
-    avgFuel,
-    activeProjects,
-    priorityCount,
-    monthlyCost,
+    totalAssets, activeCount, active: totalAssets ? Math.round((activeCount / totalAssets) * 100) : 0,
+    available, maintenance, maintenanceCritical, fuelCost, fuelEntries: recentFuel.length,
+    fuelEntriesInPeriod: recentFuel.length, openWo, urgentWorkOrders, pendingOps, expiring,
+    readiness, maintenanceCost, hours, downtime, workOrderCount: recentWorkOrders.length,
+    avgHours, avgFuel, activeProjects, priorityCount, monthlyCost,
     healthSegments: [
       { label: 'عاملة / مخصصة', value: activeCount },
       { label: 'متاحة', value: available },
       { label: 'تحت الصيانة', value: maintenance },
       { label: 'أخرى', value: Math.max(0, totalAssets - activeCount - available - maintenance) },
     ],
-    projectRows,
-    recentWo,
-    assetUsage,
-    watchlist,
+    projectRows, recentWo, assetUsage, watchlist,
   }
 }
 
 function buildMonthlyCost(fuelOps: FuelOperation[], workOrders: WorkOrder[], period: DashboardPeriod) {
   const now = new Date()
-  const makeLabel = (date: Date, mode: 'week' | 'half' | 'month') => {
-    if (mode === 'month') return new Intl.DateTimeFormat(APP_LOCALE, { month: 'short' }).format(date)
-    if (mode === 'week') return new Intl.DateTimeFormat(APP_LOCALE, { day: '2-digit', month: 'short' }).format(date)
-    return new Intl.DateTimeFormat(APP_LOCALE, { day: '2-digit', month: 'short' }).format(date)
-  }
   const mode: 'week' | 'half' | 'month' = period === 30 ? 'week' : period === 90 ? 'half' : 'month'
   const bucketCount = period === 30 ? 5 : 6
   const bucketDays = period === 30 ? 6 : period === 90 ? 15 : 30
+  const makeLabel = (date: Date, currentMode: 'week' | 'half' | 'month') =>
+    currentMode === 'month'
+      ? new Intl.DateTimeFormat(APP_LOCALE, { month: 'short' }).format(date)
+      : new Intl.DateTimeFormat(APP_LOCALE, { day: '2-digit', month: 'short' }).format(date)
   const buckets = Array.from({ length: bucketCount }, (_, index) => {
     const end = new Date(now)
     end.setHours(23, 59, 59, 999)
