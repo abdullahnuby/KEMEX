@@ -1,12 +1,14 @@
-# KEMEX Hero RTL / spacing fix
+KEMEX Dashboard Hero final balance
 
-This patch adds a final visual layer for the Dashboard hero:
-- explicit RTL grid: compact copy on the right, dominant live data preview on the left
-- smaller typography with controlled line-height and spacing
-- fixed desktop hero height
-- internal preview direction and alignment normalized
-- mobile title remains in one line
-
-Files:
-- src/pages/DashboardPage.tsx
-- src/styles/dashboard-hero-rtl.css
+"
+        "Changes:
+"
+        "- Hero headline is a single RTL line: إدارة أذكى .. تشغيل أقوى
+"
+        "- Desktop live-data preview reduced to ~80% of its previous width by changing .52fr/2.48fr to 1fr/2fr.
+"
+        "- Mobile remains single-column.
+"
+        "- No Supabase, routing, navbar, sidebar, or business logic changes.
+"
+        
