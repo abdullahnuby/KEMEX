@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { LockKeyhole, UserRound } from 'lucide-react'
 import { APP } from '../config/app'
+import { KemexBrand } from '../components/brand/KemexBrand'
 import type { User } from '../types/tfms'
 
 export function LoginPage({ onLogin }: { onLogin: (username: string, password: string) => Promise<void> }) {
@@ -17,7 +18,7 @@ export function LoginPage({ onLogin }: { onLogin: (username: string, password: s
   return <div className="login-page">
     <div className="login-orbit orbit-a"/><div className="login-orbit orbit-b"/>
     <section className="login-card">
-      <div className="login-brand"><img className="login-brand-logo" src="/kemex-logo.png" alt={APP.name} /><div className="brand-sub">{APP.arabicName}</div></div>
+      <KemexBrand variant="auth" />
       <div className="login-heading"><h1>تسجيل الدخول</h1><p>{APP.subtitle}</p></div>
       <form onSubmit={submit} className="login-form">
         <label><span>اسم المستخدم أو البريد</span><div className="input-wrap"><UserRound size={17}/><input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" /></div></label>

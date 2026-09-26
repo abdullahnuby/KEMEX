@@ -4,6 +4,7 @@ import { APP, NAVIGATION_GROUPS, REPORT_NAV_ITEMS, ROLE_LABELS, canViewModule, t
 import type { Role, User } from '../../types/tfms'
 import type { AppNotification } from '../../features/notifications/types'
 import { GlobalSearchPanel, NotificationPopover, UserMenu } from './ShellPopovers'
+import { KemexBrand } from '../brand/KemexBrand'
 
 const ICONS: Record<string, LucideIcon> = {}
 export function registerModuleIcons(icons: Record<string, LucideIcon>) { Object.assign(ICONS, icons) }
@@ -107,9 +108,8 @@ export function AppNavbar({ user, route, onRoute, onLogout, alertCount, notifica
   return <>
     {mobileOpen && <button className="mobile-nav-scrim" onClick={() => setMobileOpen(false)} aria-label="إغلاق القائمة" />}
     <header className="site-navbar" ref={navRef}>
-      <div className="navbar-brand navbar-context" onClick={() => navigate('dashboard')} role="button" tabIndex={0} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); navigate('dashboard') } }} aria-label="العودة إلى لوحة المعلومات">
-        <img className="kemex-navbar-logo" src="/kemex-logo.png" alt={APP.name} />
-        <div className="navbar-context-copy"><span>{APP.arabicName}</span></div>
+      <div className="navbar-brand navbar-context kemex-navbar-brand" onClick={() => navigate('dashboard')} role="button" tabIndex={0} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); navigate('dashboard') } }} aria-label="العودة إلى لوحة المعلومات">
+        <KemexBrand compact />
       </div>
 
       <nav className="desktop-nav" aria-label="التنقل الرئيسي">
