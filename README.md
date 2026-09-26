@@ -1,9 +1,16 @@
-# KEMEX — Alexandria Typography Sprint
+# KEMEX dashboard redesign
 
-Applied to the uploaded KEMEX project:
-- Added Alexandria via Google Fonts with 400/500/600/700/800 weights.
-- Made Alexandria the canonical Arabic UI font with IBM Plex Sans Arabic/Noto Sans Arabic fallbacks.
-- Added a final typography layer loaded after legacy CSS.
-- Removed the previous font `@import` from `src/index.css` to avoid duplicate remote font loading.
-- Normalized headings, body copy, navigation, cards, tables, forms, badges, dashboard metrics, login copy, and mobile typography.
-- Removed the very small 8–12px visual scale for normal application text while keeping compact metadata and badges.
+This patch redesigns the main dashboard to follow the approved KEMEX marketing creative while keeping the existing live-data calculations and route actions.
+
+Changed files:
+- src/pages/DashboardPage.tsx
+- src/styles/dashboard-home.css
+
+Mobile order:
+1. Premium operational hero
+2. Quick operations
+3. Live details and KPIs
+4. Cost trend + priorities
+5. Asset status + period details
+
+No mock data is introduced.
