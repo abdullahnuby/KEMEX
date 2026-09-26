@@ -1,12 +1,5 @@
-# KEMEX — Hero Typography Balance Fix
+KEMEX build fix
 
-Changed only the dashboard hero presentation.
+Fixes TS2322 in src/pages/DashboardPage.tsx by replacing invalid StatusBadge tone "green" with the supported tone "emerald".
 
-- Reduced hero copy typography and spacing.
-- Gave the live dashboard preview a wider column on desktop.
-- Kept mobile layout intact while reducing copy slightly.
-- No data, Supabase, routes, navbar, sidebar, or business logic changes.
-
-Files:
-- src/pages/DashboardPage.tsx
-- src/styles/dashboard-home.css
+Apply this one-line patch to the current main branch. No Supabase, routing, or data logic changes.

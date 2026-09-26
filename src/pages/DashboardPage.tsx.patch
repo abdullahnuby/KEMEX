@@ -1,0 +1,5 @@
+*** Begin Patch
+*** Update File: src/pages/DashboardPage.tsx
+@@
+-              <StatusBadge tone={order.status === 'مكتمل' ? 'green' : order.prio === 'عاجلة' ? 'red' : 'blue'}>{order.status || 'مفتوح'}</StatusBadge>
++              <StatusBadge tone={order.status === 'مكتمل' ? 'emerald' : order.prio === 'عاجلة' ? 'red' : 'blue'}>{order.status || 'مفتوح'}</StatusBadge>
