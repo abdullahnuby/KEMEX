@@ -62,7 +62,7 @@ export const DEFAULT_PRINT_SETTINGS: PrintSettings = {
   showAppName: false,
   appName: 'KEMEX',
   footerText: '',
-  primaryColor: '#0b7285',
+  primaryColor: '#073b68',
   layoutStyle: 'corporate',
   fontFamily: 'alexandria',
   paperSize: 'A4',

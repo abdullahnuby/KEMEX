@@ -1,205 +1,141 @@
-
-/* KEMEX brand identity
-   Product umbrella: Logistics & Operations Management Platform.
-   This file is intentionally isolated from page-specific styles. */
+/* KEMEX Brand Identity — Logistics & Operations
+ * Single global visual layer loaded after feature CSS.
+ * Brand: Navy + Blue + Gold. Semantic green/amber/red remain status-only.
+ */
 :root {
-  --kemex-navy: #0b2f55;
-  --kemex-blue: #0e83d8;
-  --kemex-cyan: #18b6db;
-  --kemex-teal: #12a69b;
-  --kemex-gold: #f5ab1c;
-  --kemex-red: #e05a5a;
-  --kemex-ink: #102f49;
-  --kemex-muted: #6f8492;
+  --kemex-navy: #073b68;
+  --kemex-blue: #0878d1;
+  --kemex-bright-blue: #18a8f0;
+  --kemex-gold: #f5b51b;
+  --kemex-teal: #0f9f95;
+  --kemex-ink: #123247;
+  --kemex-muted: #657c8a;
   --kemex-surface: #f5f8fb;
+  --kemex-line: #d7e3ec;
+
+  --ds-primary: var(--kemex-blue) !important;
+  --ds-primary-strong: var(--kemex-navy) !important;
+  --ds-primary-soft: #eaf4fc !important;
+  --ds-text: var(--kemex-ink) !important;
+  --ds-text-strong: #0d2d45 !important;
+  --ds-text-soft: var(--kemex-muted) !important;
+  --ds-text-muted: #8193a0 !important;
+  --ds-border: #dce7ef !important;
+  --ds-border-strong: #c7d7e3 !important;
+  --ds-bg: #f5f8fb !important;
+  --ds-surface-muted: #f8fbfd !important;
+  --tfms-primary: var(--kemex-blue) !important;
+  --tfms-primary-dark: var(--kemex-navy) !important;
+  --tfms-accent: var(--kemex-blue) !important;
+  --tfms-accent-soft: #eaf4fc !important;
+  --tfms-ink: var(--kemex-ink) !important;
+  --tfms-muted: var(--kemex-muted) !important;
+  --tfms-text-strong: #163a55 !important;
+  --tfms-focus: rgba(8, 120, 209, .18) !important;
+  --ui-brand: var(--kemex-blue) !important;
+  --ui-brand-dark: var(--kemex-navy) !important;
+  --ui-brand-soft: #eaf4fc !important;
+  --ref-primary: var(--kemex-blue) !important;
+  --ref-primary-dark: var(--kemex-navy) !important;
+  --ref-primary-soft: #eaf4fc !important;
+  --modal-accent: var(--kemex-blue) !important;
 }
 
+body { background: var(--kemex-surface) !important; color: var(--kemex-ink) !important; }
+
+/* Shell / navbar */
 .site-navbar {
-  background: rgba(248, 251, 253, .96);
-  border-bottom-color: #d9e4ec;
-  box-shadow: 0 9px 30px rgba(11, 47, 85, .075);
+  background: rgba(255,255,255,.98) !important;
+  border-bottom-color: var(--kemex-line) !important;
+  box-shadow: 0 8px 28px rgba(7,59,104,.075) !important;
 }
-
-.navbar-context {
-  align-items: center;
-  gap: 12px;
+.site-navbar::after {
+  background: linear-gradient(90deg, transparent, rgba(8,120,209,.10), rgba(245,181,27,.46), rgba(8,120,209,.10), transparent) !important;
 }
-
-.kemex-navbar-logo {
-  display: block;
-  width: 158px;
-  height: 46px;
-  object-fit: contain;
-  object-position: left center;
-  flex: 0 0 auto;
+.brand-mark {
+  background: linear-gradient(135deg, var(--kemex-navy), var(--kemex-blue)) !important;
+  box-shadow: 0 8px 20px rgba(8,120,209,.20) !important;
 }
+.navbar-brand strong, .navbar-context-copy strong { color: var(--kemex-navy) !important; }
+.navbar-brand span, .navbar-context-copy span { color: var(--kemex-muted) !important; }
+.nav-direct, .nav-group-trigger { color: #4b6372 !important; }
+.nav-direct:hover, .nav-group-trigger:hover { background: #eef6fc !important; color: var(--kemex-navy) !important; }
+.nav-direct.active, .nav-group-trigger.active { color: var(--kemex-navy) !important; background: #eaf4fc !important; box-shadow: inset 0 0 0 1px #cfe3f2 !important; }
+.nav-menu-panel { border-color: #d4e2ed !important; box-shadow: 0 20px 48px rgba(7,59,104,.14) !important; }
+.nav-menu-item:hover { background: #eef7fd !important; border-color: #d8eaf6 !important; }
+.nav-menu-item.active { background: #eaf4fc !important; border-color: #c8e1f2 !important; color: var(--kemex-navy) !important; }
+.nav-menu-icon { background: #eaf4fc !important; color: var(--kemex-blue) !important; }
+.nav-menu-section-title { color: var(--kemex-navy) !important; }
+.navbar-search-btn:hover, .navbar-icon-btn:hover, .navbar-user:hover { background: #eef6fc !important; color: var(--kemex-navy) !important; }
+.navbar-search-btn.active, .navbar-icon-btn.active, .navbar-user.active { background: #e8f3fb !important; color: var(--kemex-navy) !important; }
+.navbar-menu-btn { color: var(--kemex-navy) !important; border-color: #cfe0ec !important; }
+.avatar { background: #eaf4fc !important; color: var(--kemex-navy) !important; }
 
-.navbar-context-copy {
-  min-width: 0;
+/* Primary actions */
+.primary-button,
+.ui-button--primary,
+.workflow-button.primary {
+  background: linear-gradient(135deg, var(--kemex-navy), var(--kemex-blue)) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  box-shadow: 0 8px 18px rgba(8,120,209,.17) !important;
 }
-
-.navbar-context-copy span {
-  display: block;
-  color: var(--kemex-navy);
-  font-size: 10px;
-  line-height: 1.6;
-  font-weight: 800;
-  white-space: nowrap;
-  letter-spacing: -.1px;
+.primary-button:hover:not(:disabled),
+.ui-button--primary:hover:not(:disabled),
+.workflow-button.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #062f54, #096fbd) !important;
 }
+.text-button { color: var(--kemex-blue) !important; }
+.secondary-button:hover { color: var(--kemex-navy) !important; border-color: #bcd5e7 !important; background: #f7fbfe !important; }
 
-.nav-direct,
-.nav-group-trigger {
-  color: #4f6678;
-}
+/* Tabs / active controls */
+.ds-tabs-list button.active, .workspace-tab.active { background: var(--kemex-blue) !important; border-color: var(--kemex-blue) !important; box-shadow: 0 4px 12px rgba(8,120,209,.18) !important; }
+.module-sub-nav-item.active { background: var(--kemex-navy) !important; border-color: var(--kemex-navy) !important; color: #fff !important; }
 
-.nav-direct:hover,
-.nav-group-trigger:hover {
-  background: #edf6fd;
-  color: var(--kemex-navy);
-}
+/* Cards / metrics */
+.ui-metric-card::after { background: linear-gradient(180deg, var(--kemex-blue), var(--kemex-gold)) !important; }
+.ui-metric-card__icon,
+.metric-icon { background: #eaf4fc !important; color: var(--kemex-blue) !important; }
+.metric-card.blue .metric-icon, .ui-metric-card--blue .ui-metric-card__icon { background: #e8f2ff !important; color: var(--kemex-blue) !important; }
+.ui-card--accent-teal { border-top-color: var(--kemex-blue) !important; }
+.ui-card--accent-amber { border-top-color: var(--kemex-gold) !important; }
 
-.nav-direct.active,
-.nav-group-trigger.active {
-  color: var(--kemex-navy);
-  background: #e8f3fb;
-  box-shadow: inset 0 0 0 1px #c9e1f2;
-}
+/* Dashboard / analytics */
+.dashboard-page-header__eyebrow { color: var(--kemex-blue) !important; }
+.bar-label b { color: var(--kemex-blue) !important; }
+.bar-fill { background: linear-gradient(90deg, var(--kemex-navy), var(--kemex-blue)) !important; }
+.dashboard-clear-state { border-color: #cfe3f2 !important; background: #f4f9fd !important; }
+.dashboard-clear-state { color: #187d5e !important; }
+.report-hero { background: radial-gradient(circle at top left, rgba(255,255,255,.16), transparent 34%), linear-gradient(145deg, var(--kemex-navy), var(--kemex-blue) 66%, #0c83c9) !important; }
+.report-kind-option.active { color: var(--kemex-navy) !important; background: linear-gradient(180deg,#eef7fd,#edf8ff) !important; border-color: #bddbed !important; }
+.report-choice.active { background: #eef7fd !important; border-color: #bfdced !important; box-shadow: inset 0 0 0 1px #d7e9f5 !important; }
+.report-choice-check { color: var(--kemex-blue) !important; }
 
-.nav-menu-panel {
-  border-color: #d7e4ee;
-  box-shadow: 0 22px 50px rgba(11, 47, 85, .13);
-}
+/* Charts: primary blue, secondary gold */
+.chart-line.primary-line { stroke: var(--kemex-blue) !important; }
+.chart-point.primary-point { fill: #fff !important; stroke: var(--kemex-blue) !important; }
+.primary-bar { background: linear-gradient(90deg, var(--kemex-navy), var(--kemex-blue)) !important; }
+.analytics-bar-track span { background: linear-gradient(90deg, var(--kemex-navy), var(--kemex-blue)) !important; }
+.legend-dot.primary { background: var(--kemex-blue) !important; }
+.secondary-bar { background: linear-gradient(90deg, #d79a12, var(--kemex-gold)) !important; }
+.legend-dot.secondary { background: var(--kemex-gold) !important; }
 
-.nav-menu-section-title {
-  color: var(--kemex-navy);
-}
+/* Mobile app shell */
+.mobile-tab-item.active { color: var(--kemex-navy) !important; }
+.mobile-tab-item.active svg { color: var(--kemex-blue) !important; }
+.mobile-nav-panel { border-color: #dbe7ef !important; box-shadow: 0 -8px 30px rgba(7,59,104,.16) !important; }
+.mobile-group-title.open { color: var(--kemex-navy) !important; background: #eef6fc !important; }
+.mobile-nav-item.active { color: var(--kemex-navy) !important; background: #eaf4fc !important; }
+.mobile-nav-item.active svg { color: var(--kemex-blue) !important; }
 
-.nav-menu-item:hover,
-.nav-menu-item.active {
-  background: #eef7fd;
-  color: var(--kemex-navy);
-}
-
-.nav-menu-icon {
-  color: var(--kemex-blue);
-}
-
-.navbar-search-btn:hover,
-.navbar-icon-btn:hover,
-.navbar-user:hover {
-  background: #edf6fd;
-  color: var(--kemex-navy);
-}
-
-.navbar-search-btn.active,
-.navbar-icon-btn.active,
-.navbar-user.active {
-  background: #e8f3fb;
-  color: var(--kemex-navy);
-}
-
-.navbar-menu-btn {
-  color: var(--kemex-navy);
-  border-color: #d2e0eb;
-  background: #fff;
-}
-
-.module-sub-nav {
-  background: #f8fbfd;
-  border-bottom-color: #dbe6ee;
-}
-
-.module-sub-nav-item {
-  color: #5e7381;
-}
-
-.module-sub-nav-item.active {
-  color: var(--kemex-navy);
-  border-bottom-color: var(--kemex-gold);
-  background: #edf6fc;
-}
-
+/* Login / public-facing brand */
 .login-page {
   background:
-    radial-gradient(circle at 78% 12%, rgba(14, 131, 216, .28), transparent 28%),
-    radial-gradient(circle at 14% 82%, rgba(245, 171, 28, .13), transparent 26%),
-    linear-gradient(135deg, #061c35, #0b3158 58%, #0a5870);
+    radial-gradient(circle at 78% 12%, rgba(8,120,209,.30), transparent 28%),
+    radial-gradient(circle at 14% 82%, rgba(245,181,27,.16), transparent 26%),
+    linear-gradient(135deg, #061d35, #073b68 58%, #075d82) !important;
 }
+.login-card { box-shadow: 0 35px 90px rgba(2,18,35,.38) !important; }
 
-.login-card {
-  border-color: rgba(255,255,255,.84);
-  box-shadow: 0 35px 90px rgba(2, 18, 35, .36);
-}
-
-.login-brand {
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.login-brand-logo {
-  display: block;
-  width: min(300px, 100%);
-  height: auto;
-  max-height: 72px;
-  object-fit: contain;
-  object-position: left center;
-}
-
-.login-brand .brand-sub {
-  color: var(--kemex-navy);
-  font-size: 11px;
-  line-height: 1.7;
-  font-weight: 800;
-}
-
-.login-heading p {
-  color: #748a99;
-  line-height: 1.8;
-  max-width: 42rem;
-}
-
-.primary-button {
-  background: linear-gradient(135deg, var(--kemex-navy), var(--kemex-blue));
-}
-
-.primary-button:hover:not(:disabled) {
-  filter: brightness(1.06);
-}
-
-@media (max-width: 1180px) {
-  .kemex-navbar-logo {
-    width: 142px;
-    height: 42px;
-  }
-}
-
-@media (max-width: 900px) {
-  .navbar-context-copy {
-    display: none !important;
-  }
-
-  .kemex-navbar-logo {
-    width: 126px;
-    height: 40px;
-  }
-
-  .site-navbar {
-    box-shadow: 0 7px 24px rgba(11, 47, 85, .08);
-  }
-}
-
-@media (max-width: 560px) {
-  .kemex-navbar-logo {
-    width: 116px;
-    height: 37px;
-  }
-
-  .login-brand-logo {
-    width: min(250px, 100%);
-  }
-
-  .login-brand .brand-sub {
-    font-size: 10px;
-  }
-}
+/* Keep semantic status colors independent from the brand. */
+.ui-status-badge--blue { background: #e8f2ff !important; color: var(--kemex-blue) !important; border-color: #c7def3 !important; }

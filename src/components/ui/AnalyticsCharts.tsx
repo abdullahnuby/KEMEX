@@ -78,7 +78,7 @@ export function AnalyticsDonut({ segments, centerValue, centerLabel }: { segment
   const clean = segments.filter((s) => s.value > 0)
   const total = clean.reduce((s, x) => s + x.value, 0)
   let cursor = 0
-  const colors = ['#2a7f83', '#5d866f', '#9a7b3d', '#75668f', '#985b5e', '#78878d']
+  const colors = ['#0878d1', '#f5b51b', '#18a8f0', '#073b68', '#0f9f95', '#64748b']
   return <div className="analytics-donut-wrap">
     <div className="analytics-donut" dir="ltr">
       <svg viewBox="0 0 120 120" role="img" aria-label="رسم توزيع دائري">
