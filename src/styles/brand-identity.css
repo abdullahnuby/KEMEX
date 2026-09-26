@@ -139,4 +139,146 @@ body { background: var(--kemex-surface) !important; color: var(--kemex-ink) !imp
 
 /* Keep semantic status colors independent from the brand. */
 .ui-status-badge--blue { background: #e8f2ff !important; color: var(--kemex-blue) !important; border-color: #c7def3 !important; }
-\n\n/* --------------------------------------------------------------------------\n   KEMEX logo system\n   The symbol is the primary mark; the wordmark is rendered as text so the\n   shell never stretches a wide raster logo on responsive screens.\n   -------------------------------------------------------------------------- */\n.kemex-navbar-brand {\n  min-width: 0 !important;\n  width: auto !important;\n  flex: 0 0 auto !important;\n  padding: 0 !important;\n  gap: 0 !important;\n}\n.kemex-brand-lockup {\n  display: inline-flex;\n  align-items: center;\n  min-width: 0;\n}\n.kemex-brand-symbol {\n  display: block;\n  width: 44px;\n  height: 44px;\n  object-fit: contain;\n  object-position: center;\n  flex: 0 0 auto;\n}\n.kemex-brand-copy {\n  min-width: 0;\n  display: flex;\n  flex-direction: column;\n}\n.kemex-brand-copy strong {\n  display: block;\n  color: var(--kemex-navy) !important;\n  font-family: Arial, Helvetica, sans-serif;\n  font-size: 21px !important;\n  font-weight: 900 !important;\n  letter-spacing: .6px;\n  line-height: 1 !important;\n}\n.kemex-brand-lockup--shell .kemex-brand-copy strong::first-letter {\n  color: var(--kemex-blue);\n}\n.kemex-brand-lockup--shell.is-compact .kemex-brand-copy {\n  margin-inline-start: 7px;\n}\n.kemex-brand-lockup--shell.is-compact .kemex-brand-symbol {\n  width: 38px;\n  height: 38px;\n}\n.kemex-brand-lockup--shell.is-compact .kemex-brand-copy strong {\n  font-size: 20px !important;\n  line-height: 1 !important;\n}\n\n.kemex-brand-lockup--auth {\n  width: 100%;\n  justify-content: center;\n  gap: 12px;\n}\n.kemex-brand-lockup--auth .kemex-brand-symbol {\n  width: 76px;\n  height: 76px;\n}\n.kemex-brand-lockup--auth .kemex-brand-copy {\n  align-items: flex-start;\n}\n.kemex-brand-lockup--auth .kemex-brand-copy strong {\n  color: #fff !important;\n  font-size: 34px !important;\n  letter-spacing: 1px;\n}\n.kemex-brand-ar {\n  display: block;\n  margin-top: 5px;\n  color: var(--kemex-navy);\n  font-size: 11px;\n  font-weight: 800;\n  line-height: 1.45;\n}\n.kemex-brand-en {\n  display: block;\n  margin-top: 2px;\n  color: var(--kemex-muted);\n  direction: ltr;\n  font-family: Arial, Helvetica, sans-serif;\n  font-size: 8.5px;\n  font-weight: 600;\n  line-height: 1.4;\n  white-space: nowrap;\n}\n.kemex-brand-lockup--auth .kemex-brand-ar {\n  color: rgba(255,255,255,.96);\n}\n.kemex-brand-lockup--auth .kemex-brand-en {\n  color: rgba(255,255,255,.72);\n}\n\n/* Explicitly neutralize the legacy wide image sizing contract. */\n.kemex-navbar-logo,\n.login-brand-logo {\n  display: none !important;\n}\n.login-brand {\n  display: block !important;\n}\n\n@media (max-width: 720px) {\n  .kemex-brand-lockup--shell.is-compact .kemex-brand-symbol {\n    width: 36px;\n    height: 36px;\n  }\n  .kemex-brand-lockup--shell.is-compact .kemex-brand-copy {\n    margin-inline-start: 6px;\n  }\n  .kemex-brand-lockup--shell.is-compact .kemex-brand-copy strong {\n    font-size: 18px !important;\n  }\n  .kemex-brand-lockup--auth .kemex-brand-symbol {\n    width: 64px;\n    height: 64px;\n  }\n  .kemex-brand-lockup--auth .kemex-brand-copy strong {\n    font-size: 29px !important;\n  }\n  .kemex-brand-ar {\n    font-size: 10px;\n  }\n  .kemex-brand-en {\n    font-size: 7.5px;\n  }\n}\n\n@media (max-width: 380px) {\n  .kemex-brand-lockup--shell.is-compact .kemex-brand-symbol {\n    width: 34px;\n    height: 34px;\n  }\n  .kemex-brand-lockup--shell.is-compact .kemex-brand-copy strong {\n    font-size: 17px !important;\n  }\n}\n
+
+
+/* --------------------------------------------------------------------------
+   KEMEX logo system
+   The symbol is the primary mark; the wordmark is rendered as text so the
+   shell never stretches a wide raster logo on responsive screens.
+   -------------------------------------------------------------------------- */
+.kemex-navbar-brand {
+  min-width: 0 !important;
+  width: auto !important;
+  flex: 0 0 auto !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+.kemex-brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+.kemex-brand-symbol {
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  object-position: center;
+  flex: 0 0 auto;
+}
+.kemex-brand-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.kemex-brand-copy strong {
+  display: block;
+  color: var(--kemex-navy) !important;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 21px !important;
+  font-weight: 900 !important;
+  letter-spacing: .6px;
+  line-height: 1 !important;
+}
+.kemex-brand-lockup--shell .kemex-brand-copy strong::first-letter {
+  color: var(--kemex-blue);
+}
+.kemex-brand-lockup--shell.is-compact .kemex-brand-copy {
+  margin-inline-start: 7px;
+}
+.kemex-brand-lockup--shell.is-compact .kemex-brand-symbol {
+  width: 38px;
+  height: 38px;
+}
+.kemex-brand-lockup--shell.is-compact .kemex-brand-copy strong {
+  font-size: 20px !important;
+  line-height: 1 !important;
+}
+
+.kemex-brand-lockup--auth {
+  width: 100%;
+  justify-content: center;
+  gap: 12px;
+}
+.kemex-brand-lockup--auth .kemex-brand-symbol {
+  width: 76px;
+  height: 76px;
+}
+.kemex-brand-lockup--auth .kemex-brand-copy {
+  align-items: flex-start;
+}
+.kemex-brand-lockup--auth .kemex-brand-copy strong {
+  color: #fff !important;
+  font-size: 34px !important;
+  letter-spacing: 1px;
+}
+.kemex-brand-ar {
+  display: block;
+  margin-top: 5px;
+  color: var(--kemex-navy);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+.kemex-brand-en {
+  display: block;
+  margin-top: 2px;
+  color: var(--kemex-muted);
+  direction: ltr;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.kemex-brand-lockup--auth .kemex-brand-ar {
+  color: rgba(255,255,255,.96);
+}
+.kemex-brand-lockup--auth .kemex-brand-en {
+  color: rgba(255,255,255,.72);
+}
+
+/* Explicitly neutralize the legacy wide image sizing contract. */
+.kemex-navbar-logo,
+.login-brand-logo {
+  display: none !important;
+}
+.login-brand {
+  display: block !important;
+}
+
+@media (max-width: 720px) {
+  .kemex-brand-lockup--shell.is-compact .kemex-brand-symbol {
+    width: 36px;
+    height: 36px;
+  }
+  .kemex-brand-lockup--shell.is-compact .kemex-brand-copy {
+    margin-inline-start: 6px;
+  }
+  .kemex-brand-lockup--shell.is-compact .kemex-brand-copy strong {
+    font-size: 18px !important;
+  }
+  .kemex-brand-lockup--auth .kemex-brand-symbol {
+    width: 64px;
+    height: 64px;
+  }
+  .kemex-brand-lockup--auth .kemex-brand-copy strong {
+    font-size: 29px !important;
+  }
+  .kemex-brand-ar {
+    font-size: 10px;
+  }
+  .kemex-brand-en {
+    font-size: 7.5px;
+  }
+}
+
+@media (max-width: 380px) {
+  .kemex-brand-lockup--shell.is-compact .kemex-brand-symbol {
+    width: 34px;
+    height: 34px;
+  }
+  .kemex-brand-lockup--shell.is-compact .kemex-brand-copy strong {
+    font-size: 17px !important;
+  }
+}
