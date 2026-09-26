@@ -403,3 +403,47 @@
     padding: 8px !important;
   }
 }
+
+
+/* Final visual polish: center icon + label inside each quick-operation card. */
+.dashboard-ad-hero--command .dashboard-hero-quick-grid {
+  direction: rtl !important;
+  align-items: stretch !important;
+}
+
+.dashboard-ad-hero--command .dashboard-hero-quick-grid button {
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  gap: 6px !important;
+  padding: 9px 8px !important;
+}
+
+.dashboard-ad-hero--command .dashboard-hero-quick-grid button > span {
+  display: grid !important;
+  place-items: center !important;
+  margin-inline: auto !important;
+  flex: 0 0 auto !important;
+}
+
+.dashboard-ad-hero--command .dashboard-hero-quick-grid button strong {
+  display: block !important;
+  width: 100% !important;
+  text-align: center !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.35 !important;
+}
+
+@media (max-width: 760px) {
+  .dashboard-ad-hero--command .dashboard-hero-quick-grid button {
+    align-items: center !important;
+    text-align: center !important;
+    min-height: 64px !important;
+  }
+
+  .dashboard-ad-hero--command .dashboard-hero-quick-grid button strong {
+    text-align: center !important;
+  }
+}

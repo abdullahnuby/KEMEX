@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CircleCheckBig, ClipboardCheck, Gauge, ShieldCheck, Truck, Wrench } from 'lucide-react'
+import { ArrowLeft, CircleCheckBig, ClipboardCheck, Gauge, ShieldCheck, Truck, Wrench } from 'lucide-react'
 import type { Asset, FuelOperation, Operation, Project, WorkOrder } from '../types/tfms'
 import { Button, Card, AnalyticsDonut, AnalyticsLineChart, StatusBadge } from '../components/ui'
 import { sameReference } from '../utils/referenceLabels'

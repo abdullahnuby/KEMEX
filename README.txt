@@ -1,9 +1,7 @@
-Surgical KEMEX build fix
+KEMEX dashboard polish
 
-Error fixed:
-TS2304: Cannot find name 'ArrowLeft'.
+1) Fixes TS2304 by restoring ArrowLeft in DashboardPage.tsx.
+2) Centers the icon and label inside the four quick-operation cards.
+3) Keeps the current Command Center Hero layout and RTL finishing layer.
 
-Change:
-Added ArrowLeft to the lucide-react import in src/pages/DashboardPage.tsx.
-
-No other project logic or database changes were made.
+Replace the files at these exact paths, then run: npm run build
