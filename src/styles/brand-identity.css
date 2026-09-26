@@ -139,3 +139,43 @@ body { background: var(--kemex-surface) !important; color: var(--kemex-ink) !imp
 
 /* Keep semantic status colors independent from the brand. */
 .ui-status-badge--blue { background: #e8f2ff !important; color: var(--kemex-blue) !important; border-color: #c7def3 !important; }
+
+/* KEMEX logo geometry — keep the full wordmark compact inside the shell.
+ * The new logo is a wide 1300x258 wordmark; it must never render at its
+ * intrinsic pixel dimensions inside the navbar.
+ */
+.kemex-navbar-logo {
+  display: block !important;
+  width: min(210px, 100%) !important;
+  height: 40px !important;
+  max-width: min(210px, calc(100vw - 170px)) !important;
+  max-height: 40px !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  flex: 0 0 auto !important;
+}
+
+.navbar-brand {
+  min-width: 0 !important;
+  max-width: 230px !important;
+}
+
+@media (max-width: 1020px) {
+  .kemex-navbar-logo {
+    width: min(190px, calc(100vw - 150px)) !important;
+    height: 38px !important;
+    max-height: 38px !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .kemex-navbar-logo {
+    width: min(180px, calc(100vw - 145px)) !important;
+    height: 36px !important;
+    max-height: 36px !important;
+  }
+  .navbar-brand {
+    max-width: 190px !important;
+    padding-inline: 2px !important;
+  }
+}
