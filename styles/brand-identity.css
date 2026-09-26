@@ -1,0 +1,284 @@
+/* KEMEX Brand Identity — Logistics & Operations
+ * Single global visual layer loaded after feature CSS.
+ * Brand: Navy + Blue + Gold. Semantic green/amber/red remain status-only.
+ */
+:root {
+  --kemex-navy: #073b68;
+  --kemex-blue: #0878d1;
+  --kemex-bright-blue: #18a8f0;
+  --kemex-gold: #f5b51b;
+  --kemex-teal: #0f9f95;
+  --kemex-ink: #123247;
+  --kemex-muted: #657c8a;
+  --kemex-surface: #f5f8fb;
+  --kemex-line: #d7e3ec;
+
+  --ds-primary: var(--kemex-blue) !important;
+  --ds-primary-strong: var(--kemex-navy) !important;
+  --ds-primary-soft: #eaf4fc !important;
+  --ds-text: var(--kemex-ink) !important;
+  --ds-text-strong: #0d2d45 !important;
+  --ds-text-soft: var(--kemex-muted) !important;
+  --ds-text-muted: #8193a0 !important;
+  --ds-border: #dce7ef !important;
+  --ds-border-strong: #c7d7e3 !important;
+  --ds-bg: #f5f8fb !important;
+  --ds-surface-muted: #f8fbfd !important;
+  --tfms-primary: var(--kemex-blue) !important;
+  --tfms-primary-dark: var(--kemex-navy) !important;
+  --tfms-accent: var(--kemex-blue) !important;
+  --tfms-accent-soft: #eaf4fc !important;
+  --tfms-ink: var(--kemex-ink) !important;
+  --tfms-muted: var(--kemex-muted) !important;
+  --tfms-text-strong: #163a55 !important;
+  --tfms-focus: rgba(8, 120, 209, .18) !important;
+  --ui-brand: var(--kemex-blue) !important;
+  --ui-brand-dark: var(--kemex-navy) !important;
+  --ui-brand-soft: #eaf4fc !important;
+  --ref-primary: var(--kemex-blue) !important;
+  --ref-primary-dark: var(--kemex-navy) !important;
+  --ref-primary-soft: #eaf4fc !important;
+  --modal-accent: var(--kemex-blue) !important;
+}
+
+body { background: var(--kemex-surface) !important; color: var(--kemex-ink) !important; }
+
+/* Shell / navbar */
+.site-navbar {
+  background: rgba(255,255,255,.98) !important;
+  border-bottom-color: var(--kemex-line) !important;
+  box-shadow: 0 8px 28px rgba(7,59,104,.075) !important;
+}
+.site-navbar::after {
+  background: linear-gradient(90deg, transparent, rgba(8,120,209,.10), rgba(245,181,27,.46), rgba(8,120,209,.10), transparent) !important;
+}
+.brand-mark {
+  background: linear-gradient(135deg, var(--kemex-navy), var(--kemex-blue)) !important;
+  box-shadow: 0 8px 20px rgba(8,120,209,.20) !important;
+}
+.navbar-brand strong, .navbar-context-copy strong { color: var(--kemex-navy) !important; }
+.navbar-brand span, .navbar-context-copy span { color: var(--kemex-muted) !important; }
+.nav-direct, .nav-group-trigger { color: #4b6372 !important; }
+.nav-direct:hover, .nav-group-trigger:hover { background: #eef6fc !important; color: var(--kemex-navy) !important; }
+.nav-direct.active, .nav-group-trigger.active { color: var(--kemex-navy) !important; background: #eaf4fc !important; box-shadow: inset 0 0 0 1px #cfe3f2 !important; }
+.nav-menu-panel { border-color: #d4e2ed !important; box-shadow: 0 20px 48px rgba(7,59,104,.14) !important; }
+.nav-menu-item:hover { background: #eef7fd !important; border-color: #d8eaf6 !important; }
+.nav-menu-item.active { background: #eaf4fc !important; border-color: #c8e1f2 !important; color: var(--kemex-navy) !important; }
+.nav-menu-icon { background: #eaf4fc !important; color: var(--kemex-blue) !important; }
+.nav-menu-section-title { color: var(--kemex-navy) !important; }
+.navbar-search-btn:hover, .navbar-icon-btn:hover, .navbar-user:hover { background: #eef6fc !important; color: var(--kemex-navy) !important; }
+.navbar-search-btn.active, .navbar-icon-btn.active, .navbar-user.active { background: #e8f3fb !important; color: var(--kemex-navy) !important; }
+.navbar-menu-btn { color: var(--kemex-navy) !important; border-color: #cfe0ec !important; }
+.avatar { background: #eaf4fc !important; color: var(--kemex-navy) !important; }
+
+/* Primary actions */
+.primary-button,
+.ui-button--primary,
+.workflow-button.primary {
+  background: linear-gradient(135deg, var(--kemex-navy), var(--kemex-blue)) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  box-shadow: 0 8px 18px rgba(8,120,209,.17) !important;
+}
+.primary-button:hover:not(:disabled),
+.ui-button--primary:hover:not(:disabled),
+.workflow-button.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #062f54, #096fbd) !important;
+}
+.text-button { color: var(--kemex-blue) !important; }
+.secondary-button:hover { color: var(--kemex-navy) !important; border-color: #bcd5e7 !important; background: #f7fbfe !important; }
+
+/* Tabs / active controls */
+.ds-tabs-list button.active, .workspace-tab.active { background: var(--kemex-blue) !important; border-color: var(--kemex-blue) !important; box-shadow: 0 4px 12px rgba(8,120,209,.18) !important; }
+.module-sub-nav-item.active { background: var(--kemex-navy) !important; border-color: var(--kemex-navy) !important; color: #fff !important; }
+
+/* Cards / metrics */
+.ui-metric-card::after { background: linear-gradient(180deg, var(--kemex-blue), var(--kemex-gold)) !important; }
+.ui-metric-card__icon,
+.metric-icon { background: #eaf4fc !important; color: var(--kemex-blue) !important; }
+.metric-card.blue .metric-icon, .ui-metric-card--blue .ui-metric-card__icon { background: #e8f2ff !important; color: var(--kemex-blue) !important; }
+.ui-card--accent-teal { border-top-color: var(--kemex-blue) !important; }
+.ui-card--accent-amber { border-top-color: var(--kemex-gold) !important; }
+
+/* Dashboard / analytics */
+.dashboard-page-header__eyebrow { color: var(--kemex-blue) !important; }
+.bar-label b { color: var(--kemex-blue) !important; }
+.bar-fill { background: linear-gradient(90deg, var(--kemex-navy), var(--kemex-blue)) !important; }
+.dashboard-clear-state { border-color: #cfe3f2 !important; background: #f4f9fd !important; }
+.dashboard-clear-state { color: #187d5e !important; }
+.report-hero { background: radial-gradient(circle at top left, rgba(255,255,255,.16), transparent 34%), linear-gradient(145deg, var(--kemex-navy), var(--kemex-blue) 66%, #0c83c9) !important; }
+.report-kind-option.active { color: var(--kemex-navy) !important; background: linear-gradient(180deg,#eef7fd,#edf8ff) !important; border-color: #bddbed !important; }
+.report-choice.active { background: #eef7fd !important; border-color: #bfdced !important; box-shadow: inset 0 0 0 1px #d7e9f5 !important; }
+.report-choice-check { color: var(--kemex-blue) !important; }
+
+/* Charts: primary blue, secondary gold */
+.chart-line.primary-line { stroke: var(--kemex-blue) !important; }
+.chart-point.primary-point { fill: #fff !important; stroke: var(--kemex-blue) !important; }
+.primary-bar { background: linear-gradient(90deg, var(--kemex-navy), var(--kemex-blue)) !important; }
+.analytics-bar-track span { background: linear-gradient(90deg, var(--kemex-navy), var(--kemex-blue)) !important; }
+.legend-dot.primary { background: var(--kemex-blue) !important; }
+.secondary-bar { background: linear-gradient(90deg, #d79a12, var(--kemex-gold)) !important; }
+.legend-dot.secondary { background: var(--kemex-gold) !important; }
+
+/* Mobile app shell */
+.mobile-tab-item.active { color: var(--kemex-navy) !important; }
+.mobile-tab-item.active svg { color: var(--kemex-blue) !important; }
+.mobile-nav-panel { border-color: #dbe7ef !important; box-shadow: 0 -8px 30px rgba(7,59,104,.16) !important; }
+.mobile-group-title.open { color: var(--kemex-navy) !important; background: #eef6fc !important; }
+.mobile-nav-item.active { color: var(--kemex-navy) !important; background: #eaf4fc !important; }
+.mobile-nav-item.active svg { color: var(--kemex-blue) !important; }
+
+/* Login / public-facing brand */
+.login-page {
+  background:
+    radial-gradient(circle at 78% 12%, rgba(8,120,209,.30), transparent 28%),
+    radial-gradient(circle at 14% 82%, rgba(245,181,27,.16), transparent 26%),
+    linear-gradient(135deg, #061d35, #073b68 58%, #075d82) !important;
+}
+.login-card { box-shadow: 0 35px 90px rgba(2,18,35,.38) !important; }
+
+/* Keep semantic status colors independent from the brand. */
+.ui-status-badge--blue { background: #e8f2ff !important; color: var(--kemex-blue) !important; border-color: #c7def3 !important; }
+
+
+/* --------------------------------------------------------------------------
+   KEMEX logo system
+   The symbol is the primary mark; the wordmark is rendered as text so the
+   shell never stretches a wide raster logo on responsive screens.
+   -------------------------------------------------------------------------- */
+.kemex-navbar-brand {
+  min-width: 0 !important;
+  width: auto !important;
+  flex: 0 0 auto !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+.kemex-brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+.kemex-brand-symbol {
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  object-position: center;
+  flex: 0 0 auto;
+}
+.kemex-brand-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.kemex-brand-copy strong {
+  display: block;
+  color: var(--kemex-navy) !important;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 21px !important;
+  font-weight: 900 !important;
+  letter-spacing: .6px;
+  line-height: 1 !important;
+}
+.kemex-brand-lockup--shell .kemex-brand-copy strong::first-letter {
+  color: var(--kemex-blue);
+}
+.kemex-brand-lockup--shell.is-compact .kemex-brand-copy {
+  margin-inline-start: 7px;
+}
+.kemex-brand-lockup--shell.is-compact .kemex-brand-symbol {
+  width: 38px;
+  height: 38px;
+}
+.kemex-brand-lockup--shell.is-compact .kemex-brand-copy strong {
+  font-size: 20px !important;
+  line-height: 1 !important;
+}
+
+.kemex-brand-lockup--auth {
+  width: 100%;
+  justify-content: center;
+  gap: 12px;
+}
+.kemex-brand-lockup--auth .kemex-brand-symbol {
+  width: 76px;
+  height: 76px;
+}
+.kemex-brand-lockup--auth .kemex-brand-copy {
+  align-items: flex-start;
+}
+.kemex-brand-lockup--auth .kemex-brand-copy strong {
+  color: #fff !important;
+  font-size: 34px !important;
+  letter-spacing: 1px;
+}
+.kemex-brand-ar {
+  display: block;
+  margin-top: 5px;
+  color: var(--kemex-navy);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+.kemex-brand-en {
+  display: block;
+  margin-top: 2px;
+  color: var(--kemex-muted);
+  direction: ltr;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.kemex-brand-lockup--auth .kemex-brand-ar {
+  color: rgba(255,255,255,.96);
+}
+.kemex-brand-lockup--auth .kemex-brand-en {
+  color: rgba(255,255,255,.72);
+}
+
+/* Explicitly neutralize the legacy wide image sizing contract. */
+.kemex-navbar-logo,
+.login-brand-logo {
+  display: none !important;
+}
+.login-brand {
+  display: block !important;
+}
+
+@media (max-width: 720px) {
+  .kemex-brand-lockup--shell.is-compact .kemex-brand-symbol {
+    width: 36px;
+    height: 36px;
+  }
+  .kemex-brand-lockup--shell.is-compact .kemex-brand-copy {
+    margin-inline-start: 6px;
+  }
+  .kemex-brand-lockup--shell.is-compact .kemex-brand-copy strong {
+    font-size: 18px !important;
+  }
+  .kemex-brand-lockup--auth .kemex-brand-symbol {
+    width: 64px;
+    height: 64px;
+  }
+  .kemex-brand-lockup--auth .kemex-brand-copy strong {
+    font-size: 29px !important;
+  }
+  .kemex-brand-ar {
+    font-size: 10px;
+  }
+  .kemex-brand-en {
+    font-size: 7.5px;
+  }
+}
+
+@media (max-width: 380px) {
+  .kemex-brand-lockup--shell.is-compact .kemex-brand-symbol {
+    width: 34px;
+    height: 34px;
+  }
+  .kemex-brand-lockup--shell.is-compact .kemex-brand-copy strong {
+    font-size: 17px !important;
+  }
+}
