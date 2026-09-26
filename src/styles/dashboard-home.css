@@ -96,3 +96,23 @@
 @media (max-width:520px){
   .dashboard-ad-copy h1{font-size:1.8rem!important}.dashboard-preview-kpis{grid-template-columns:1fr 1fr!important}.dashboard-preview-kpis article:nth-child(3),.dashboard-preview-kpis article:nth-child(4){display:none!important}.dashboard-preview-chart{min-height:160px!important}.dashboard-quick-strip__grid{grid-template-columns:1fr 1fr!important}.dashboard-bottom-strip{grid-template-columns:1fr 1fr!important}
 }
+
+/* Mobile hero title: keep the two-part headline on one line without overlap. */
+@media (max-width:760px){
+  .dashboard-ad-copy h1{
+    display:flex!important;
+    align-items:baseline!important;
+    justify-content:flex-start!important;
+    gap:.28em!important;
+    width:100%!important;
+    white-space:nowrap!important;
+    line-height:1.25!important;
+    font-size:clamp(1.25rem,6.8vw,1.8rem)!important;
+  }
+  .dashboard-ad-copy h1 span,.dashboard-ad-copy h1 em{
+    white-space:nowrap!important;
+  }
+}
+@media (max-width:380px){
+  .dashboard-ad-copy h1{font-size:clamp(1.12rem,6.25vw,1.45rem)!important;gap:.22em!important}
+}
