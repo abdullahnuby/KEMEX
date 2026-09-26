@@ -19,90 +19,102 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
   const openWo = dashboard.openWo
   const pendingOps = dashboard.pendingOps
 
-  return <div className="dashboard-page dashboard-page--executive dashboard-page--marketing dashboard-page--clean">
-    <header className="dashboard-ad-hero">
+  return <div className="dashboard-page dashboard-page--executive dashboard-page--adlike">
+    <section className="dashboard-ad-hero" aria-label="KEMEX الرئيسية">
       <div className="dashboard-ad-copy">
-        <span className="dashboard-ad-kicker"><Gauge size={15} /> KEMEX · منصة إدارة اللوجستيات والعمليات</span>
-        <h1>إدارة أذكى .. تشغيل أقوى</h1>
-        <p>كل ما تحتاجه لإدارة أسطولك وأصولك وعملياتك وتكاليفك من منصة واحدة، مع رؤية واضحة للحركة والصيانة والتكلفة.</p>
+        <span className="dashboard-ad-kicker">KEMEX · منصة إدارة اللوجستيات والعمليات</span>
+        <h1>إدارة أذكى ..<br /><em>تشغيل أقوى</em></h1>
+        <p>كل ما تحتاجه لإدارة أسطولك وأصولك وعملياتك وتكاليفك في منصة واحدة، برؤية تشغيلية واضحة وسريعة.</p>
         <div className="dashboard-ad-actions">
-          <Button icon={<Truck size={16} />} onClick={() => onRoute('assets')}>الأسطول والأصول</Button>
-          <Button variant="secondary" icon={<Gauge size={16} />} onClick={() => onRoute('operations-center')}>مركز التحكم</Button>
+          <Button icon={<Truck size={17} />} onClick={() => onRoute('assets')}>الأسطول والأصول</Button>
+          <Button variant="secondary" icon={<Gauge size={17} />} onClick={() => onRoute('operations-center')}>مركز التحكم</Button>
+        </div>
+        <div className="dashboard-ad-trust">
+          <span><ShieldCheck size={15} /> تحكم متكامل</span>
+          <span><CircleCheckBig size={15} /> بيانات تشغيلية مباشرة</span>
         </div>
       </div>
 
-      <div className="dashboard-ad-live">
-        <div className="dashboard-ad-live-head">
-          <span>مؤشرات التشغيل</span>
-          <strong>{periodLabelShort(period)}</strong>
+      <div className="dashboard-device-preview" aria-label="ملخص تشغيلي مباشر">
+        <div className="dashboard-device-topbar">
+          <div><strong>لوحة القيادة</strong><small>KEMEX Operations</small></div>
+          <span className="dashboard-live-dot"><i /> مباشر</span>
         </div>
-        <div className="dashboard-ad-stat-grid">
-          <article className="dashboard-ad-stat stat-blue"><span>إجمالي الأصول</span><strong>{fmt(dashboard.totalAssets)}</strong><small>{fmt(dashboard.activeCount)} تعمل الآن</small></article>
-          <article className="dashboard-ad-stat stat-green"><span>جاهزية الأسطول</span><strong>{fmt(dashboard.readiness)}%</strong><small>{fmt(available)} متاحة</small></article>
-          <article className="dashboard-ad-stat stat-amber"><span>تكلفة الوقود</span><strong>{formatMoney(dashboard.fuelCost)}</strong><small>{fmt(dashboard.fuelEntries)} عملية معتمدة</small></article>
-          <article className="dashboard-ad-stat stat-red"><span>أوامر عمل مفتوحة</span><strong>{fmt(openWo)}</strong><small>{fmt(dashboard.urgentWorkOrders)} عاجلة</small></article>
+        <div className="dashboard-preview-kpis">
+          <article><span>الأصول</span><strong>{fmt(dashboard.totalAssets)}</strong><small>{fmt(dashboard.activeCount)} تعمل</small></article>
+          <article><span>الجاهزية</span><strong>{fmt(dashboard.readiness)}%</strong><small>{fmt(available)} متاحة</small></article>
+          <article><span>الرحلات</span><strong>{fmt(dashboard.pendingOps)}</strong><small>تشغيل/اعتماد</small></article>
+          <article><span>الصيانة</span><strong>{fmt(openWo)}</strong><small>{fmt(dashboard.urgentWorkOrders)} عاجلة</small></article>
+        </div>
+        <div className="dashboard-preview-panels">
+          <div className="dashboard-preview-chart">
+            <div className="dashboard-preview-panel-head"><span>اتجاه التشغيل والتكلفة</span><small>{periodLabelShort(period)}</small></div>
+            <AnalyticsLineChart points={dashboard.monthlyCost} height={150} primaryLabel="الوقود" secondaryLabel="الصيانة" />
+          </div>
+          <div className="dashboard-preview-health">
+            <div className="dashboard-preview-panel-head"><span>حالة الأسطول</span><small>اليوم</small></div>
+            <AnalyticsDonut segments={dashboard.healthSegments} centerValue={fmt(dashboard.totalAssets)} centerLabel="أصل" />
+          </div>
         </div>
       </div>
 
-      <div className="dashboard-ad-decor dashboard-ad-decor--one" />
-      <div className="dashboard-ad-decor dashboard-ad-decor--two" />
-      <div className="dashboard-ad-road" />
-    </header>
-
-    <section className="dashboard-quick-actions" aria-label="العمليات السريعة">
-      <div className="dashboard-section-heading">
-        <div><span>ابدأ من هنا</span><h2>العمليات السريعة</h2><p>أكثر الإجراءات استخدامًا في متناول يدك.</p></div>
-      </div>
-      <div className="dashboard-quick-grid">
-        <button type="button" className="dashboard-quick-card dashboard-quick-card--blue" onClick={() => onRoute('assets')}><span className="dashboard-quick-icon"><Truck size={21} /></span><span><strong>الأسطول والأصول</strong><small>الحالة والتخصيصات والمتابعة</small></span><ArrowLeft size={17} /></button>
-        <button type="button" className="dashboard-quick-card dashboard-quick-card--teal" onClick={() => onRoute('operations')}><span className="dashboard-quick-icon"><Gauge size={21} /></span><span><strong>التشغيل والرحلات</strong><small>العمليات والرحلات والاعتمادات</small></span><ArrowLeft size={17} /></button>
-        <button type="button" className="dashboard-quick-card dashboard-quick-card--amber" onClick={() => onRoute('maintenance')}><span className="dashboard-quick-icon"><Wrench size={21} /></span><span><strong>الصيانة</strong><small>الأعطال وأوامر العمل</small></span><ArrowLeft size={17} /></button>
-        <button type="button" className="dashboard-quick-card dashboard-quick-card--purple" onClick={() => onRoute('reports')}><span className="dashboard-quick-icon"><ClipboardCheck size={21} /></span><span><strong>التقارير والتحليلات</strong><small>التكلفة والأداء والاستخدام</small></span><ArrowLeft size={17} /></button>
-      </div>
+      <div className="dashboard-ad-glow dashboard-ad-glow--one" />
+      <div className="dashboard-ad-glow dashboard-ad-glow--two" />
+      <div className="dashboard-ad-diagonal" />
     </section>
 
-    <section className="dashboard-details-block" aria-label="تفاصيل التشغيل">
-      <div className="dashboard-section-heading dashboard-section-heading--details">
-        <div><span>البيانات الحية</span><h2>تفاصيل التشغيل</h2><p>التحليلات والأولويات وحالة الموارد في مكان واحد.</p></div>
+    <section className="dashboard-quick-strip" aria-label="العمليات السريعة">
+      <div className="dashboard-quick-strip__title">
+        <span>ابدأ من هنا</span>
+        <h2>العمليات السريعة</h2>
+        <p>الوصول المباشر لأكثر المهام استخدامًا.</p>
+      </div>
+      <div className="dashboard-quick-strip__grid">
+        <button type="button" onClick={() => onRoute('assets')}><span><Truck size={21} /></span><strong>الأسطول والأصول</strong><small>المتابعة والتخصيص</small></button>
+        <button type="button" onClick={() => onRoute('operations')}><span><Gauge size={21} /></span><strong>التشغيل والرحلات</strong><small>العمليات والاعتمادات</small></button>
+        <button type="button" onClick={() => onRoute('maintenance')}><span><Wrench size={21} /></span><strong>الصيانة</strong><small>الأعطال وأوامر العمل</small></button>
+        <button type="button" onClick={() => onRoute('reports')}><span><ClipboardCheck size={21} /></span><strong>التقارير والتحليلات</strong><small>التكلفة والأداء</small></button>
+      </div>
+      <button type="button" className="dashboard-quick-cta" onClick={() => onRoute('operations-center')}>افتح مركز التحكم <ArrowLeft size={17} /></button>
+    </section>
+
+    <section className="dashboard-details" aria-label="تفاصيل التشغيل">
+      <div className="dashboard-details-head">
+        <div><span>تفاصيل التشغيل</span><h2>الصورة الكاملة لعملياتك</h2><p>قراءة مختصرة للتكلفة وحالة الموارد والأولويات.</p></div>
         <div className="dashboard-period-switch" role="group" aria-label="نطاق المؤشرات">
           {([30, 90, 180] as const).map(value => <button key={value} type="button" className={period === value ? 'active' : ''} aria-pressed={period === value} onClick={() => setPeriod(value)}>{value === 30 ? '30 يوم' : value === 90 ? '90 يوم' : '6 أشهر'}</button>)}
         </div>
       </div>
 
-      <section className="dashboard-executive-grid">
+      <div className="dashboard-detail-grid">
         <ChartShell title="اتجاه تكلفة التشغيل" description={period === 30 ? 'آخر 30 يومًا' : period === 90 ? 'آخر 90 يومًا' : 'آخر 6 أشهر'} action={<Button variant="ghost" size="sm" onClick={() => onRoute('reports')}>التفاصيل</Button>}>
           <AnalyticsLineChart points={dashboard.monthlyCost} valueSuffix=" ج.م" secondarySuffix=" ج.م" primaryLabel="الوقود" secondaryLabel="الصيانة" height={230} />
-          <div className="dashboard-chart-summary">
-            <div><span>الوقود</span><strong>{formatMoney(dashboard.fuelCost)}</strong></div>
-            <div><span>الصيانة</span><strong>{formatMoney(dashboard.maintenanceCost)}</strong></div>
-          </div>
+          <div className="dashboard-cost-summary"><div><span>الوقود</span><strong>{formatMoney(dashboard.fuelCost)}</strong></div><div><span>الصيانة</span><strong>{formatMoney(dashboard.maintenanceCost)}</strong></div></div>
         </ChartShell>
 
-        <Card title="الأولويات الآن" description={dashboard.priorityCount ? 'العناصر التي تحتاج متابعة' : 'الوضع الحالي مستقر'} action={<AlertTriangle size={18} className="warning-icon" />}>
-          <div className="dashboard-decision-list">
-            {dashboard.watchlist.slice(0, 4).map(item => <button key={item.id} type="button" onClick={() => onRoute(item.route)} className="dashboard-decision-row">
-              <span className={`priority-icon ${item.tone}`}><item.icon size={16} /></span>
-              <span className="dashboard-watch-copy"><strong>{item.name}</strong><small>{item.reason}{item.code ? ` · ${item.code}` : ''}</small></span>
-              <StatusBadge tone={item.tone === 'red' ? 'red' : item.tone === 'amber' ? 'amber' : 'blue'}>{item.status}</StatusBadge>
-            </button>)}
-            {pendingOps > 0 && <button type="button" onClick={() => onRoute('operations')} className="dashboard-decision-row"><span className="priority-icon blue"><Gauge size={16} /></span><span className="dashboard-watch-copy"><strong>{fmt(pendingOps)} سجل تشغيلي</strong><small>بانتظار الاعتماد</small></span><StatusBadge tone="blue">اعتماد</StatusBadge></button>}
-            {!dashboard.priorityCount && <div className="dashboard-clear-state"><CircleCheckBig size={22} /><div><strong>لا توجد نقاط حرجة</strong><small>لا يوجد شيء يحتاج تدخّلًا فوريًا في البيانات الحالية.</small></div></div>}
-          </div>
-        </Card>
-      </section>
-
-      <section className="dashboard-status-grid">
-        <Card title="حالة الأصول" description="توزيع مختصر للحالة الحالية" action={<Button variant="ghost" size="sm" onClick={() => onRoute('assets')}>فتح الأصول</Button>}>
+        <Card title="حالة الأصول" description="التوزيع الحالي للموارد" action={<Button variant="ghost" size="sm" onClick={() => onRoute('assets')}>فتح الأصول</Button>}>
           <AnalyticsDonut segments={dashboard.healthSegments} centerValue={fmt(dashboard.totalAssets)} centerLabel="إجمالي أصل" />
         </Card>
-        <Card title="مؤشر الفترة" description="قراءة سريعة للأداء التشغيلي" action={<Button variant="ghost" size="sm" onClick={() => onRoute('operations')}>مركز التشغيل</Button>}>
-          <div className="dashboard-period-summary">
-            <div><span>المشروعات النشطة</span><strong>{fmt(dashboard.activeProjects)}</strong></div>
-            <div><span>ساعات التشغيل</span><strong>{fmt(dashboard.hours)}</strong></div>
-            <div><span>ساعات التوقف</span><strong>{fmt(dashboard.downtime)}</strong></div>
+
+        <Card title="الأولويات الآن" description={dashboard.priorityCount ? 'العناصر التي تحتاج متابعة' : 'الوضع الحالي مستقر'} action={<AlertTriangle size={18} className="warning-icon" />}>
+          <div className="dashboard-priority-list">
+            {dashboard.watchlist.slice(0, 4).map(item => <button key={item.id} type="button" onClick={() => onRoute(item.route)} className="dashboard-priority-row">
+              <span className={`priority-icon ${item.tone}`}><item.icon size={16} /></span>
+              <span><strong>{item.name}</strong><small>{item.reason}{item.code ? ` · ${item.code}` : ''}</small></span>
+              <StatusBadge tone={item.tone === 'red' ? 'red' : item.tone === 'amber' ? 'amber' : 'blue'}>{item.status}</StatusBadge>
+            </button>)}
+            {pendingOps > 0 && <button type="button" onClick={() => onRoute('operations')} className="dashboard-priority-row"><span className="priority-icon blue"><Gauge size={16} /></span><span><strong>{fmt(pendingOps)} سجل تشغيلي</strong><small>بانتظار الاعتماد</small></span><StatusBadge tone="blue">اعتماد</StatusBadge></button>}
+            {!dashboard.priorityCount && <div className="dashboard-clear-state"><CircleCheckBig size={22} /><div><strong>لا توجد نقاط حرجة</strong><small>كل شيء مستقر في البيانات الحالية.</small></div></div>}
           </div>
         </Card>
-      </section>
+      </div>
+
+      <div className="dashboard-bottom-strip">
+        <div><span>المشروعات النشطة</span><strong>{fmt(dashboard.activeProjects)}</strong></div>
+        <div><span>ساعات التشغيل</span><strong>{fmt(dashboard.hours)}</strong></div>
+        <div><span>ساعات التوقف</span><strong>{fmt(dashboard.downtime)}</strong></div>
+        <div><span>استحقاقات قريبة</span><strong>{fmt(expiring)}</strong></div>
+      </div>
     </section>
   </div>
 }
