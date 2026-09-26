@@ -122,6 +122,8 @@ before(async () => {
     `)
   }
 
+  await as('A')
+
   await db.exec(`
     insert into projects(
       id,

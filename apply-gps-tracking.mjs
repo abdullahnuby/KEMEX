@@ -6,7 +6,7 @@ const packageRoot = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = process.cwd()
 
 const copyFiles = [
-  'supabase/migrations/029_live_gps_tracking.sql',
+  'supabase/migrations/028_live_gps_tracking.sql',
   'supabase/functions/gps-ingest/index.ts',
   'supabase/functions/gps-ingest/README.md',
   'src/features/gpsTracking/types.ts',
@@ -144,7 +144,6 @@ const newLoop = `for (let i=0;i<nums.length;i++) {
   if (nums[i] === i+1) continue
 
   // Historical production-only migration 028 was applied out-of-band.
-  // Migration 029 is intentionally the next repository migration.
   const isHistorical028Gap =
     nums[i] === 29 &&
     nums[i-1] === 27 &&

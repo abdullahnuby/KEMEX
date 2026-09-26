@@ -108,6 +108,22 @@ before(async () => {
   }
 
   await db.exec(`
+    update profiles
+    set role='admin'
+    where id='${U.A}';
+
+    update profiles
+    set role='fleet'
+    where id='${U.F}';
+
+    update profiles
+    set role='pm'
+    where id='${U.P}';
+  `)
+
+  await as('A')
+
+  await db.exec(`
     insert into drivers(
       id,
       code,
@@ -127,18 +143,6 @@ before(async () => {
         'Driver Two',
         '01000000002'
       );
-
-    update profiles
-    set role='admin'
-    where id='${U.A}';
-
-    update profiles
-    set role='fleet'
-    where id='${U.F}';
-
-    update profiles
-    set role='pm'
-    where id='${U.P}';
 
     update profiles
     set
@@ -179,14 +183,14 @@ before(async () => {
       );
 
     insert into organization_settings(
-      id,
+      tenant_id,
       trip_geofence_radius_m
     )
     values(
-      true,
+      (select id from tenants where slug = 'default'),
       100
     )
-    on conflict (id)
+    on conflict (tenant_id)
     do update
     set trip_geofence_radius_m =
       excluded.trip_geofence_radius_m;

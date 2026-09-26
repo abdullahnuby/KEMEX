@@ -83,12 +83,16 @@ Deno.serve(async (req) => {
 
     const { data: actor, error: actorError } = await userClient
       .from("profiles")
-      .select("role,active")
+      .select("role,active,tenant_id")
       .eq("id", authData.user.id)
       .single()
 
     if (actorError || !actor || actor.active !== true || actor.role !== "admin") {
       return errorResponse("FORBIDDEN", "إنشاء الحسابات متاح لمدير النظام فقط.", 403)
+    }
+    const actorTenantId = actor.tenant_id as string | null
+    if (!actorTenantId) {
+      return errorResponse("FORBIDDEN", "حساب المدير غير مرتبط بمنشأة. تواصل مع الدعم الفني.", 403)
     }
 
     const body = await req.json() as Record<string, unknown>
@@ -116,6 +120,7 @@ Deno.serve(async (req) => {
         .from("profiles")
         .select("id")
         .eq("driver_id", driverId)
+        .eq("tenant_id", actorTenantId)
         .limit(1)
         .maybeSingle()
       if (linkedError) {
@@ -128,6 +133,7 @@ Deno.serve(async (req) => {
         .from("drivers")
         .select("id")
         .eq("id", driverId)
+        .eq("tenant_id", actorTenantId)
         .limit(1)
         .maybeSingle()
       if (driverError) {
@@ -141,7 +147,7 @@ Deno.serve(async (req) => {
       email,
       password: initialPassword,
       email_confirm: true,
-      user_metadata: { full_name: fullName },
+      user_metadata: { full_name: fullName, tenant_id: actorTenantId },
     })
 
     if (createError || !created.user) {
@@ -170,6 +176,7 @@ Deno.serve(async (req) => {
         active: true,
         must_change_password: true,
         driver_id: profileDriverId,
+        tenant_id: actorTenantId,
       })
       .eq("id", created.user.id)
       .select("id,email,full_name,role,active,must_change_password,driver_id")

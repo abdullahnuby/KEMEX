@@ -3,6 +3,7 @@ import { ArrowRight, ClipboardCheck, Truck } from 'lucide-react'
 import type { Asset, AssetStatus, Project } from '../types/tfms'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { PageHeader } from '../shared/ui'
+import { PrintRecordButton } from '../shared/printing'
 
 import { APP_LOCALE } from '../shared/formatters/locale'
 type RecordLike=Record<string,unknown>
@@ -25,6 +26,7 @@ export function AssignmentCreatePage({request,assets,projects,onSaveAssignment,o
   const [months,setMonths]=useState('1')
   const [busy,setBusy]=useState(false)
   const [error,setError]=useState('')
+  const [saved,setSaved]=useState<{assignment:RecordLike;asset:Asset}|null>(null)
 
   const available=useMemo(()=>assets.filter(a=>a.status==='متاح'||a.status==='محجوز'),[assets])
   const selected=assets.find(a=>a.id===assetId)
@@ -62,13 +64,17 @@ export function AssignmentCreatePage({request,assets,projects,onSaveAssignment,o
       await onSaveAssignment(assignment)
       await onSaveAsset(nextAsset)
       await onUpdateRequest(nextRequest)
-      onBack()
+      setSaved({assignment,asset:selected})
     }catch(err){setError(err instanceof Error?err.message:'تعذر حفظ التخصيص. حاول مرة أخرى.')}finally{setBusy(false)}
   }
 
   return <div>
     <PageHeader title="تخصيص أصل" description={request?<>للطلب {String(request.number??request.id)} — <ReferenceValue field="proj" value={request.proj} lookups={{projects}}/></>:'الطلب غير متاح'} action={<button className="secondary-button" type="button" onClick={onBack}><ArrowRight size={16}/> العودة لطلبات المعدات</button>} />
     {!request?<section className="panel placeholder-panel"><div className="placeholder-icon"><ClipboardCheck size={28}/></div><h2>تعذر تحميل الطلب</h2><p>الطلب المطلوب غير موجود في البيانات الحالية.</p><button className="primary-button" type="button" onClick={onBack}>العودة</button></section>:
+    saved?<section className="panel assignment-form-panel"><div className="section-title"><div className="section-title-icon"><ClipboardCheck size={17}/></div><div><strong>تم تسجيل التسليم بنجاح</strong><small>اطبع سند التسليم ووقّع عليه مع المسؤول عن العهدة قبل إنهاء الإجراء.</small></div></div>
+      <PrintRecordButton documentTitle="سند تسليم عهدة" documentNumber={String(saved.assignment.number||'')} documentDate={String(saved.assignment.from||'')} documentStatus="ساري" meta={[{label:'الأصل',value:`${saved.asset.name} — ${saved.asset.code}`},{label:'المسؤول عن العهدة',value:String(saved.assignment.cust||'—')},{label:'عداد التسليم',value:`${Number(saved.assignment.meterStart||0).toLocaleString(APP_LOCALE)} — ${saved.asset.mt}`},{label:'تاريخ نهاية الخطة',value:String(saved.assignment.toP||'—')}]} signatures={[{label:'المسلِّم'},{label:'المستلم / المسؤول عن العهدة'},{label:'اعتماد الإدارة'}]} footerNote="سند تسليم أصل صادر من نظام KEMEX — يُحتفظ به كإثبات استلام العهدة."><div className="print-section-title">حالة الأصل عند التسليم</div><table><tbody><tr><th>البند</th><th>القيمة</th></tr><tr><td>حالة الأصل</td><td>{saved.asset.cond||'—'}</td></tr><tr><td>الفئة / النوع</td><td>{`${saved.asset.cat} — ${saved.asset.type}`}</td></tr><tr><td>ملاحظات التخصيص</td><td>{String(saved.assignment.notes||'—')}</td></tr></tbody></table></PrintRecordButton>
+      <div className="modal-actions form-span-all"><button type="button" className="primary-button" onClick={onBack}>إنهاء والعودة لطلبات المعدات</button></div>
+    </section>:
     <section className="panel assignment-form-panel"><div className="section-title"><div className="section-title-icon"><Truck size={17}/></div><div><strong>تسجيل التسليم</strong><small>اختر أصلًا متاحًا وحدد بداية ومدة التخصيص كما في مسار النظام المرجعي.</small></div></div>
       {error&&<div className="global-error" role="alert">{error}</div>}
       {!available.length?<div className="empty"><strong>لا توجد أصول متاحة حاليًا</strong><span>يلزم إجراء الاستئجار وفق الصلاحيات قبل إتمام هذا الطلب.</span></div>:

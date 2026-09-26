@@ -98,7 +98,10 @@ before(async () => {
     update profiles
     set role='acct'
     where id='${U.C}';
+  `)
 
+  await as('F')
+  await db.exec(`
     insert into assets(
       id,
       code,
@@ -180,18 +183,21 @@ test('latest position view exposes one latest row per asset to operations', asyn
   await db.exec(`
     insert into vehicle_gps_positions(
       asset_id,
+      tenant_id,
       latitude,
       longitude,
       recorded_at
     )
     values(
       'GPS-A',
+      (select id from tenants where slug = 'default'),
       30.000000,
       31.000000,
       now() - interval '5 minutes'
     ),
     (
       'GPS-A',
+      (select id from tenants where slug = 'default'),
       30.001000,
       31.001000,
       now()

@@ -118,7 +118,7 @@ export function SettingsPage({ user, repository, onSaved }: { user: User; reposi
         } catch (printError) {
           const detail = printError instanceof Error ? printError.message : ''
           if (/print_settings|schema cache|column .* does not exist|PGRST204|42703/i.test(detail)) {
-            setMsg('تم حفظ بيانات المؤسسة، لكن إعدادات الطباعة لم تُحفظ بعد. شغّل migration 030_print_settings.sql ثم 031_print_settings_layout.sql على قاعدة البيانات مرة واحدة.')
+            setMsg('تم حفظ بيانات المؤسسة، لكن إعدادات الطباعة لم تُحفظ بعد. شغّل migration 029_print_settings.sql ثم 030_print_settings_layout.sql على قاعدة البيانات مرة واحدة.')
             onSaved?.({ ...s, ...baseSettings, print_settings: printSettings })
             return
           }

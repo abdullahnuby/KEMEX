@@ -5,6 +5,7 @@ import { useCurrency } from '../features/settings'
 import { ReferenceValue } from '../components/ReferenceValue'
 import { Button, DataTable, IconButton, PageHeader, StatusBadge } from '../components/ui'
 import { ConfirmModal, FormSection, OperationalSummaryStrip } from '../shared/ui'
+import { PrintRecordButton } from '../shared/printing'
 
 import { APP_LOCALE } from '../shared/formatters/locale'
 type MaintenancePageProps = {
@@ -278,6 +279,23 @@ export function MaintenancePage({ workOrders, assets, projects, technicians = []
           { id:'opened', header:'التاريخ', sortValue:order=>order.opened, render:order=>formatDate(order.opened) },
           { id:'cost', header:'التكلفة', sortValue:order=>Number(order.laborCost||0)+Number(order.partsCost||0)+Number(order.vendorCost||0), render:order=>formatMoney(Number(order.laborCost||0)+Number(order.partsCost||0)+Number(order.vendorCost||0)) },
           { id:'actions', header:'إجراءات', mobileVisible:true, render:order=><div className="flex flex-wrap gap-2">
+            <PrintRecordButton documentTitle="أمر عمل صيانة" documentNumber={String(order.id||'')} documentDate={formatDate(order.opened)} documentStatus={order.status} meta={[{label:'الأصل',value:<ReferenceValue field="asset" value={order.asset} lookups={{ assets, projects }} />},{label:'نوع العمل',value:order.type||'—'},{label:'الأولوية',value:order.prio||'—'},{label:'الفنيون',value:order.techs||'—'},{label:'المورد الخارجي',value:order.vendor||'—'}]} signatures={[{label:'الفني المنفذ'},{label:'مسؤول الصيانة'},{label:'مالك الأصل'}]} footerNote="أمر عمل صيانة صادر من نظام KEMEX لإدارة الأسطول والصيانة.">
+              <div className="print-section-title">تفاصيل العمل والتكلفة</div>
+              <table><tbody>
+                <tr><th>البند</th><th>القيمة</th></tr>
+                <tr><td>الوصف</td><td>{order.desc||'—'}</td></tr>
+                <tr><td>السبب</td><td>{order.cause||'—'}</td></tr>
+                <tr><td>القطع والمواد</td><td>{order.materials||'—'}</td></tr>
+                <tr><td>ساعات التوقف</td><td>{order.downHrs??'—'}</td></tr>
+                <tr><td>تكلفة العمالة</td><td>{formatMoney(Number(order.laborCost||0))}</td></tr>
+                <tr><td>تكلفة القطع</td><td>{formatMoney(Number(order.partsCost||0))}</td></tr>
+                <tr><td>تكلفة المورد الخارجي</td><td>{formatMoney(Number(order.vendorCost||0))}</td></tr>
+                <tr><td><strong>إجمالي التكلفة</strong></td><td><strong>{formatMoney(Number(order.laborCost||0)+Number(order.partsCost||0)+Number(order.vendorCost||0))}</strong></td></tr>
+                <tr><td>الضمان</td><td>{order.warranty||'—'}</td></tr>
+                <tr><td>النتائج</td><td>{order.results||'—'}</td></tr>
+                <tr><td>تاريخ الإنجاز</td><td>{order.completed?formatDate(order.completed):'—'}</td></tr>
+              </tbody></table>
+            </PrintRecordButton>
             {order.status === 'بانتظار الاعتماد' && <Button size="sm" icon={<CheckCircle2 size={14}/>} onClick={() => void transition(order, 'مفتوح')} disabled={busy}>اعتماد</Button>}
             {order.status === 'مفتوح' && <Button size="sm" icon={<Wrench size={14}/>} onClick={() => void transition(order, 'قيد التنفيذ')} disabled={busy}>بدء التنفيذ</Button>}
             {(order.status === 'قيد التنفيذ' || order.status === 'بانتظار قطع غيار') && <><Button size="sm" variant="secondary" onClick={() => void markWaitingForParts(order)} disabled={busy}>قطع غيار</Button><Button size="sm" icon={<CheckCircle2 size={14}/>} onClick={() => void transition(order, 'مكتمل')} disabled={busy}>إنجاز</Button></>}

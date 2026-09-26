@@ -6,7 +6,7 @@ const packageRoot = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = process.cwd()
 
 const copyFiles = [
-  'supabase/migrations/029_live_gps_tracking.sql',
+  'supabase/migrations/028_live_gps_tracking.sql',
   'supabase/functions/gps-ingest/index.ts',
   'supabase/functions/gps-ingest/README.md',
   'src/features/gpsTracking/types.ts',

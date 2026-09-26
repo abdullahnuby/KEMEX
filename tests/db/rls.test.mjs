@@ -34,6 +34,8 @@ before(async () => {
   const files = fs.readdirSync(path.join(root, 'migrations')).filter(f => f.endsWith('.sql')).sort()
   for (const f of files) await db.exec(fs.readFileSync(path.join(root, 'migrations', f), 'utf8'))
   for (const [k, id] of Object.entries(U)) await db.exec(`insert into auth.users(id,email) values('${id}','${k.toLowerCase()}@x.com')`)
+  for (const [k, id] of Object.entries(U)) await db.exec(`update profiles set role='${ROLE[k]}' where id='${id}'`)
+  await as('A')
   await db.exec(`
     insert into projects(id,code,name) values('P0','PRJ-TEST','مشروع اختبار');
     insert into assets(id,code,name,category,asset_type) values('A0','AST-TEST','أصل اختبار','مركبات','شاحنة');
@@ -43,7 +45,6 @@ before(async () => {
     insert into tfms_module_records(module_name,record_id,payload) values('operations','OP-SEED-CANON','{"asset":"A0","status":"مقدمة"}');
     insert into tfms_module_records(module_name,record_id,payload) values('oilChanges','OC-SEED','{"asset":"A0"}');
   `)
-  for (const [k, id] of Object.entries(U)) await db.exec(`update profiles set role='${ROLE[k]}' where id='${id}'`)
 })
 
 test('قاعدة Production تبدأ بدون بيانات تشغيلية خارج Fixtures الاختبار', async () => {

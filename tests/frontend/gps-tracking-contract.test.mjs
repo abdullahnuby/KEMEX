@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 
 const root = fileURLToPath(new URL('../..', import.meta.url))
 const migration = fs.readFileSync(
-  path.join(root, 'supabase/migrations/029_live_gps_tracking.sql'),
+  path.join(root, 'supabase/migrations/028_live_gps_tracking.sql'),
   'utf8',
 )
 const page = fs.readFileSync(
