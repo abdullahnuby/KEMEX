@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
-import { ArrowLeft, CircleCheckBig, ClipboardCheck, Gauge, ShieldCheck, Truck, Wrench } from 'lucide-react'
+import { CircleCheckBig, ClipboardCheck, Gauge, ShieldCheck, Truck, Wrench } from 'lucide-react'
 import type { Asset, FuelOperation, Operation, Project, WorkOrder } from '../types/tfms'
 import { Button, Card, AnalyticsDonut, AnalyticsLineChart, StatusBadge } from '../components/ui'
 import { sameReference } from '../utils/referenceLabels'
 import { APP_LOCALE } from '../shared/formatters/locale'
 import '../styles/dashboard-home.css'
 import '../styles/dashboard-hero-command-center.css'
+import '../styles/dashboard-command-center-rtl.css'
 
 type DashboardPeriod = 30 | 90 | 180
 

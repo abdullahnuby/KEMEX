@@ -1,0 +1,171 @@
+/* KEMEX Command Center — final RTL finishing layer.
+   Desktop geometry remains explicit: live data LEFT, Arabic content RIGHT.
+   All Arabic text blocks are explicitly RTL and right aligned.
+*/
+
+.dashboard-ad-hero--command .dashboard-ad-copy,
+.dashboard-ad-hero--command .dashboard-ad-copy * {
+  direction: rtl !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-copy {
+  text-align: right !important;
+  align-items: flex-end !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-kicker,
+.dashboard-ad-hero--command .dashboard-ad-copy p,
+.dashboard-ad-hero--command .dashboard-ad-trust,
+.dashboard-ad-hero--command .dashboard-hero-quick,
+.dashboard-ad-hero--command .dashboard-hero-quick-head {
+  direction: rtl !important;
+  width: 100% !important;
+  text-align: right !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-kicker {
+  justify-content: flex-start !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-copy h1 {
+  direction: rtl !important;
+  text-align: right !important;
+  unicode-bidi: plaintext !important;
+  width: max-content !important;
+  max-width: 100% !important;
+  margin-inline-start: auto !important;
+  margin-inline-end: 0 !important;
+  white-space: nowrap !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-copy h1 > span,
+.dashboard-ad-hero--command .dashboard-ad-copy h1 > em {
+  display: inline !important;
+  direction: rtl !important;
+  unicode-bidi: isolate !important;
+  white-space: nowrap !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-copy h1 > span {
+  color: #fff !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-copy h1 > em {
+  color: #ffc62b !important;
+  font-style: normal !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-actions {
+  direction: rtl !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-actions .ui-button {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.dashboard-ad-hero--command .dashboard-ad-trust {
+  justify-content: flex-start !important;
+}
+
+.dashboard-ad-hero--command .dashboard-hero-quick {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.dashboard-ad-hero--command .dashboard-hero-quick-head {
+  align-items: flex-end !important;
+}
+
+.dashboard-ad-hero--command .dashboard-hero-quick-head span,
+.dashboard-ad-hero--command .dashboard-hero-quick-head strong {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.dashboard-ad-hero--command .dashboard-hero-quick-grid {
+  direction: rtl !important;
+}
+
+.dashboard-ad-hero--command .dashboard-hero-quick-grid button {
+  direction: rtl !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  text-align: right !important;
+}
+
+.dashboard-ad-hero--command .dashboard-hero-quick-grid button strong {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.dashboard-ad-hero--command .dashboard-device-preview,
+.dashboard-ad-hero--command .dashboard-device-topbar,
+.dashboard-ad-hero--command .dashboard-preview-kpis,
+.dashboard-ad-hero--command .dashboard-preview-health {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.dashboard-ad-hero--command .dashboard-device-topbar > div {
+  direction: rtl !important;
+  text-align: right !important;
+  align-items: flex-end !important;
+}
+
+.dashboard-ad-hero--command .dashboard-preview-kpis article,
+.dashboard-ad-hero--command .dashboard-preview-kpis article span,
+.dashboard-ad-hero--command .dashboard-preview-kpis article strong,
+.dashboard-ad-hero--command .dashboard-preview-kpis article small,
+.dashboard-ad-hero--command .dashboard-preview-panel-head,
+.dashboard-ad-hero--command .dashboard-preview-panel-head span,
+.dashboard-ad-hero--command .dashboard-preview-panel-head small {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.dashboard-ad-hero--command .dashboard-preview-chart {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+/* Do not mirror the actual SVG series/geometry. */
+.dashboard-ad-hero--command .dashboard-preview-chart .analytics-chart {
+  direction: ltr !important;
+}
+
+/* Content immediately under the unified Hero also stays RTL. */
+.dashboard-activity {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.dashboard-activity-head,
+.dashboard-activity-head > div,
+.dashboard-activity-grid,
+.dashboard-activity-grid .ui-card,
+.dashboard-activity-row,
+.dashboard-project-row,
+.dashboard-activity-link {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+@media (max-width: 760px) {
+  .dashboard-ad-hero--command .dashboard-ad-copy,
+  .dashboard-ad-hero--command .dashboard-device-preview {
+    direction: rtl !important;
+  }
+
+  .dashboard-ad-hero--command .dashboard-ad-copy h1 {
+    width: 100% !important;
+    text-align: right !important;
+  }
+
+  .dashboard-ad-hero--command .dashboard-hero-quick-grid,
+  .dashboard-ad-hero--command .dashboard-preview-kpis {
+    direction: rtl !important;
+  }
+}
