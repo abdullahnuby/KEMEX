@@ -1,8 +1,3 @@
-# KEMEX Dashboard — Ad-aligned visual redesign
+# KEMEX Dashboard — Final Hero Scale Correction
 
-This patch redesigns the KEMEX home dashboard from the visual composition of the approved KEMEX marketing creative, rather than adding more dashboard widgets.
-
-Desktop: dark navy/blue hero with large white/yellow headline, live dashboard preview, quick operations strip, then compact operational details.
-Mobile: compact hero, live KPI preview, quick operations 2x2 grid, then details.
-
-No Supabase schema, business calculations, routes, or shared navbar are changed.
+Refines only `src/styles/dashboard-home.css` so the Hero copy is compact and the live operational preview gets the dominant visual space. No business logic, Supabase, routes, or navbar/sidebar changes.

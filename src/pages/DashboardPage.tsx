@@ -97,7 +97,7 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
                 <strong>{order.id || 'أمر عمل'}</strong>
                 <small>{order.asset ? `الأصل: ${order.asset}` : 'أمر صيانة'} · {order.prio || 'عادية'}</small>
               </span>
-              <StatusBadge tone={order.status === 'مكتمل' ? 'emerald' : order.prio === 'عاجلة' ? 'red' : 'blue'}>{order.status || 'مفتوح'}</StatusBadge>
+              <StatusBadge tone={order.status === 'مكتمل' ? 'green' : order.prio === 'عاجلة' ? 'red' : 'blue'}>{order.status || 'مفتوح'}</StatusBadge>
             </button>)}
             {!dashboard.recentWo.length && <div className="dashboard-activity-empty">لا توجد أوامر عمل حديثة.</div>}
           </div>

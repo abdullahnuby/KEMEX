@@ -123,3 +123,125 @@
   .dashboard-activity-link{width:100%!important;justify-content:center!important}
   .dashboard-activity-grid{grid-template-columns:1fr!important;gap:10px!important}
 }
+
+/* Hero balance — reduce copy block so the live operational data preview gets more visual space. */
+.dashboard-ad-hero{
+  grid-template-columns:minmax(0,.82fr) minmax(0,1.88fr)!important;
+}
+.dashboard-ad-copy{
+  padding:6px 4px 6px 10px!important;
+}
+.dashboard-ad-kicker{
+  font-size:.48rem!important;
+  gap:5px!important;
+}
+.dashboard-ad-copy h1{
+  margin:11px 0 6px!important;
+  font-size:clamp(1.35rem,2.35vw,1.95rem)!important;
+  line-height:1.18!important;
+  letter-spacing:-.035em!important;
+}
+.dashboard-ad-copy p{
+  max-width:470px!important;
+  font-size:.56rem!important;
+  line-height:1.68!important;
+}
+.dashboard-ad-actions{
+  gap:7px!important;
+  margin-top:13px!important;
+}
+.dashboard-ad-actions .ui-button{
+  min-height:35px!important;
+  padding-inline:12px!important;
+  border-radius:9px!important;
+  font-size:.57rem!important;
+}
+.dashboard-ad-trust{
+  gap:12px!important;
+  margin-top:11px!important;
+  font-size:.47rem!important;
+}
+.dashboard-device-preview{
+  max-width:760px!important;
+  transform:translateY(2px)!important;
+}
+
+@media (max-width:1100px){
+  .dashboard-ad-hero{grid-template-columns:1fr 1.45fr!important}
+  .dashboard-ad-copy h1{font-size:clamp(1.3rem,2.8vw,1.8rem)!important}
+}
+
+@media (max-width:760px){
+  .dashboard-ad-hero{grid-template-columns:1fr!important}
+  .dashboard-ad-copy{padding:11px 12px 2px!important}
+  .dashboard-ad-kicker{font-size:.5rem!important}
+  .dashboard-ad-copy h1{font-size:clamp(1.2rem,6.4vw,1.6rem)!important;margin-top:8px!important}
+  .dashboard-ad-copy p{font-size:.55rem!important;line-height:1.65!important}
+  .dashboard-ad-actions{margin-top:10px!important}
+  .dashboard-ad-actions .ui-button{min-height:36px!important;font-size:.55rem!important}
+  .dashboard-ad-trust{font-size:.44rem!important}
+  .dashboard-device-preview{transform:none!important}
+}
+
+/* Final Hero scale correction — compact copy, dominant live-data preview. */
+.dashboard-ad-hero{
+  grid-template-columns:minmax(0,.52fr) minmax(0,2.48fr)!important;
+  min-height:340px!important;
+  padding:16px!important;
+  gap:14px!important;
+}
+.dashboard-ad-copy{
+  padding:4px 2px 4px 8px!important;
+  justify-content:center!important;
+}
+.dashboard-ad-kicker{
+  font-size:.42rem!important;
+  gap:4px!important;
+}
+.dashboard-ad-copy h1{
+  margin:8px 0 5px!important;
+  font-size:clamp(1.15rem,1.65vw,1.7rem)!important;
+  line-height:1.22!important;
+  letter-spacing:-.025em!important;
+  white-space:nowrap!important;
+}
+.dashboard-ad-copy h1 em{font-size:inherit!important;}
+.dashboard-ad-copy p{
+  max-width:340px!important;
+  font-size:.48rem!important;
+  line-height:1.55!important;
+}
+.dashboard-ad-actions{gap:5px!important;margin-top:9px!important}
+.dashboard-ad-actions .ui-button{
+  min-height:31px!important;
+  padding-inline:9px!important;
+  border-radius:8px!important;
+  font-size:.49rem!important;
+}
+.dashboard-ad-trust{gap:8px!important;margin-top:8px!important;font-size:.42rem!important}
+.dashboard-device-preview{
+  max-width:none!important;
+  width:100%!important;
+  transform:none!important;
+  align-self:center!important;
+  padding:9px!important;
+}
+.dashboard-preview-kpis article{padding:9px!important}
+.dashboard-preview-kpis strong{font-size:1.05rem!important}
+.dashboard-preview-panels{margin-top:7px!important}
+
+@media (max-width:1100px){
+  .dashboard-ad-hero{grid-template-columns:minmax(0,.7fr) minmax(0,1.8fr)!important;min-height:320px!important}
+  .dashboard-ad-copy h1{font-size:clamp(1.05rem,2.25vw,1.45rem)!important}
+  .dashboard-ad-copy p{font-size:.46rem!important}
+}
+
+@media (max-width:760px){
+  .dashboard-ad-hero{grid-template-columns:1fr!important;min-height:0!important;padding:9px!important}
+  .dashboard-ad-copy{padding:10px 10px 2px!important}
+  .dashboard-ad-kicker{font-size:.48rem!important}
+  .dashboard-ad-copy h1{font-size:clamp(1.18rem,6vw,1.5rem)!important;margin-top:8px!important}
+  .dashboard-ad-copy p{font-size:.53rem!important;max-width:100%!important}
+  .dashboard-ad-actions .ui-button{min-height:36px!important;font-size:.53rem!important}
+  .dashboard-device-preview{padding:8px!important}
+}
