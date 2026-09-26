@@ -142,8 +142,8 @@ body { background: var(--kemex-surface) !important; color: var(--kemex-ink) !imp
 
 /* --------------------------------------------------------------------------
    KEMEX logo system
-   Use the full visual lockup in the shell and authentication surfaces.
-   The transparent assets are sized explicitly for responsive UI.
+   The logo files are high-density, transparent assets. Keep them visually
+   crisp without applying opacity, filters, or forced cropping.
    -------------------------------------------------------------------------- */
 .kemex-navbar-brand {
   min-width: 0 !important;
@@ -170,22 +170,22 @@ body { background: var(--kemex-surface) !important; color: var(--kemex-ink) !imp
 }
 .kemex-brand-image--wordmark {
   width: 146px;
-  height: 44px;
+  height: auto;
 }
 .kemex-brand-image--full {
-  width: min(300px, 100%);
+  width: min(330px, 100%);
   height: auto;
 }
 .kemex-brand-lockup--auth {
   width: 100%;
-  margin: 0 auto 2px;
+  margin: 0 auto;
 }
 .kemex-brand-lockup--auth .kemex-brand-image--full {
-  width: min(310px, 88%);
-  max-height: 104px;
+  width: min(330px, 92%);
+  max-height: 92px;
 }
 .kemex-brand-lockup--auth + .login-heading {
-  margin-top: 22px;
+  margin-top: 20px;
 }
 .login-card .kemex-brand-lockup--auth img {
   opacity: 1 !important;
@@ -193,27 +193,28 @@ body { background: var(--kemex-surface) !important; color: var(--kemex-ink) !imp
 }
 @media (max-width: 720px) {
   .kemex-brand-image--wordmark {
-    width: 132px;
-    height: 40px;
+    width: 136px;
   }
   .kemex-brand-lockup--auth .kemex-brand-image--full {
-    width: min(285px, 92%);
-    max-height: 96px;
+    width: min(315px, 94%);
+    max-height: 90px;
   }
 }
 @media (max-width: 420px) {
   .kemex-brand-image--wordmark {
-    width: 118px;
-    height: 36px;
+    width: 126px;
   }
   .kemex-brand-lockup--auth .kemex-brand-image--full {
-    width: min(270px, 96%);
-    max-height: 88px;
+    width: min(300px, 96%);
+    max-height: 84px;
   }
 }
 @media (max-width: 360px) {
   .kemex-brand-image--wordmark {
-    width: 108px;
-    height: 34px;
+    width: 116px;
+  }
+  .kemex-brand-lockup--auth .kemex-brand-image--full {
+    width: min(286px, 97%);
+    max-height: 80px;
   }
 }
