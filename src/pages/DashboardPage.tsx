@@ -1,275 +1,450 @@
-import { useMemo, useState } from 'react'
-import { AlertTriangle, ArrowLeft, BarChart3, CircleCheckBig, ClipboardCheck, Gauge, MapPinned, ShieldCheck, Truck, Wrench } from 'lucide-react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import {
+  Bell,
+  Boxes,
+  ChevronLeft,
+  CircleAlert,
+  CircleCheck,
+  MapPin,
+  Truck,
+  Wrench,
+} from 'lucide-react'
 import type { Asset, FuelOperation, Operation, Project, WorkOrder } from '../types/tfms'
-import { Button, Card, ChartShell, AnalyticsDonut, AnalyticsLineChart, StatusBadge } from '../components/ui'
-import { sameReference } from '../utils/referenceLabels'
-import { useCurrency } from '../features/settings'
+import type { AppNotification } from '../features/notifications/types'
+import type { GpsPosition } from '../features/gpsTracking/types'
+import { gpsTrackingService } from '../features/gpsTracking/service'
+import { GpsTrackingMap } from '../components/GpsTrackingMap'
 import { APP_LOCALE } from '../shared/formatters/locale'
 import '../styles/dashboard-home.css'
 
-type DashboardPeriod = 30 | 90 | 180
-
-export function DashboardPage({ assets, projects, workOrders, fuelOps, operations, onRoute }: { assets: Asset[]; projects: Project[]; workOrders: WorkOrder[]; fuelOps: FuelOperation[]; operations: Operation[]; onRoute: (route: string) => void }) {
-  const { formatMoney } = useCurrency()
-  const [period, setPeriod] = useState<DashboardPeriod>(30)
-
-  const dashboard = useMemo(() => buildDashboardSnapshot(assets, fuelOps, workOrders, operations, projects, period), [assets, fuelOps, workOrders, operations, projects, period])
-  const available = dashboard.available
-  const openWo = dashboard.openWo
-
-  return <div className="dashboard-page dashboard-page--executive dashboard-page--adlike">
-    <section className="dashboard-ad-hero" aria-label="KEMEX الرئيسية" dir="rtl">
-      <div className="dashboard-ad-copy">
-        <span className="dashboard-ad-kicker">KEMEX · منصة إدارة اللوجستيات والعمليات</span>
-        <h1><span>إدارة أذكى ..</span> <em>تشغيل أقوى</em></h1>
-        <p>كل ما تحتاجه لإدارة أسطولك وأصولك وعملياتك وتكاليفك في منصة واحدة، برؤية تشغيلية واضحة وسريعة.</p>
-        <div className="dashboard-ad-actions">
-          <Button icon={<MapPinned size={17} />} onClick={() => onRoute('tracking')}>تتبع المركبات</Button>
-          <Button variant="secondary" icon={<BarChart3 size={17} />} onClick={() => onRoute('reports')}>التقارير</Button>
-        </div>
-        <div className="dashboard-ad-trust">
-          <span><ShieldCheck size={15} /> تحكم متكامل</span>
-          <span><CircleCheckBig size={15} /> بيانات تشغيلية مباشرة</span>
-        </div>
-      </div>
-
-      <div className="dashboard-device-preview" aria-label="ملخص تشغيلي مباشر">
-        <div className="dashboard-device-topbar">
-          <div><strong>لوحة القيادة</strong><small>KEMEX Operations</small></div>
-          <span className="dashboard-live-dot"><i /> مباشر</span>
-        </div>
-        <div className="dashboard-preview-kpis">
-          <article><span>الأصول</span><strong>{fmt(dashboard.totalAssets)}</strong><small>{fmt(dashboard.activeCount)} تعمل</small></article>
-          <article><span>الجاهزية</span><strong>{fmt(dashboard.readiness)}%</strong><small>{fmt(available)} متاحة</small></article>
-          <article><span>الرحلات</span><strong>{fmt(dashboard.pendingOps)}</strong><small>تشغيل/اعتماد</small></article>
-          <article><span>الصيانة</span><strong>{fmt(openWo)}</strong><small>{fmt(dashboard.urgentWorkOrders)} عاجلة</small></article>
-        </div>
-        <div className="dashboard-preview-panels">
-          <div className="dashboard-preview-chart">
-            <div className="dashboard-preview-panel-head"><span>اتجاه التشغيل والتكلفة</span><small>{periodLabelShort(period)}</small></div>
-            <AnalyticsLineChart points={dashboard.monthlyCost} height={150} primaryLabel="الوقود" secondaryLabel="الصيانة" />
-          </div>
-          <div className="dashboard-preview-health">
-            <div className="dashboard-preview-panel-head"><span>حالة الأسطول</span><small>اليوم</small></div>
-            <AnalyticsDonut segments={dashboard.healthSegments} centerValue={fmt(dashboard.totalAssets)} centerLabel="أصل" />
-          </div>
-        </div>
-      </div>
-
-      <div className="dashboard-ad-glow dashboard-ad-glow--one" />
-      <div className="dashboard-ad-glow dashboard-ad-glow--two" />
-      <div className="dashboard-ad-diagonal" />
-    </section>
-
-    <section className="dashboard-quick-strip" aria-label="العمليات السريعة" dir="rtl">
-      <div className="dashboard-quick-strip__title">
-        <span>ابدأ من هنا</span>
-        <h2>العمليات السريعة</h2>
-        <p>نفّذ أكثر الإجراءات تكرارًا مباشرةً بدون البحث داخل الصفحات.</p>
-      </div>
-      <div className="dashboard-quick-strip__grid">
-        <button type="button" onClick={() => onRoute('trips/new')}><span><Truck size={21} /></span><div><strong>طلب نقل</strong><small>إنشاء عملية نقل جديدة</small></div></button>
-        <button type="button" onClick={() => onRoute('breakdowns/new')}><span><AlertTriangle size={21} /></span><div><strong>تسجيل عطل</strong><small>فتح بلاغ عطل جديد</small></div></button>
-        <button type="button" onClick={() => onRoute('assignments/new')}><span><ClipboardCheck size={21} /></span><div><strong>طلب تخصيص</strong><small>تخصيص أصل لمشروع</small></div></button>
-        <button type="button" onClick={() => onRoute('operations/new')}><span><Gauge size={21} /></span><div><strong>تسجيل تشغيل</strong><small>تسجيل يوم تشغيل جديد</small></div></button>
-      </div>
-      <button type="button" className="dashboard-quick-cta" onClick={() => onRoute('operations-center')}>مركز التحكم <ArrowLeft size={17} /></button>
-    </section>
-
-    <section className="dashboard-activity" aria-label="آخر النشاطات">
-      <div className="dashboard-details-head dashboard-activity-head">
-        <div>
-          <span>آخر النشاطات</span>
-          <h2>متابعة ما يحدث الآن</h2>
-          <p>تفاصيل تشغيلية جديدة لا تكرر المؤشرات الظاهرة في أعلى الصفحة.</p>
-        </div>
-        <button type="button" className="dashboard-activity-link" onClick={() => onRoute('operations')}>عرض كل النشاطات <ArrowLeft size={16} /></button>
-      </div>
-
-      <div className="dashboard-activity-grid">
-        <Card title="آخر أوامر العمل" description="آخر أوامر الصيانة المسجلة" action={<Button variant="ghost" size="sm" onClick={() => onRoute('maintenance')}>الصيانة</Button>}>
-          <div className="dashboard-activity-list">
-            {dashboard.recentWo.slice(0, 4).map(order => <button key={order.id} type="button" className="dashboard-activity-row" onClick={() => onRoute('maintenance')}>
-              <span className="dashboard-activity-icon dashboard-activity-icon--amber"><Wrench size={16} /></span>
-              <span className="dashboard-activity-copy">
-                <strong>{order.id || 'أمر عمل'}</strong>
-                <small>{order.asset ? `الأصل: ${order.asset}` : 'أمر صيانة'} · {order.prio || 'عادية'}</small>
-              </span>
-              <StatusBadge tone={order.status === 'مكتمل' ? 'emerald' : order.prio === 'عاجلة' ? 'red' : 'blue'}>{order.status || 'مفتوح'}</StatusBadge>
-            </button>)}
-            {!dashboard.recentWo.length && <div className="dashboard-activity-empty">لا توجد أوامر عمل حديثة.</div>}
-          </div>
-        </Card>
-
-        <Card title="المشروعات النشطة" description="المشروعات المرتبطة بالأصول حاليًا" action={<Button variant="ghost" size="sm" onClick={() => onRoute('projects')}>المشروعات</Button>}>
-          <div className="dashboard-project-list">
-            {dashboard.projectRows.slice(0, 4).map(project => <button key={project.id} type="button" className="dashboard-project-row" onClick={() => onRoute('projects')}>
-              <span className="dashboard-activity-icon dashboard-activity-icon--blue"><Truck size={16} /></span>
-              <span className="dashboard-activity-copy"><strong>{project.name}</strong><small>{project.code || 'بدون رمز'}</small></span>
-              <strong className="dashboard-project-count">{fmt(project.count)}</strong>
-            </button>)}
-            {!dashboard.projectRows.length && <div className="dashboard-activity-empty">لا توجد بيانات مشروعات مرتبطة بالأصول حاليًا.</div>}
-          </div>
-        </Card>
-      </div>
-    </section>
-  </div>
+type DashboardProps = {
+  assets: Asset[]
+  projects: Project[]
+  workOrders: WorkOrder[]
+  fuelOps: FuelOperation[]
+  operations: Operation[]
+  notifications?: AppNotification[]
+  notificationUnreadCount?: number
+  onRoute: (route: string) => void
 }
 
-type DashboardSnapshot = {
-  totalAssets: number
-  activeCount: number
-  active: number
-  available: number
+type CostPoint = {
+  label: string
+  fuel: number
   maintenance: number
-  maintenanceCritical: number
-  fuelCost: number
-  fuelEntries: number
-  openWo: number
-  urgentWorkOrders: number
-  pendingOps: number
-  expiring: number
-  readiness: number
-  fuelEntriesInPeriod: number
-  maintenanceCost: number
-  hours: number
-  downtime: number
-  workOrderCount: number
-  avgHours: number
-  avgFuel: number
-  activeProjects: number
-  priorityCount: number
-  monthlyCost: Array<{ label: string; value: number; secondary?: number }>
-  healthSegments: Array<{ label: string; value: number }>
-  projectRows: Array<Project & { count: number }>
-  recentWo: WorkOrder[]
-  assetUsage: Array<{ label: string; hours: number; down: number }>
-  watchlist: Array<{ id: string; name: string; code?: string; reason: string; status: string; tone: 'amber' | 'purple' | 'red'; icon: typeof ShieldCheck; route: string }>
+  total: number
 }
 
-function buildDashboardSnapshot(assets: Asset[], fuelOps: FuelOperation[], workOrders: WorkOrder[], operations: Operation[], projects: Project[], period: DashboardPeriod): DashboardSnapshot {
+type AssetHealthSegment = {
+  label: string
+  value: number
+  color: 'blue' | 'green' | 'yellow' | 'gray'
+}
+
+const numberFormatter = new Intl.NumberFormat(APP_LOCALE, {
+  maximumFractionDigits: 0,
+  numberingSystem: 'latn',
+})
+
+const percentFormatter = new Intl.NumberFormat(APP_LOCALE, {
+  maximumFractionDigits: 0,
+  numberingSystem: 'latn',
+})
+
+const formatNumber = (value: number) => numberFormatter.format(Math.max(0, Math.round(Number(value) || 0)))
+const formatPercent = (value: number) => `${percentFormatter.format(Math.round(Number(value) || 0))}%`
+
+export function DashboardPage({
+  assets,
+  projects,
+  workOrders,
+  fuelOps,
+  operations,
+  notifications = [],
+  notificationUnreadCount = 0,
+  onRoute,
+}: DashboardProps) {
+  const [gpsPositions, setGpsPositions] = useState<GpsPosition[]>([])
+  const [gpsLoading, setGpsLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    setGpsLoading(true)
+
+    void gpsTrackingService.listLatestPositions()
+      .then(positions => {
+        if (!cancelled) setGpsPositions(positions.filter(isValidGpsPosition))
+      })
+      .catch(() => {
+        if (!cancelled) setGpsPositions([])
+      })
+      .finally(() => {
+        if (!cancelled) setGpsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const openMaintenanceRequests = useMemo(
+    () => workOrders.filter(order => !['مكتمل', 'ملغى'].includes(String(order.status).trim())).length,
+    [workOrders],
+  )
+
+  const unreadAlerts = Math.max(0, Number(notificationUnreadCount) || 0)
+
+  const healthSegments = useMemo<AssetHealthSegment[]>(() => {
+    const working = assets.filter(asset => ['يعمل', 'مخصص لمشروع'].includes(asset.status)).length
+    const available = assets.filter(asset => asset.status === 'متاح').length
+    const maintenance = assets.filter(asset => ['تحت الصيانة', 'بانتظار الإصلاح', 'بانتظار الفحص', 'خارج الخدمة'].includes(asset.status)).length
+    const other = Math.max(0, assets.length - working - available - maintenance)
+
+    return [
+      { label: 'تعمل', value: working, color: 'blue' },
+      { label: 'متاحة', value: available, color: 'green' },
+      { label: 'صيانة', value: maintenance, color: 'yellow' },
+      { label: 'أخرى', value: other, color: 'gray' },
+    ]
+  }, [assets])
+
+  const costPoints = useMemo(() => buildWeeklyCosts(fuelOps, workOrders, 8), [fuelOps, workOrders])
+  const mapPoints = useMemo(
+    () => buildMapPoints(gpsPositions),
+    [gpsPositions],
+  )
+  const recentNotifications = useMemo(
+    () => [...notifications]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 4),
+    [notifications],
+  )
+
   const totalAssets = assets.length
-  const activeCount = assets.filter(asset => asset.status === 'يعمل' || asset.status === 'مخصص لمشروع').length
-  const available = assets.filter(asset => asset.status === 'متاح').length
-  const maintenance = assets.filter(asset => ['تحت الصيانة', 'بانتظار الإصلاح', 'بانتظار الفحص', 'خارج الخدمة'].includes(asset.status)).length
-  const maintenanceCritical = assets.filter(asset => ['تحت الصيانة', 'بانتظار الإصلاح', 'بانتظار الفحص'].includes(asset.status)).length
-  const recentFuel = fuelOps.filter(item => item.type === 'صرف' && withinDays(item.date, period)).filter(item => item.status === 'معتمد')
-  const recentOperations = operations.filter(item => item.status === 'معتمد' && withinDays(item.date, period))
-  const recentWorkOrders = workOrders.filter(item => withinDays(item.opened, period))
-  const fuelCost = sum(recentFuel.map(item => Number(item.total || 0)))
-  const maintenanceCost = sum(recentWorkOrders.map(item => Number(item.laborCost || 0) + Number(item.partsCost || 0) + Number(item.vendorCost || 0)))
-  const hours = sum(recentOperations.map(item => Number(item.hours || 0)))
-  const downtime = sum(recentOperations.map(item => Number(item.down || 0)))
-  const openWo = workOrders.filter(item => !['مكتمل', 'ملغى'].includes(item.status)).length
-  const urgentWorkOrders = workOrders.filter(item => !['مكتمل', 'ملغى'].includes(item.status) && item.prio === 'عاجلة').length
-  const pendingOps = operations.filter(item => item.status === 'مقدمة').length
-  const expiring = assets.filter(asset => asset.lic && daysTo(asset.lic) >= 0 && daysTo(asset.lic) <= 30).length
-  const readiness = totalAssets ? Math.round(((activeCount + available) / totalAssets) * 100) : 0
-  const avgHours = totalAssets ? hours / totalAssets : 0
-  const avgFuel = activeCount ? fuelCost / activeCount : 0
-  const activeProjects = projects.filter(project => project.status === 'نشط').length
-  const priorityCount = expiring + maintenanceCritical + urgentWorkOrders + pendingOps
-  const watchlist = assets.map(asset => {
-    const expiry = asset.lic ? daysTo(asset.lic) : Infinity
-    const urgentForAsset = workOrders.some(order => !['مكتمل', 'ملغى'].includes(order.status) && order.prio === 'عاجلة' && sameReference(order.asset, asset))
-    if (expiry >= 0 && expiry <= 30) return { id: asset.id, name: asset.name, code: asset.code, reason: `استحقاق خلال ${Math.max(0, expiry)} يوم`, status: 'استحقاق', tone: 'amber' as const, icon: ShieldCheck, route: 'assets' }
-    if (['تحت الصيانة', 'بانتظار الإصلاح', 'بانتظار الفحص'].includes(asset.status)) return { id: asset.id, name: asset.name, code: asset.code, reason: 'الأصل يحتاج متابعة صيانة', status: 'صيانة', tone: 'purple' as const, icon: Wrench, route: 'maintenance' }
-    if (urgentForAsset) return { id: asset.id, name: asset.name, code: asset.code, reason: 'مرتبط بأمر عمل عاجل', status: 'عاجل', tone: 'red' as const, icon: ClipboardCheck, route: 'maintenance' }
-    return null
-  }).filter((item): item is NonNullable<typeof item> => Boolean(item)).slice(0, 5)
 
-  const assetProjectCounts = new Map<string, number>()
-  for (const asset of assets) {
-    const key = String(asset.proj ?? '').trim()
-    if (key) assetProjectCounts.set(key, (assetProjectCounts.get(key) ?? 0) + 1)
-  }
-  const projectRows = projects.map(project => ({ ...project, count: assetProjectCounts.get(String(project.id)) ?? assetProjectCounts.get(String(project.code ?? '')) ?? 0 })).filter(project => project.count > 0).sort((a, b) => b.count - a.count).slice(0, 7)
-  const recentWo = [...workOrders].sort((a, b) => b.opened.localeCompare(a.opened)).slice(0, 6)
-  const assetUsageIndex = new Map<string, { hours: number; down: number }>()
-  for (const operation of recentOperations) {
-    const key = String(operation.assetId ?? '').trim()
-    if (!key) continue
-    const current = assetUsageIndex.get(key) ?? { hours: 0, down: 0 }
-    current.hours += Number(operation.hours || 0)
-    current.down += Number(operation.down || 0)
-    assetUsageIndex.set(key, current)
-  }
-  const assetUsage = assets.map(asset => {
-    const current = assetUsageIndex.get(String(asset.id)) ?? { hours: 0, down: 0 }
-    return { label: asset.name, hours: current.hours, down: current.down }
-  }).filter(item => item.hours > 0 || item.down > 0).sort((a, b) => (b.hours + b.down) - (a.hours + a.down)).slice(0, 7)
+  return (
+    <main className="kemex-dashboard" dir="rtl">
+      <header className="kemex-dashboard__header">
+        <div>
+          <span className="kemex-dashboard__eyebrow">الرئيسية</span>
+          <h1>نظرة عامة</h1>
+          <p>متابعة سريعة للأصول والمشروعات والصيانة والتنبيهات الحالية.</p>
+        </div>
+        <span className="kemex-dashboard__status">بيانات تشغيلية مباشرة</span>
+      </header>
 
-  const monthlyCost = buildMonthlyCost(fuelOps, workOrders, period)
+      <section className="dashboard-kpis" aria-label="المؤشرات الرئيسية">
+        <KpiCard
+          tone="blue"
+          icon={<Boxes size={21} />}
+          label="الأصول"
+          value={formatNumber(totalAssets)}
+        />
+        <KpiCard
+          tone="green"
+          icon={<Truck size={21} />}
+          label="المشروعات"
+          value={formatNumber(projects.length)}
+        />
+        <KpiCard
+          tone="yellow"
+          icon={<Wrench size={21} />}
+          label="طلبات الصيانة"
+          value={formatNumber(openMaintenanceRequests)}
+        />
+        <KpiCard
+          tone="red"
+          icon={<Bell size={21} />}
+          label="التنبيهات"
+          value={formatNumber(unreadAlerts)}
+        />
+      </section>
 
-  return {
-    totalAssets,
-    activeCount,
-    active: totalAssets ? Math.round((activeCount / totalAssets) * 100) : 0,
-    available,
-    maintenance,
-    maintenanceCritical,
-    fuelCost,
-    fuelEntries: recentFuel.length,
-    fuelEntriesInPeriod: recentFuel.length,
-    openWo,
-    urgentWorkOrders,
-    pendingOps,
-    expiring,
-    readiness,
-    maintenanceCost,
-    hours,
-    downtime,
-    workOrderCount: recentWorkOrders.length,
-    avgHours,
-    avgFuel,
-    activeProjects,
-    priorityCount,
-    monthlyCost,
-    healthSegments: [
-      { label: 'عاملة / مخصصة', value: activeCount },
-      { label: 'متاحة', value: available },
-      { label: 'تحت الصيانة', value: maintenance },
-      { label: 'أخرى', value: Math.max(0, totalAssets - activeCount - available - maintenance) },
-    ],
-    projectRows,
-    recentWo,
-    assetUsage,
-    watchlist,
-  }
+      <section className="dashboard-grid dashboard-grid--top">
+        <section className="dashboard-card dashboard-card--chart">
+          <DashboardCardHeader
+            title="إجمالي التكلفة"
+            subtitle="تكلفة الوقود والصيانة"
+            action="آخر 8 أسابيع"
+          />
+          <div className="cost-chart-wrap">
+            <CostBarChart points={costPoints} />
+          </div>
+          <div className="cost-chart-footer">
+            <span><i className="dashboard-legend-dot dashboard-legend-dot--blue" /> الوقود</span>
+            <span><i className="dashboard-legend-dot dashboard-legend-dot--gray" /> الصيانة</span>
+          </div>
+        </section>
+
+        <section className="dashboard-card dashboard-card--health">
+          <DashboardCardHeader title="حالة الأصول" subtitle="التوزيع الحالي" />
+          <AssetHealthDonut segments={healthSegments} total={totalAssets} />
+        </section>
+      </section>
+
+      <section className="dashboard-grid dashboard-grid--bottom">
+        <section className="dashboard-card dashboard-card--map">
+          <DashboardCardHeader
+            title="الأصول في الموقع"
+            subtitle={gpsLoading ? 'جارٍ تحميل آخر مواقع GPS...' : `${formatNumber(mapPoints.length)} أصل ظاهر على الخريطة`}
+            action="التتبع"
+            onAction={() => onRoute('tracking')}
+          />
+          <div className="dashboard-home-map">
+            <GpsTrackingMap
+              points={mapPoints}
+              track={[]}
+            />
+            {!gpsLoading && !mapPoints.length && (
+              <div className="dashboard-map-empty" role="status">
+                <MapPin size={17} />
+                <span>لا توجد مواقع GPS حالية متاحة.</span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="dashboard-card dashboard-card--alerts">
+          <DashboardCardHeader
+            title="آخر التنبيهات"
+            subtitle="أحدث الإشعارات المسجلة"
+            action="عرض الكل"
+            onAction={() => onRoute('alerts')}
+          />
+          <div className="dashboard-alert-list">
+            {recentNotifications.map(notification => (
+              <button
+                key={notification.id}
+                type="button"
+                className={`dashboard-alert-row ${notification.read_at ? '' : 'is-unread'}`}
+                onClick={() => notification.link && onRoute(notification.link.replace(/^\//, ''))}
+              >
+                <span className={`dashboard-alert-icon dashboard-alert-icon--${notificationTone(notification.event_type)}`}>
+                  <CircleAlert size={16} />
+                </span>
+                <span className="dashboard-alert-copy">
+                  <strong>{notification.title || 'تنبيه'}</strong>
+                  <small>{notification.body || 'يوجد تحديث يحتاج إلى مراجعة.'}</small>
+                </span>
+                <time dateTime={notification.created_at}>{relativeTime(notification.created_at)}</time>
+              </button>
+            ))}
+
+            {!recentNotifications.length && (
+              <div className="dashboard-alert-empty">
+                <CircleCheck size={18} />
+                <div>
+                  <strong>لا توجد تنبيهات حديثة</strong>
+                  <span>ستظهر هنا آخر الإشعارات بمجرد تسجيلها.</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      </section>
+
+    </main>
+  )
 }
 
-function buildMonthlyCost(fuelOps: FuelOperation[], workOrders: WorkOrder[], period: DashboardPeriod) {
-  const now = new Date()
-  const makeLabel = (date: Date, mode: 'week' | 'half' | 'month') => {
-    if (mode === 'month') return new Intl.DateTimeFormat(APP_LOCALE, { month: 'short' }).format(date)
-    if (mode === 'week') return new Intl.DateTimeFormat(APP_LOCALE, { day: '2-digit', month: 'short' }).format(date)
-    return new Intl.DateTimeFormat(APP_LOCALE, { day: '2-digit', month: 'short' }).format(date)
+function KpiCard({ tone, icon, label, value }: { tone: 'blue' | 'green' | 'yellow' | 'red'; icon: ReactNode; label: string; value: string }) {
+  return (
+    <article className={`dashboard-kpi dashboard-kpi--${tone}`}>
+      <span className="dashboard-kpi__icon">{icon}</span>
+      <div>
+        <span>{label}</span>
+        <strong>{value}</strong>
+      </div>
+    </article>
+  )
+}
+
+function DashboardCardHeader({
+  title,
+  subtitle,
+  action,
+  onAction,
+}: {
+  title: string
+  subtitle?: string
+  action?: string
+  onAction?: () => void
+}) {
+  return (
+    <header className="dashboard-card__header">
+      <div>
+        <h2>{title}</h2>
+        {subtitle && <p>{subtitle}</p>}
+      </div>
+      {action && (
+        <button type="button" onClick={onAction} disabled={!onAction}>
+          {action}
+          {onAction && <ChevronLeft size={13} />}
+        </button>
+      )}
+    </header>
+  )
+}
+
+function CostBarChart({ points }: { points: CostPoint[] }) {
+  const max = Math.max(1, ...points.map(point => point.total))
+
+  return (
+    <div className="cost-chart" role="img" aria-label="مخطط إجمالي التكلفة للوقود والصيانة">
+      <div className="cost-chart__y-axis" aria-hidden="true">
+        <span>{formatNumber(max)}</span>
+        <span>{formatNumber(max * .75)}</span>
+        <span>{formatNumber(max * .5)}</span>
+        <span>{formatNumber(max * .25)}</span>
+        <span>0</span>
+      </div>
+      <div className="cost-chart__plot">
+        <div className="cost-chart__grid" aria-hidden="true">
+          <i /><i /><i /><i /><i />
+        </div>
+        <div className="cost-chart__columns">
+          {points.map(point => {
+            const totalHeight = point.total ? Math.max(4, (point.total / max) * 100) : 0
+            const fuelHeight = point.total ? (point.fuel / point.total) * totalHeight : 0
+            const maintenanceHeight = Math.max(0, totalHeight - fuelHeight)
+            return (
+              <div className="cost-column" key={point.label}>
+                <div className="cost-column__bar">
+                  <span className="cost-column__segment cost-column__segment--maintenance" style={{ height: `${maintenanceHeight}%` }} title={`الصيانة: ${formatNumber(point.maintenance)}`} />
+                  <span className="cost-column__segment cost-column__segment--fuel" style={{ height: `${fuelHeight}%` }} title={`الوقود: ${formatNumber(point.fuel)}`} />
+                </div>
+                <small>{point.label}</small>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function AssetHealthDonut({ segments, total }: { segments: AssetHealthSegment[]; total: number }) {
+  const stops = buildConicStops(segments, total)
+  const percentages = segments.map(segment => ({
+    ...segment,
+    percentage: total ? (segment.value / total) * 100 : 0,
+  }))
+
+  return (
+    <div className="asset-health">
+      <div
+        className="asset-health__donut"
+        style={{ background: stops }}
+        aria-label={`إجمالي الأصول ${formatNumber(total)}`}
+      >
+        <div className="asset-health__center">
+          <strong>{formatNumber(total)}</strong>
+          <span>أصل</span>
+        </div>
+      </div>
+      <div className="asset-health__legend">
+        {percentages.map(segment => (
+          <div key={segment.label}>
+            <span><i className={`dashboard-legend-dot dashboard-legend-dot--${segment.color}`} />{segment.label}</span>
+            <strong>{formatPercent(segment.percentage)}</strong>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function buildConicStops(segments: AssetHealthSegment[], total: number) {
+  const colorMap: Record<AssetHealthSegment['color'], string> = {
+    blue: '#1698d8',
+    green: '#28b97d',
+    yellow: '#f2b84b',
+    gray: '#cbd5dc',
   }
-  const mode: 'week' | 'half' | 'month' = period === 30 ? 'week' : period === 90 ? 'half' : 'month'
-  const bucketCount = period === 30 ? 5 : 6
-  const bucketDays = period === 30 ? 6 : period === 90 ? 15 : 30
-  const buckets = Array.from({ length: bucketCount }, (_, index) => {
+  if (!total) return '#edf2f5'
+
+  let cursor = 0
+  const stops: string[] = []
+  for (const segment of segments) {
+    const value = (segment.value / total) * 100
+    const start = cursor
+    cursor += value
+    stops.push(`${colorMap[segment.color]} ${start}% ${cursor}%`)
+  }
+  return `conic-gradient(from -18deg, ${stops.join(', ')})`
+}
+
+function buildWeeklyCosts(fuelOps: FuelOperation[], workOrders: WorkOrder[], count: number): CostPoint[] {
+  const now = new Date()
+  return Array.from({ length: count }, (_, index) => {
     const end = new Date(now)
     end.setHours(23, 59, 59, 999)
-    end.setDate(end.getDate() - ((bucketCount - 1 - index) * bucketDays))
+    end.setDate(end.getDate() - ((count - 1 - index) * 7))
     const start = new Date(end)
-    start.setDate(start.getDate() - (bucketDays - 1))
-    if (index === bucketCount - 1) end.setTime(now.getTime())
-    return { start, end, label: makeLabel(start, mode) }
+    start.setDate(start.getDate() - 6)
+    if (index === count - 1) end.setTime(now.getTime())
+
+    const within = (dateValue: string) => {
+      const time = new Date(dateValue).getTime()
+      return Number.isFinite(time) && time >= start.getTime() && time <= end.getTime()
+    }
+
+    const fuel = fuelOps
+      .filter(item => item.type === 'صرف' && item.status === 'معتمد' && within(item.date))
+      .reduce((sum, item) => sum + Number(item.total || 0), 0)
+
+    const maintenance = workOrders
+      .filter(item => within(item.opened))
+      .reduce((sum, item) => sum + Number(item.laborCost || 0) + Number(item.partsCost || 0) + Number(item.vendorCost || 0), 0)
+
+    return {
+      label: new Intl.DateTimeFormat(APP_LOCALE, { day: '2-digit', month: '2-digit' }).format(start),
+      fuel,
+      maintenance,
+      total: fuel + maintenance,
+    }
   })
-  const inBucket = (value: string, bucket: { start: Date; end: Date }) => {
-    const time = new Date(value).getTime()
-    return Number.isFinite(time) && time >= bucket.start.getTime() && time <= bucket.end.getTime()
-  }
-  return buckets.map(bucket => ({
-    label: bucket.label,
-    value: sum(fuelOps.filter(item => item.type === 'صرف' && item.status === 'معتمد' && inBucket(item.date, bucket)).map(item => Number(item.total || 0))),
-    secondary: sum(workOrders.filter(item => inBucket(item.opened, bucket)).map(item => Number(item.laborCost || 0) + Number(item.partsCost || 0) + Number(item.vendorCost || 0))),
-  }))
 }
 
-const sum = (values: number[]) => values.reduce((total, value) => total + (Number.isFinite(value) ? value : 0), 0)
-const withinDays = (value: string, days: number) => { const time = new Date(value).getTime(); return Number.isFinite(time) && (Date.now() - time) / 86400000 >= 0 && (Date.now() - time) / 86400000 <= days }
-const daysTo = (value: string) => Math.ceil((new Date(value).getTime() - Date.now()) / 86400000)
-const fmt = (value: number) => new Intl.NumberFormat(APP_LOCALE, { maximumFractionDigits: 1, numberingSystem: 'latn' }).format(Number(value || 0))
-const periodLabelShort = (period: DashboardPeriod) => period === 30 ? '30 يوم' : period === 90 ? '90 يوم' : '6 أشهر'
+function buildMapPoints(positions: GpsPosition[]) {
+  const latestByAsset = new Map<string, GpsPosition>()
+  for (const position of positions) {
+    const current = latestByAsset.get(position.asset_id)
+    if (!current || new Date(position.recorded_at).getTime() > new Date(current.recorded_at).getTime()) {
+      latestByAsset.set(position.asset_id, position)
+    }
+  }
+
+  return Array.from(latestByAsset.values()).map(position => ({
+    id: position.asset_id,
+    name: position.asset_name || position.asset_code || 'أصل',
+    code: position.asset_code,
+    latitude: Number(position.latitude),
+    longitude: Number(position.longitude),
+    speed: position.speed_kmh,
+    status: position.asset_status || 'غير معروفة',
+  })).filter(point => Number.isFinite(point.latitude) && Number.isFinite(point.longitude))
+}
+
+function isValidGpsPosition(position: GpsPosition) {
+  return Number.isFinite(Number(position.latitude)) && Number.isFinite(Number(position.longitude))
+}
+
+function notificationTone(eventType: string) {
+  const key = String(eventType).toLowerCase()
+  if (key.includes('critical') || key.includes('urgent') || key.includes('breakdown') || key.includes('expiry')) return 'red'
+  if (key.includes('warning') || key.includes('maintenance')) return 'yellow'
+  return 'blue'
+}
+
+function relativeTime(value: string) {
+  const delta = Date.now() - new Date(value).getTime()
+  if (!Number.isFinite(delta)) return ''
+  const minutes = Math.floor(delta / 60000)
+  if (minutes < 1) return 'الآن'
+  if (minutes < 60) return `منذ ${formatNumber(minutes)} د`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `منذ ${formatNumber(hours)} س`
+  const days = Math.floor(hours / 24)
+  return `منذ ${formatNumber(days)} يوم`
+}
