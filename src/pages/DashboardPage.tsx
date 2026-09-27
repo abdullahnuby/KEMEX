@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Asset, FuelOperation, Operation, Project, WorkOrder } from '../types/tfms'
+import type { AppNotification } from '../features/notifications/types'
 import { Button, Card, ChartShell, AnalyticsBarChart, AnalyticsDonut, AnalyticsLineChart, StatusBadge } from '../components/ui'
 import { sameReference } from '../utils/referenceLabels'
 import { useCurrency } from '../features/settings'
@@ -35,6 +36,8 @@ type Props = {
   workOrders: WorkOrder[]
   fuelOps: FuelOperation[]
   operations: Operation[]
+  notifications?: AppNotification[]
+  notificationUnreadCount?: number
   onRoute: (route: string) => void
 }
 
