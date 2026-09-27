@@ -216,3 +216,160 @@
   .dashboard-footer-actions { grid-template-columns:1fr; }
   .dashboard-map-preview { min-height:195px; }
   }
+
+/* KEMEX Brand Polish V5 — restrained brand accents, no rainbow UI. */
+.dashboard-home {
+  --brand-navy:#07345f;
+  --brand-blue:#0b78c9;
+  --brand-cyan:#0b9aa6;
+  --brand-green:#1a9a68;
+  --brand-yellow:#d99a17;
+  --brand-red:#d94b4b;
+  --brand-violet:#4968b8;
+}
+
+/* Keep the page calm, while making KEMEX identity visible at a glance. */
+.dashboard-home__status {
+  box-shadow:0 7px 20px rgba(7,52,95,.035);
+}
+.dashboard-home__status.is-clear {
+  border-color:#cfe7dc;
+  background:linear-gradient(100deg,#f7fbfd 0%,#f5fcf8 72%,#f4fbff 100%);
+}
+.dashboard-home__status.is-alert {
+  border-color:#ead7ab;
+  background:linear-gradient(100deg,#fffaf1 0%,#fffdf7 70%,#f9fbfd 100%);
+}
+.dashboard-home__status > button,
+.dashboard-intro-link,
+.dashboard-inline-link {
+  color:var(--brand-navy);
+}
+
+.dashboard-kpis .dashboard-kpi {
+  border-color:#d8e5e9;
+  background:linear-gradient(180deg,#ffffff 0%,#fbfdfe 100%);
+  box-shadow:0 8px 22px rgba(7,52,95,.045);
+}
+.dashboard-kpi--blue { --tone:var(--brand-blue); --soft-tone:#edf6ff; }
+.dashboard-kpi--green { --tone:var(--brand-green); --soft-tone:#eef9f4; }
+.dashboard-kpi--amber { --tone:var(--brand-yellow); --soft-tone:#fff8e9; }
+.dashboard-kpi--purple { --tone:var(--brand-violet); --soft-tone:#eef3ff; }
+.dashboard-kpi--teal { --tone:var(--brand-cyan); --soft-tone:#edfafa; }
+.dashboard-kpi--red { --tone:var(--brand-red); --soft-tone:#fff1f1; }
+.dashboard-kpi__copy > strong { color:var(--brand-navy); }
+.dashboard-kpi em { color:#607a84; }
+
+/* Quick actions = strongest brand moment on the dashboard. */
+.dashboard-quick-actions {
+  border-color:#cfdfe4;
+  background:
+    radial-gradient(circle at 8% 50%,rgba(11,120,201,.075),transparent 32%),
+    linear-gradient(135deg,#ffffff 0%,#f8fbfd 55%,#f4fbf9 100%);
+  box-shadow:0 10px 28px rgba(7,52,95,.05);
+}
+.dashboard-section-kicker { color:var(--brand-cyan); }
+.dashboard-section-intro h2,
+.dashboard-action-queue__head h2 { color:var(--brand-navy); }
+.dashboard-quick-card {
+  border-color:#d7e5e9;
+  background:rgba(255,255,255,.96);
+}
+.dashboard-quick-card:hover {
+  border-color:#b8d7df;
+  box-shadow:0 10px 24px rgba(7,52,95,.085);
+}
+.dashboard-quick-card--blue .dashboard-quick-card__icon { color:var(--brand-blue); background:#eaf5ff; }
+.dashboard-quick-card--red .dashboard-quick-card__icon { color:var(--brand-red); background:#fff0f0; }
+.dashboard-quick-card--amber .dashboard-quick-card__icon { color:var(--brand-yellow); background:#fff7e6; }
+.dashboard-quick-card--purple .dashboard-quick-card__icon { color:var(--brand-violet); background:#eef3ff; }
+.dashboard-quick-card--teal .dashboard-quick-card__icon { color:var(--brand-cyan); background:#eafafb; }
+.dashboard-quick-card--green .dashboard-quick-card__icon { color:var(--brand-green); background:#ebf9f2; }
+.dashboard-quick-card:hover .dashboard-quick-card__arrow { color:var(--brand-blue); }
+
+/* Decision queue: blue/cyan first, status colors only when they carry meaning. */
+.dashboard-action-queue {
+  border-color:#d5e3e7;
+  background:linear-gradient(180deg,#ffffff 0%,#fbfdfd 100%);
+  box-shadow:0 8px 22px rgba(7,52,95,.035);
+}
+.dashboard-queue-item {
+  border-color:#dce8eb;
+  background:#fcfefe;
+}
+.dashboard-queue-item--red .dashboard-queue-item__icon { color:var(--brand-red); background:#fff0f0; }
+.dashboard-queue-item--amber .dashboard-queue-item__icon { color:var(--brand-yellow); background:#fff7e6; }
+.dashboard-queue-item--purple .dashboard-queue-item__icon { color:var(--brand-violet); background:#eef3ff; }
+.dashboard-queue-item--blue .dashboard-queue-item__icon { color:var(--brand-blue); background:#ebf5ff; }
+.dashboard-queue-item--teal .dashboard-queue-item__icon { color:var(--brand-cyan); background:#eafafb; }
+
+/* Main analytics panels. */
+.dashboard-main-grid .dashboard-panel,
+.dashboard-secondary-grid .dashboard-panel,
+.dashboard-bottom-grid .dashboard-panel {
+  border-color:#d8e5e9;
+  box-shadow:0 8px 24px rgba(7,52,95,.035);
+}
+.dashboard-cost-metric--blue { --tone:var(--brand-blue); }
+.dashboard-cost-metric--amber { --tone:var(--brand-yellow); }
+.dashboard-cost-metric--teal { --tone:var(--brand-cyan); }
+.dashboard-period-control button.active {
+  color:var(--brand-navy);
+  box-shadow:0 2px 7px rgba(7,52,95,.09),inset 0 0 0 1px #c6dce4;
+}
+
+/* Use brand cyan/green for positive states, retain amber/red for attention. */
+.dashboard-followup-metric--purple .dashboard-followup-metric__icon { color:var(--brand-violet); background:#eef3ff; }
+.dashboard-followup-metric--blue .dashboard-followup-metric__icon { color:var(--brand-blue); background:#ebf5ff; }
+.dashboard-followup-metric--red .dashboard-followup-metric__icon { color:var(--brand-red); background:#fff0f0; }
+.dashboard-followup-metric--amber .dashboard-followup-metric__icon { color:var(--brand-yellow); background:#fff7e6; }
+.dashboard-followup-footer button,
+.dashboard-followup-footer button:hover { color:var(--brand-cyan); }
+
+.dashboard-data-empty__icon {
+  color:var(--brand-green);
+  background:#edf9f3;
+  box-shadow:inset 0 0 0 1px #d8eee4;
+}
+.dashboard-data-empty__actions button {
+  color:var(--brand-navy);
+  border-color:#cbdfe5;
+}
+.dashboard-data-empty__actions button:hover {
+  color:var(--brand-blue);
+  background:#f4faff;
+  border-color:#b7d6e1;
+}
+
+.dashboard-map-preview {
+  border-color:#cbdfe5;
+  background:linear-gradient(145deg,#edf7fb 0%,#f5fbfa 52%,#eaf7f1 100%);
+}
+.dashboard-map-route { border-color:rgba(11,120,201,.46); }
+.dashboard-map-center {
+  border-color:rgba(11,154,166,.16);
+  color:var(--brand-cyan);
+}
+.dashboard-map-center strong { color:var(--brand-navy); }
+.dashboard-map-cta { color:var(--brand-navy); border-color:#cfe2e8; }
+.dashboard-map-pin--blue { color:var(--brand-blue); }
+.dashboard-map-pin--green { color:var(--brand-green); }
+.dashboard-map-pin--amber { color:var(--brand-yellow); }
+
+.dashboard-footer-actions button:hover {
+  color:var(--brand-navy);
+  border-color:#bfd9e1;
+  background:#f5fafc;
+}
+
+/* Subtle focus ring for keyboard users, aligned to the brand. */
+.dashboard-home button:focus-visible {
+  outline:2px solid rgba(11,120,201,.28);
+  outline-offset:2px;
+}
+
+@media (max-width:720px) {
+  .dashboard-quick-actions {
+    background:linear-gradient(180deg,#ffffff 0%,#f7fbfd 100%);
+  }
+}
