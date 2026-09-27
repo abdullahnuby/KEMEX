@@ -286,7 +286,7 @@ export function AppRoutes({
 
   return <Routes>
     <Route path="/" element={<Navigate to="/dashboard" replace />} />
-    <Route path="dashboard" element={guard('dashboard', <DashboardPage assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} onRoute={navigate} />)} />
+    <Route path="dashboard" element={guard('dashboard', <DashboardPage assets={assets} projects={projects} workOrders={workOrders} fuelOps={fuelOps} operations={operations} notifications={notifications} notificationUnreadCount={notificationUnreadCount} onRoute={navigate} />)} />
     <Route path="alerts" element={guard('alerts', <AlertsPage user={user} notifications={notifications} unreadCount={notificationUnreadCount} onRefreshNotifications={onRefreshNotifications} onMarkNotificationRead={onMarkNotificationRead} onMarkAllRead={onMarkAllRead} assets={assets} workOrders={workOrders} fuelOps={fuelOps} drivers={drivers as any} contracts={contracts} onRoute={navigate} alertDays={systemSettings.alertDays} alertKm={systemSettings.alertKm} alertHours={systemSettings.alertHours} plans={moduleData.plans ?? []} oils={moduleData.oils ?? []} />)} />
     <Route path="operations" element={guard('operations', <OperationsWorkspacePage {...operationsWorkspaceProps} />)} />
     <Route path="operations-center" element={guard('operations-center', <OperationsCenterPage user={user} assets={assets} workOrders={workOrders} trips={trips} drivers={drivers} contracts={contracts} notifications={notifications} onRoute={navigate} />)} />
