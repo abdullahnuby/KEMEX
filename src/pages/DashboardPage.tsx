@@ -10,7 +10,6 @@ import {
   Gauge,
   MapPinned,
   PackageCheck,
-  Plus,
   Radio,
   Settings2,
   ShieldAlert,
@@ -70,7 +69,7 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
         <KpiCard tone="green" icon={Radio} label="متاحة للتشغيل" value={fmt(dashboard.available)} meta="جاهزة للتخصيص" helper={`${fmt(dashboard.readiness)}% جاهزية`} />
         <KpiCard tone="amber" icon={Wrench} label="تحت الصيانة" value={fmt(dashboard.maintenance)} meta={`${fmt(dashboard.urgentWorkOrders)} أمر عاجل`} helper={`${fmt(dashboard.openWo)} أمر مفتوح`} />
         <KpiCard tone="purple" icon={Gauge} label="ساعات التشغيل" value={fmt(dashboard.hours)} meta={`خلال ${periodLabelShort(period)}`} helper={`${fmt(dashboard.downtime)} ساعة توقف`} />
-        <KpiCard tone="teal" icon={CalendarClock} label="مشروعات نشطة" value={fmt(dashboard.activeProjects)} meta="مشروع مرتبط بالأصول" helper={`${fmt(dashboard.projectRows.length)} مشروع ظاهر`} />
+        <KpiCard tone="teal" icon={CalendarClock} label="مشروعات نشطة" value={fmt(dashboard.activeProjects)} meta={`${fmt(dashboard.projectRows.filter(project => project.count > 0).length)} مرتبط بالأصول`} helper={`${fmt(dashboard.projectRows.length)} مشروع نشط في القائمة`} />
         <KpiCard tone="red" icon={BellRing} label="تنبيهات ومتابعات" value={fmt(alertTotal)} meta={`${fmt(dashboard.pendingOps)} تشغيل بانتظار اعتماد`} helper={notificationUnreadCount ? `${fmt(notificationUnreadCount)} إشعار غير مقروء` : 'لا توجد إشعارات غير مقروءة'} />
       </section>
 
@@ -93,13 +92,25 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
         </div>
       </section>
 
-      <section className="dashboard-live-strip" aria-label="ملخص التشغيل اليوم">
-        <LiveMetric icon={Truck} label="في التشغيل / التخصيص" value={dashboard.activeCount} tone="blue" />
-        <LiveMetric icon={Radio} label="جاهزة" value={dashboard.available} tone="green" />
-        <LiveMetric icon={Wrench} label="في الصيانة" value={dashboard.maintenance} tone="amber" />
-        <LiveMetric icon={Gauge} label="ساعات تشغيل" value={dashboard.hours} tone="purple" suffix="ساعة" />
-        <LiveMetric icon={Fuel} label="حركة وقود معتمدة" value={dashboard.fuelEntries} tone="teal" />
-        <LiveMetric icon={BellRing} label="متابعات" value={alertTotal} tone="red" />
+      <section className="dashboard-action-queue" aria-label="المهام التي تحتاج إجراء">
+        <div className="dashboard-action-queue__head">
+          <div>
+            <span className="dashboard-section-kicker">مركز القرار</span>
+            <h2>مهام تحتاج إجراء</h2>
+            <p>ملخص للعناصر المفتوحة التي تستحق المراجعة الآن.</p>
+          </div>
+          <button type="button" className="dashboard-intro-link" onClick={() => onRoute(dashboard.priorityCount ? 'maintenance' : 'operations')}>
+            فتح المتابعة <ArrowLeft size={13} />
+          </button>
+        </div>
+        <div className="dashboard-action-queue__grid">
+          <QueueItem icon={AlertTriangle} tone="red" label="أوامر عاجلة" value={dashboard.urgentWorkOrders} route="maintenance" onRoute={onRoute} />
+          <QueueItem icon={Wrench} tone="amber" label="أصول تحت الصيانة" value={dashboard.maintenance} route="maintenance" onRoute={onRoute} />
+          <QueueItem icon={ClipboardCheck} tone="purple" label="أوامر عمل مفتوحة" value={dashboard.openWo} route="maintenance" onRoute={onRoute} />
+          <QueueItem icon={CalendarClock} tone="blue" label="استحقاقات خلال 30 يوم" value={dashboard.expiring} route="assets" onRoute={onRoute} />
+          <QueueItem icon={Gauge} tone="teal" label="تشغيل بانتظار اعتماد" value={dashboard.pendingOps} route="operations" onRoute={onRoute} />
+          <QueueItem icon={BellRing} tone="red" label="إشعارات غير مقروءة" value={Number(notificationUnreadCount || 0)} route="alerts" onRoute={onRoute} />
+        </div>
       </section>
 
       <section className="dashboard-main-grid">
@@ -122,14 +133,27 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
             <CostMetric label="الصيانة" value={formatMoney(dashboard.maintenanceCost)} caption={`${fmt(dashboard.workOrderCount)} أمر ضمن الفترة`} tone="amber" />
             <CostMetric label="الإجمالي" value={formatMoney(dashboard.fuelCost + dashboard.maintenanceCost)} caption="الوقود + الصيانة" tone="teal" />
           </div>
-          <AnalyticsLineChart
-            points={dashboard.monthlyCost}
-            height={250}
-            primaryLabel="الوقود"
-            secondaryLabel="الصيانة"
-            valueSuffix=" جنيه"
-            secondarySuffix=" جنيه"
-          />
+          {dashboard.hasCostData ? (
+            <AnalyticsLineChart
+              points={dashboard.monthlyCost}
+              height={220}
+              primaryLabel="الوقود"
+              secondaryLabel="الصيانة"
+              valueSuffix=" جنيه"
+              secondarySuffix=" جنيه"
+            />
+          ) : (
+            <DataEmptyState
+              icon={Fuel}
+              title="لا توجد حركة تكلفة كافية للرسم"
+              description="ابدأ بتسجيل حركة وقود معتمدة أو أمر صيانة بقيمة مالية، وستتحول هذه المنطقة تلقائيًا إلى اتجاهات مقارنة."
+              primaryLabel="فتح الوقود"
+              primaryRoute="fuel"
+              secondaryLabel="فتح الصيانة"
+              secondaryRoute="maintenance"
+              onRoute={onRoute}
+            />
+          )}
         </ChartShell>
 
         <ChartShell
@@ -157,17 +181,30 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
                   <button type="button" className="dashboard-project-row" key={project.id} onClick={() => onRoute('projects')}>
                     <span className="dashboard-project-icon"><Truck size={15} /></span>
                     <span className="dashboard-project-copy"><strong>{project.name}</strong><small>{project.code || 'بدون رمز'} · {project.status || '—'}</small></span>
+                    <span className={`dashboard-project-state ${project.count > 0 ? 'has-assets' : 'no-assets'}`}>{project.count > 0 ? `${fmt(project.count)} أصل مرتبط` : 'بدون أصول مرتبطة'}</span>
                     <span className="dashboard-project-progress"><i style={{ width: `${Math.min(100, dashboard.totalAssets ? (project.count / dashboard.totalAssets) * 100 : 0)}%` }} /></span>
-                    <span className="dashboard-project-number">{fmt(project.count)}<small>أصل</small></span>
+                    <ArrowLeft size={13} className="dashboard-row-arrow" />
                   </button>
                 ))}
               </div>
-            ) : <EmptyState icon={Truck} title="لا توجد مشروعات مرتبطة" description="عند ربط الأصول بالمشروعات ستظهر هنا التوزيعات التشغيلية." />}
+            ) : <DataEmptyState icon={Truck} title="لا توجد مشروعات نشطة" description="أنشئ مشروعًا أو راجع حالة المشروعات الحالية، وستظهر هنا بمجرد وجود مشروع نشط." primaryLabel="فتح المشروعات" primaryRoute="projects" onRoute={onRoute} />}
           </Card>
 
           <Card className="dashboard-panel dashboard-secondary-card" title="الأصول الأكثر تشغيلًا" description={`حسب ساعات التشغيل خلال ${periodLabelShort(period)}`} action={<Button variant="ghost" size="sm" onClick={() => onRoute('operations')}>التشغيل</Button>}>
-            <AnalyticsBarChart points={dashboard.assetUsage.map(item => ({ label: item.label, value: item.hours }))} valueSuffix=" س" limit={6} />
-            {!dashboard.assetUsage.length && <EmptyState icon={Gauge} title="لا توجد سجلات تشغيل للفترة" description="سجلات التشغيل المعتمدة ستظهر هنا تلقائيًا." />}
+            {dashboard.assetUsage.length ? (
+              <AnalyticsBarChart points={dashboard.assetUsage.map(item => ({ label: item.label, value: item.hours }))} valueSuffix=" س" limit={6} />
+            ) : (
+              <DataEmptyState
+                icon={Gauge}
+                title="لا توجد سجلات تشغيل للفترة"
+                description="سجلات التشغيل المعتمدة ستظهر هنا تلقائيًا عند تسجيل التشغيل للأصول."
+                primaryLabel="تسجيل تشغيل"
+                primaryRoute="operations/new"
+                secondaryLabel="عرض السجلات"
+                secondaryRoute="operations"
+                onRoute={onRoute}
+              />
+            )}
           </Card>
         </div>
 
@@ -186,7 +223,19 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
                   </button>
                 )
               })}
-              {!dashboard.watchlist.length && <EmptyState icon={CheckCircle2} title="لا توجد بنود حرجة" description="لا توجد استحقاقات قريبة أو أوامر عمل عاجلة حاليًا." />}
+              {!dashboard.watchlist.length && (
+                <DataEmptyState
+                  icon={CheckCircle2}
+                  title="لا توجد بنود حرجة الآن"
+                  description="لا توجد استحقاقات قريبة أو أوامر عمل عاجلة ضمن البيانات الحالية."
+                  primaryLabel="عرض الأصول"
+                  primaryRoute="assets"
+                  secondaryLabel="عرض الصيانة"
+                  secondaryRoute="maintenance"
+                  onRoute={onRoute}
+                  compact
+                />
+              )}
             </div>
           </Card>
 
@@ -217,7 +266,16 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
                 <StatusBadge tone={item.status === 'معتمد' ? 'emerald' : 'blue'}>{item.status || '—'}</StatusBadge>
               </button>
             ))}
-            {!dashboard.recentOps.length && <EmptyState icon={Gauge} title="لا توجد عمليات حديثة" description="عند تسجيل التشغيل ستظهر آخر العمليات هنا." />}
+            {!dashboard.recentOps.length && (
+              <DataEmptyState
+                icon={Gauge}
+                title="لا توجد عمليات حديثة"
+                description="أول سجل تشغيل معتمد سيظهر هنا مع الأصل والمشروع والتاريخ وعدد الساعات."
+                primaryLabel="تسجيل تشغيل"
+                primaryRoute="operations/new"
+                onRoute={onRoute}
+              />
+            )}
           </div>
         </Card>
 
@@ -283,16 +341,31 @@ function QuickAction({ icon: Icon, tone, title, description, badge, onClick }: {
       <span className="dashboard-quick-card__icon"><Icon size={19} /></span>
       <span className="dashboard-quick-card__copy"><strong>{title}</strong><small>{description}</small></span>
       {typeof badge === 'number' && badge > 0 ? <span className="dashboard-quick-card__badge">{fmt(badge)}</span> : null}
-      <Plus size={15} className="dashboard-quick-card__plus" />
+      <ArrowLeft size={14} className="dashboard-quick-card__arrow" />
     </button>
   )
 }
 
-function LiveMetric({ icon: Icon, label, value, tone, suffix }: { icon: LucideIcon; label: string; value: number; tone: string; suffix?: string }) {
+function QueueItem({ icon: Icon, tone, label, value, route, onRoute }: { icon: LucideIcon; tone: string; label: string; value: number; route: string; onRoute: (route: string) => void }) {
   return (
-    <div className={`dashboard-live-metric dashboard-live-metric--${tone}`}>
-      <span><Icon size={15} /></span>
-      <div><strong>{fmt(value)}</strong><small>{suffix ? `${label} · ${suffix}` : label}</small></div>
+    <button type="button" className={`dashboard-queue-item dashboard-queue-item--${tone}`} onClick={() => onRoute(route)}>
+      <span className="dashboard-queue-item__icon"><Icon size={15} /></span>
+      <span className="dashboard-queue-item__copy"><small>{label}</small><strong>{fmt(value)}</strong></span>
+      <ArrowLeft size={12} className="dashboard-row-arrow" />
+    </button>
+  )
+}
+
+function DataEmptyState({ icon: Icon, title, description, primaryLabel, primaryRoute, secondaryLabel, secondaryRoute, onRoute, compact = false }: { icon: LucideIcon; title: string; description: string; primaryLabel: string; primaryRoute: string; secondaryLabel?: string; secondaryRoute?: string; onRoute: (route: string) => void; compact?: boolean }) {
+  return (
+    <div className={`dashboard-data-empty ${compact ? 'is-compact' : ''}`}>
+      <div className="dashboard-data-empty__icon"><Icon size={18} /></div>
+      <strong>{title}</strong>
+      <p>{description}</p>
+      <div className="dashboard-data-empty__actions">
+        <button type="button" onClick={() => onRoute(primaryRoute)}>{primaryLabel} <ArrowLeft size={12} /></button>
+        {secondaryLabel && secondaryRoute ? <button type="button" className="secondary" onClick={() => onRoute(secondaryRoute)}>{secondaryLabel}</button> : null}
+      </div>
     </div>
   )
 }
@@ -338,6 +411,7 @@ type DashboardSnapshot = {
   recentOps: Array<{ id: string; assetName: string; projectName: string; date: string; hours: number; status: string }>
   watchlist: Array<{ id: string; name: string; code?: string; reason: string; status: string; tone: 'amber' | 'purple' | 'red'; icon: typeof Wrench; route: string }>
   assetUsage: Array<{ label: string; hours: number; down: number }>
+  hasCostData: boolean
 }
 
 function buildDashboardSnapshot(assets: Asset[], fuelOps: FuelOperation[], workOrders: WorkOrder[], operations: Operation[], projects: Project[], period: DashboardPeriod): DashboardSnapshot {
@@ -376,9 +450,9 @@ function buildDashboardSnapshot(assets: Asset[], fuelOps: FuelOperation[], workO
     if (key) assetProjectCounts.set(key, (assetProjectCounts.get(key) ?? 0) + 1)
   }
   const projectRows = projects
+    .filter(project => project.status === 'نشط')
     .map(project => ({ ...project, count: assetProjectCounts.get(String(project.id)) ?? assetProjectCounts.get(String(project.code ?? '')) ?? 0 }))
-    .filter(project => project.count > 0)
-    .sort((a, b) => b.count - a.count)
+    .sort((a, b) => b.count - a.count || String(a.name || '').localeCompare(String(b.name || ''), 'ar'))
     .slice(0, 7)
 
   const assetNames = new Map<string, string>(assets.map(asset => [String(asset.id), asset.name]))
@@ -447,6 +521,7 @@ function buildDashboardSnapshot(assets: Asset[], fuelOps: FuelOperation[], workO
     recentOps,
     assetUsage,
     watchlist,
+    hasCostData: recentFuel.length > 0 || recentWorkOrders.some(item => Number(item.laborCost || 0) + Number(item.partsCost || 0) + Number(item.vendorCost || 0) > 0),
   }
 }
 
