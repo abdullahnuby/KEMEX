@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import {
   AlertTriangle,
   ArrowLeft,
-  BarChart3,
   BellRing,
   CalendarClock,
   CheckCircle2,
@@ -53,33 +52,6 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
 
   return (
     <div className="dashboard-page dashboard-home" dir="rtl">
-      <header className="dashboard-home__header dashboard-home__hero">
-        <div className="dashboard-home__hero-copy">
-          <div className="dashboard-home__eyebrow">
-            <span className="dashboard-live-pill"><i /> مباشر الآن</span>
-            <span>مركز القيادة التشغيلي</span>
-          </div>
-          <h1>الرئيسية</h1>
-          <p>ملخص لحظي لحالة الأسطول والأصول والطلبات والتشغيل والصيانة والتكاليف، مع وصول مباشر لأكثر الإجراءات استخدامًا.</p>
-          <div className="dashboard-hero-meta">
-            <span><Radio size={13} /> {fmt(dashboard.activeCount)} أصل في التشغيل أو التخصيص</span>
-            <span><Wrench size={13} /> {fmt(dashboard.openWo)} أمر عمل مفتوح</span>
-            <span><BellRing size={13} /> {fmt(alertTotal)} تنبيه / متابعة</span>
-          </div>
-        </div>
-        <div className="dashboard-home__header-actions">
-          <div className="dashboard-period-control" aria-label="الفترة الزمنية">
-            {([30, 90, 180] as DashboardPeriod[]).map(value => (
-              <button key={value} type="button" className={period === value ? 'active' : ''} onClick={() => setPeriod(value)}>
-                {value === 180 ? '6 أشهر' : `${fmt(value)} يوم`}
-              </button>
-            ))}
-          </div>
-          <Button variant="secondary" size="sm" icon={<BarChart3 size={15} />} onClick={() => onRoute('reports')}>مركز التقارير</Button>
-          <Button size="sm" icon={<MapPinned size={15} />} onClick={() => onRoute('tracking')}>التتبع المباشر</Button>
-        </div>
-      </header>
-
       <section className={`dashboard-home__status ${dashboard.priorityCount > 0 ? 'is-alert' : 'is-clear'}`}>
         <div className="dashboard-status-main">
           {dashboard.priorityCount > 0 ? <ShieldAlert size={18} /> : <CheckCircle2 size={18} />}
@@ -135,7 +107,15 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
           className="dashboard-panel dashboard-panel--cost"
           title="التكلفة التشغيلية"
           description={`الوقود مقابل الصيانة خلال ${periodLabelShort(period)}`}
-          action={<span className="dashboard-panel-period">{periodLabelShort(period)}</span>}
+          action={
+            <div className="dashboard-period-control dashboard-period-control--compact" aria-label="الفترة الزمنية">
+              {([30, 90, 180] as DashboardPeriod[]).map(value => (
+                <button key={value} type="button" className={period === value ? 'active' : ''} onClick={() => setPeriod(value)}>
+                  {value === 180 ? '6 أشهر' : `${fmt(value)} يوم`}
+                </button>
+              ))}
+            </div>
+          }
         >
           <div className="dashboard-cost-summary">
             <CostMetric label="الوقود" value={formatMoney(dashboard.fuelCost)} caption={`${fmt(dashboard.fuelEntries)} حركة معتمدة`} tone="blue" />
