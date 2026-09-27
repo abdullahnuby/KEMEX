@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { AlertTriangle, ArrowLeft, Boxes, CircleCheckBig, ClipboardCheck, Fuel, Gauge, ShieldCheck, Truck, Wrench } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, BarChart3, CircleCheckBig, ClipboardCheck, Gauge, MapPinned, ShieldCheck, Truck, Wrench } from 'lucide-react'
 import type { Asset, FuelOperation, Operation, Project, WorkOrder } from '../types/tfms'
 import { Button, Card, ChartShell, AnalyticsDonut, AnalyticsLineChart, StatusBadge } from '../components/ui'
 import { sameReference } from '../utils/referenceLabels'
@@ -18,14 +18,14 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
   const openWo = dashboard.openWo
 
   return <div className="dashboard-page dashboard-page--executive dashboard-page--adlike">
-    <section className="dashboard-ad-hero" aria-label="KEMEX الرئيسية">
+    <section className="dashboard-ad-hero" aria-label="KEMEX الرئيسية" dir="rtl">
       <div className="dashboard-ad-copy">
         <span className="dashboard-ad-kicker">KEMEX · منصة إدارة اللوجستيات والعمليات</span>
         <h1><span>إدارة أذكى ..</span> <em>تشغيل أقوى</em></h1>
         <p>كل ما تحتاجه لإدارة أسطولك وأصولك وعملياتك وتكاليفك في منصة واحدة، برؤية تشغيلية واضحة وسريعة.</p>
         <div className="dashboard-ad-actions">
-          <Button icon={<Truck size={17} />} onClick={() => onRoute('assets')}>الأسطول والأصول</Button>
-          <Button variant="secondary" icon={<Gauge size={17} />} onClick={() => onRoute('operations-center')}>مركز التحكم</Button>
+          <Button icon={<MapPinned size={17} />} onClick={() => onRoute('tracking')}>تتبع المركبات</Button>
+          <Button variant="secondary" icon={<BarChart3 size={17} />} onClick={() => onRoute('reports')}>التقارير</Button>
         </div>
         <div className="dashboard-ad-trust">
           <span><ShieldCheck size={15} /> تحكم متكامل</span>
@@ -61,19 +61,19 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
       <div className="dashboard-ad-diagonal" />
     </section>
 
-    <section className="dashboard-quick-strip" aria-label="العمليات السريعة">
+    <section className="dashboard-quick-strip" aria-label="العمليات السريعة" dir="rtl">
       <div className="dashboard-quick-strip__title">
         <span>ابدأ من هنا</span>
         <h2>العمليات السريعة</h2>
-        <p>الوصول المباشر لأكثر المهام استخدامًا.</p>
+        <p>نفّذ أكثر الإجراءات تكرارًا مباشرةً بدون البحث داخل الصفحات.</p>
       </div>
       <div className="dashboard-quick-strip__grid">
-        <button type="button" onClick={() => onRoute('assets')}><span><Truck size={21} /></span><strong>الأسطول والأصول</strong><small>المتابعة والتخصيص</small></button>
-        <button type="button" onClick={() => onRoute('operations')}><span><Gauge size={21} /></span><strong>التشغيل والرحلات</strong><small>العمليات والاعتمادات</small></button>
-        <button type="button" onClick={() => onRoute('maintenance')}><span><Wrench size={21} /></span><strong>الصيانة</strong><small>الأعطال وأوامر العمل</small></button>
-        <button type="button" onClick={() => onRoute('reports')}><span><ClipboardCheck size={21} /></span><strong>التقارير والتحليلات</strong><small>التكلفة والأداء</small></button>
+        <button type="button" onClick={() => onRoute('trips/new')}><span><Truck size={21} /></span><strong>طلب نقل</strong><small>إنشاء عملية نقل جديدة</small></button>
+        <button type="button" onClick={() => onRoute('breakdowns/new')}><span><AlertTriangle size={21} /></span><strong>تسجيل عطل</strong><small>فتح بلاغ عطل جديد</small></button>
+        <button type="button" onClick={() => onRoute('assignments/new')}><span><ClipboardCheck size={21} /></span><strong>طلب تخصيص</strong><small>تخصيص أصل لمشروع</small></button>
+        <button type="button" onClick={() => onRoute('operations/new')}><span><Gauge size={21} /></span><strong>تسجيل تشغيل</strong><small>تسجيل يوم تشغيل جديد</small></button>
       </div>
-      <button type="button" className="dashboard-quick-cta" onClick={() => onRoute('operations-center')}>افتح مركز التحكم <ArrowLeft size={17} /></button>
+      <button type="button" className="dashboard-quick-cta" onClick={() => onRoute('operations-center')}>مركز التحكم <ArrowLeft size={17} /></button>
     </section>
 
     <section className="dashboard-activity" aria-label="آخر النشاطات">

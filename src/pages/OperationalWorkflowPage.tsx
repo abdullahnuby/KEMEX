@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent, type MouseEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent, type MouseEvent } from 'react'
 import { Check, ClipboardCheck, Eye, Flag, Pencil, Plus, RotateCcw, Send, X } from 'lucide-react'
 import { MODULE_CONFIG, canWriteModule, type ModuleConfig, type ModuleField, type WorkflowAction } from '../config/modules'
 import { canApproveModule } from '../config/app'
@@ -31,6 +31,7 @@ export function OperationalWorkflowPage({
   onSave,
   onWorkflow,
   onNavigate,
+  initialCreate = false,
 }: {
   module: OperationalModule
   records: Record<string, unknown>[]
@@ -44,6 +45,7 @@ export function OperationalWorkflowPage({
   onSave: (record: Record<string, unknown>) => Promise<void> | void
   onWorkflow: (record: Record<string, unknown>, previous: Record<string, unknown>, action: WorkflowAction) => Promise<void> | void
   onNavigate?: (route: string) => void
+  initialCreate?: boolean
 }) {
   const cfg = MODULE_CONFIG[module]
   const meta = moduleMeta[module]
@@ -113,6 +115,10 @@ export function OperationalWorkflowPage({
     setError('')
     setEditing(next)
   }
+
+  useEffect(() => {
+    if (initialCreate) newRecord()
+  }, [initialCreate])
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

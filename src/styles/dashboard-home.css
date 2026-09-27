@@ -291,3 +291,42 @@
     font-size:clamp(1.08rem,5.9vw,1.3rem)!important;
   }
 }
+
+
+/* Quick actions: executable workflows, not navigation shortcuts. */
+.dashboard-quick-strip {
+  direction: ltr !important;
+}
+.dashboard-quick-strip__title,
+.dashboard-quick-strip__grid,
+.dashboard-quick-cta {
+  direction: rtl !important;
+}
+.dashboard-quick-strip__title {
+  text-align: right !important;
+}
+.dashboard-quick-strip__grid button {
+  direction: rtl !important;
+}
+.dashboard-quick-strip__grid button > span {
+  order: 2 !important;
+}
+.dashboard-quick-strip__grid button > strong,
+.dashboard-quick-strip__grid button > small {
+  text-align: right !important;
+}
+@media (min-width: 761px) {
+  .dashboard-quick-strip {
+    grid-template-columns: 220px minmax(0, 1fr) auto !important;
+  }
+  .dashboard-quick-strip__title {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    justify-self: stretch !important;
+    align-items: flex-end !important;
+  }
+  .dashboard-quick-strip__grid {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+  }
+}

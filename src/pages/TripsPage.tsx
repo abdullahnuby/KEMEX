@@ -19,11 +19,12 @@ const boardColumns:TripStatus[]=['draft','assigned','dispatched','in_transit','d
 const EXECUTION_STATUS_LABELS:Record<string,string>={assigned:'رحلة مخصصة',to_pickup:'في الطريق للتحميل',arrived_pickup:'وصل للتحميل',pickup_confirmed:'تم الاستلام',in_transit:'قيد النقل',arrived_delivery:'وصل للتسليم',delivered:'تم التسليم',completed:'الرحلة مكتملة'}
 const EXECUTION_STATUS_TONES:Record<string,'blue'|'amber'|'emerald'|'red'|'gray'>={assigned:'gray',to_pickup:'blue',arrived_pickup:'amber',pickup_confirmed:'emerald',in_transit:'blue',arrived_delivery:'amber',delivered:'emerald',completed:'emerald'}
 
-export function TripsPage({assets,drivers,projects,clients,onRoute,initialView='list',currencyCode='EGP'}:{assets:Asset[];drivers:Driver[];projects:Project[];clients:Customer[];onRoute:(path:string)=>void;initialView?:'list'|'board';currencyCode?:string}) {
+export function TripsPage({assets,drivers,projects,clients,onRoute,initialView='list',currencyCode='EGP',openCreate=false}:{assets:Asset[];drivers:Driver[];projects:Project[];clients:Customer[];onRoute:(path:string)=>void;initialView?:'list'|'board';currencyCode?:string;openCreate?:boolean}) {
  const [trips,setTrips]=useState<Trip[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[query,setQuery]=useState(''),[status,setStatus]=useState('all'),[tripType,setTripType]=useState('all'),[from,setFrom]=useState(''),[to,setTo]=useState(''),[showForm,setShowForm]=useState(false),[saving,setSaving]=useState(false),[formError,setFormError]=useState(''),[view,setView]=useState<'list'|'board'>(initialView),[pendingAdvance,setPendingAdvance]=useState<Trip|null>(null),[advanceBusy,setAdvanceBusy]=useState(false)
  const load=async()=>{setLoading(true);try{setTrips(await tripsService.list());setError('')}catch(e){setError(e instanceof Error?e.message:'تعذر تحميل بيانات النقل.')}finally{setLoading(false)}}
  useEffect(()=>{void load()},[])
  useEffect(()=>setView(initialView),[initialView])
+ useEffect(()=>{if(openCreate){setError('');setFormError('');setShowForm(true)}},[openCreate])
  const assetName=(id:string|null)=>assets.find(a=>a.id===id)?.name??id??'—'
  const driverName=(id:string)=>drivers.find(d=>d.id===id)?.name??id
  const projectName=(id:string|null)=>projects.find(p=>p.id===id)?.name??id??'—'
