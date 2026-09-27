@@ -1,0 +1,99 @@
+/* KEMEX — Mobile App Shell V2
+   Dedicated touch-first shell for phones; does not alter desktop navigation. */
+@media (max-width:760px){
+  html, body, #root { width:100%; min-width:100%; max-width:100%; overflow-x:hidden; }
+  body { background:#f4f8fb; }
+  .main-shell { min-height:100dvh; }
+
+  .site-navbar {
+    height:60px !important;
+    min-height:60px !important;
+    padding-inline:8px !important;
+    gap:6px !important;
+    border-bottom:1px solid #dce7ed !important;
+    background:rgba(255,255,255,.97) !important;
+    box-shadow:0 4px 18px rgba(7,52,95,.065) !important;
+  }
+  .site-navbar::after { height:2px !important; background:linear-gradient(90deg,transparent,#b7d9e9,#0878c9,#b7d9e9,transparent) !important; opacity:.72 !important; }
+  .kemex-navbar-brand { min-width:0 !important; flex:1 1 auto !important; max-width:none !important; padding-inline:1px !important; }
+  .kemex-navbar-brand .navbar-context-copy { display:none !important; }
+  .kemex-navbar-brand .brand-mark { width:35px !important; height:35px !important; border-radius:10px !important; }
+  .navbar-actions { gap:5px !important; margin-inline-start:auto !important; }
+  .navbar-search-btn, .navbar-icon-btn, .navbar-menu-btn {
+    width:35px !important;
+    height:35px !important;
+    min-height:35px !important;
+    flex-basis:35px !important;
+    border-radius:10px !important;
+  }
+  .navbar-search-btn { background:#f7fafc !important; }
+  .navbar-user { display:inline-flex !important; min-width:35px !important; padding:0 !important; }
+  .navbar-user-copy, .navbar-user > svg { display:none !important; }
+  .navbar-user .avatar { width:33px !important; height:33px !important; border-radius:10px !important; font-size:.72rem !important; }
+  .navbar-menu-btn { background:#fff !important; }
+
+  .page-body {
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    padding-inline:10px !important;
+    padding-top:10px !important;
+    padding-bottom:calc(82px + env(safe-area-inset-bottom,0px)) !important;
+  }
+
+  /* Keep mobile navigation truly app-like and easy to hit with a thumb. */
+  .mobile-tab-bar {
+    display:grid !important;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    align-items:center;
+    min-height:68px !important;
+    padding:6px 6px max(6px,env(safe-area-inset-bottom,0px)) !important;
+    border-top:1px solid #dae6eb !important;
+    background:rgba(255,255,255,.98) !important;
+    box-shadow:0 -8px 26px rgba(7,52,95,.10) !important;
+    backdrop-filter:blur(14px);
+  }
+  .mobile-tab-item {
+    position:relative;
+    min-width:0 !important;
+    min-height:53px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:3px !important;
+    border:0 !important;
+    border-radius:12px !important;
+    background:transparent !important;
+    color:#7c8f97 !important;
+    font-size:0 !important;
+  }
+  .mobile-tab-item svg { width:20px !important; height:20px !important; }
+  .mobile-tab-item span { font-size:8.5px !important; line-height:1 !important; font-weight:850 !important; white-space:nowrap; }
+  .mobile-tab-item.active { color:#07345f !important; background:#edf6fc !important; }
+  .mobile-tab-item.active::after { content:''; position:absolute; inset-inline:22px; bottom:2px; height:2px; border-radius:999px; background:#0878c9; }
+  .mobile-tab-more-icon { display:inline-flex !important; position:relative; }
+  .mobile-tab-dot { width:7px !important; height:7px !important; border:2px solid #fff !important; top:-3px !important; inset-inline-start:-3px !important; }
+
+  .module-sub-nav {
+    max-width:100vw !important;
+    overflow-x:auto !important;
+    scrollbar-width:none !important;
+    padding-inline:7px !important;
+    background:#fff !important;
+    border-bottom:1px solid #e3ebef !important;
+  }
+  .module-sub-nav::-webkit-scrollbar { display:none; }
+
+  /* Drawer is a full-height app surface; its footer actions stay reachable. */
+  .mobile-nav-panel {
+    width:min(92vw,380px) !important;
+    background:#f9fcfd !important;
+    border-inline-start:1px solid #d7e4ea !important;
+    box-shadow:-20px 0 50px rgba(7,52,95,.18) !important;
+  }
+  .mobile-nav-panel-head { position:sticky; top:0; z-index:4; background:rgba(249,252,253,.98); backdrop-filter:blur(12px); }
+
+  /* Better touch targets without forcing giant typography. */
+  button, [role='button'], a { -webkit-tap-highlight-color:transparent; }
+}

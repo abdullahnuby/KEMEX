@@ -51,6 +51,14 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
 
   return (
     <div className="dashboard-page dashboard-home" dir="rtl">
+      <DashboardMobileView
+        dashboard={dashboard}
+        period={period}
+        alertTotal={alertTotal}
+        formatMoney={formatMoney}
+        onRoute={onRoute}
+      />
+      <div className="dashboard-desktop-view">
       <section className={`dashboard-home__status ${dashboard.priorityCount > 0 ? 'is-alert' : 'is-clear'}`}>
         <div className="dashboard-status-main">
           {dashboard.priorityCount > 0 ? <ShieldAlert size={18} /> : <CheckCircle2 size={18} />}
@@ -307,8 +315,196 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
         <button type="button" onClick={() => onRoute('users')}><UserRound size={15} /> المستخدمون والصلاحيات <ArrowLeft size={13} /></button>
         <button type="button" onClick={() => onRoute('settings')}><Settings2 size={15} /> الإعدادات <ArrowLeft size={13} /></button>
       </section>
+      </div>
     </div>
   )
+}
+
+
+function DashboardMobileView({ dashboard, period, alertTotal, formatMoney, onRoute }: {
+  dashboard: DashboardSnapshot
+  period: DashboardPeriod
+  alertTotal: number
+  notificationUnreadCount: number
+  formatMoney: (value: number) => string
+  onRoute: (route: string) => void
+}) {
+  const focusItems = [
+    { label: 'أوامر عاجلة', value: dashboard.urgentWorkOrders, icon: AlertTriangle, tone: 'red', route: 'maintenance' },
+    { label: 'تحت الصيانة', value: dashboard.maintenance, icon: Wrench, tone: 'amber', route: 'maintenance' },
+    { label: 'استحقاقات قريبة', value: dashboard.expiring, icon: CalendarClock, tone: 'blue', route: 'assets' },
+    { label: 'تشغيل بانتظار اعتماد', value: dashboard.pendingOps, icon: Gauge, tone: 'teal', route: 'operations' },
+  ] as const
+
+  return (
+    <div className="dashboard-mobile-view">
+      <section className={`dashboard-mobile-hero ${dashboard.priorityCount > 0 ? 'is-alert' : 'is-clear'}`}>
+        <div className="dashboard-mobile-hero__main">
+          <span className="dashboard-mobile-hero__eyebrow">KEMEX · التشغيل اليومي</span>
+          <h1>ملخص التشغيل</h1>
+          <p>{dashboard.priorityCount > 0 ? 'هناك عناصر تحتاج إجراء الآن.' : 'كل المؤشرات الأساسية مستقرة ضمن البيانات الحالية.'}</p>
+        </div>
+        <button type="button" className="dashboard-mobile-hero__status" onClick={() => onRoute(dashboard.priorityCount > 0 ? 'maintenance' : 'operations')}>
+          <span className="dashboard-mobile-live-dot" />
+          <strong>{dashboard.priorityCount > 0 ? fmt(dashboard.priorityCount) : 'جيد'}</strong>
+          <small>{dashboard.priorityCount > 0 ? 'للمتابعة' : 'الحالة الآن'}</small>
+        </button>
+      </section>
+
+      <section className="dashboard-mobile-kpis" aria-label="المؤشرات الأساسية">
+        <MobileKpi icon={Truck} tone="blue" label="إجمالي الأصول" value={fmt(dashboard.totalAssets)} detail={`${fmt(dashboard.readiness)}% جاهزية`} />
+        <MobileKpi icon={Radio} tone="green" label="متاحة للتشغيل" value={fmt(dashboard.available)} detail="جاهزة للتخصيص" />
+        <MobileKpi icon={Wrench} tone="amber" label="تحت الصيانة" value={fmt(dashboard.maintenance)} detail={`${fmt(dashboard.openWo)} أمر مفتوح`} />
+        <MobileKpi icon={Gauge} tone="violet" label="ساعات التشغيل" value={fmt(dashboard.hours)} detail={`خلال ${periodLabelShort(period)}`} />
+      </section>
+
+      <section className="dashboard-mobile-secondary-stats" aria-label="مؤشرات ثانوية">
+        <button type="button" onClick={() => onRoute('projects')}>
+          <span className="dashboard-mobile-stat-icon blue"><CalendarClock size={16} /></span>
+          <span><small>مشروعات نشطة</small><strong>{fmt(dashboard.activeProjects)}</strong></span>
+          <ArrowLeft size={13} />
+        </button>
+        <button type="button" onClick={() => onRoute('alerts')}>
+          <span className="dashboard-mobile-stat-icon red"><BellRing size={16} /></span>
+          <span><small>تنبيهات ومتابعات</small><strong>{fmt(alertTotal)}</strong></span>
+          <ArrowLeft size={13} />
+        </button>
+      </section>
+
+      <section className="dashboard-mobile-section dashboard-mobile-actions">
+        <div className="dashboard-mobile-section-head">
+          <div><span>تشغيل</span><h2>العمليات السريعة</h2></div>
+          <button type="button" onClick={() => onRoute('requests')}>كل الطلبات <ArrowLeft size={13} /></button>
+        </div>
+        <div className="dashboard-mobile-actions-grid">
+          <MobileQuickAction icon={Truck} title="طلب نقل" description="إنشاء رحلة" tone="blue" onClick={() => onRoute('trips/new')} />
+          <MobileQuickAction icon={AlertTriangle} title="تسجيل عطل" description="فتح بلاغ" tone="red" badge={dashboard.maintenance} onClick={() => onRoute('breakdowns/new')} />
+          <MobileQuickAction icon={ClipboardCheck} title="طلب تخصيص" description="ربط أصل بمشروع" tone="amber" onClick={() => onRoute('assignments/new')} />
+          <MobileQuickAction icon={Gauge} title="تسجيل تشغيل" description="عداد وساعات" tone="violet" onClick={() => onRoute('operations/new')} />
+          <MobileQuickAction icon={PackageCheck} title="طلب معدات" description="فتح طلب جديد" tone="teal" onClick={() => onRoute('requests/new')} />
+          <MobileQuickAction icon={MapPinned} title="متابعة الأسطول" description="GPS والمواقع" tone="green" onClick={() => onRoute('tracking')} />
+        </div>
+      </section>
+
+      <section className="dashboard-mobile-section dashboard-mobile-focus">
+        <div className="dashboard-mobile-section-head">
+          <div><span>مركز القرار</span><h2>يحتاج إجراء</h2></div>
+          <span className="dashboard-mobile-count-badge">{fmt(dashboard.priorityCount)}</span>
+        </div>
+        <div className="dashboard-mobile-focus-grid">
+          {focusItems.map(item => <MobileFocusItem key={item.label} {...item} onClick={() => onRoute(item.route)} />)}
+        </div>
+      </section>
+
+      <section className="dashboard-mobile-section dashboard-mobile-fleet">
+        <div className="dashboard-mobile-section-head">
+          <div><span>حالة الأسطول</span><h2>جاهزية التشغيل</h2></div>
+          <button type="button" onClick={() => onRoute('assets')}>كل الأصول <ArrowLeft size={13} /></button>
+        </div>
+        <div className="dashboard-mobile-readiness">
+          <div className="dashboard-mobile-readiness__ring" style={{ ['--readiness' as string]: `${Math.max(0, Math.min(100, dashboard.readiness))}%` }}>
+            <strong>{fmt(dashboard.readiness)}%</strong><small>جاهزية</small>
+          </div>
+          <div className="dashboard-mobile-readiness__copy">
+            <div><span>يعمل / مخصص</span><strong>{fmt(dashboard.activeCount)}</strong></div>
+            <div><span>متاح</span><strong>{fmt(dashboard.available)}</strong></div>
+            <div><span>صيانة</span><strong>{fmt(dashboard.maintenance)}</strong></div>
+          </div>
+        </div>
+        <button type="button" className="dashboard-mobile-track-card" onClick={() => onRoute('tracking')}>
+          <span className="dashboard-mobile-track-icon"><MapPinned size={18} /></span>
+          <span><strong>متابعة الأسطول</strong><small>آخر مواقع GPS وحالة الأصول</small></span>
+          <ArrowLeft size={15} />
+        </button>
+      </section>
+
+      <section className="dashboard-mobile-section dashboard-mobile-list-card">
+        <div className="dashboard-mobile-section-head">
+          <div><span>التشغيل</span><h2>آخر عمليات التشغيل</h2></div>
+          <button type="button" onClick={() => onRoute('operations')}>كل السجلات <ArrowLeft size={13} /></button>
+        </div>
+        {dashboard.recentOps.length ? (
+          <div className="dashboard-mobile-list">
+            {dashboard.recentOps.slice(0, 4).map(item => (
+              <button key={item.id} type="button" className="dashboard-mobile-list-row" onClick={() => onRoute('operations')}>
+                <span className="dashboard-mobile-list-icon"><Gauge size={15} /></span>
+                <span className="dashboard-mobile-list-copy"><strong>{item.assetName}</strong><small>{item.projectName} · {formatDate(item.date)}</small></span>
+                <span className="dashboard-mobile-list-value">{fmt(item.hours)}<small>ساعة</small></span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="dashboard-mobile-empty">
+            <Gauge size={18} /><strong>لا توجد عمليات حديثة</strong><small>سجّل أول تشغيل ليظهر هنا.</small>
+            <button type="button" onClick={() => onRoute('operations/new')}>تسجيل تشغيل <ArrowLeft size={12} /></button>
+          </div>
+        )}
+      </section>
+
+      <section className="dashboard-mobile-section dashboard-mobile-list-card">
+        <div className="dashboard-mobile-section-head">
+          <div><span>المشروعات</span><h2>المشروعات النشطة</h2></div>
+          <button type="button" onClick={() => onRoute('projects')}>كل المشروعات <ArrowLeft size={13} /></button>
+        </div>
+        {dashboard.projectRows.length ? (
+          <div className="dashboard-mobile-project-list">
+            {dashboard.projectRows.slice(0, 4).map(project => (
+              <button key={project.id} type="button" className="dashboard-mobile-project-row" onClick={() => onRoute(`project/${project.id}`)}>
+                <span className="dashboard-mobile-project-mark"><Truck size={15} /></span>
+                <span><strong>{project.name}</strong><small>{fmt(project.count)} أصل مرتبط</small></span>
+                <ArrowLeft size={14} />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="dashboard-mobile-empty">
+            <Truck size={18} /><strong>لا توجد مشروعات نشطة</strong><small>ستظهر المشروعات فور تسجيلها كحالة نشطة.</small>
+            <button type="button" onClick={() => onRoute('projects')}>عرض المشروعات <ArrowLeft size={12} /></button>
+          </div>
+        )}
+      </section>
+
+      <section className="dashboard-mobile-section dashboard-mobile-cost-card">
+        <div className="dashboard-mobile-section-head">
+          <div><span>التكلفة</span><h2>آخر وضع مالي</h2></div>
+          <button type="button" onClick={() => onRoute('true-cost')}>تحليل التكلفة <ArrowLeft size={13} /></button>
+        </div>
+        <div className="dashboard-mobile-cost-grid">
+          <MobileCostMetric label="الوقود" value={formatMoney(dashboard.fuelCost)} tone="blue" />
+          <MobileCostMetric label="الصيانة" value={formatMoney(dashboard.maintenanceCost)} tone="amber" />
+          <MobileCostMetric label="الإجمالي" value={formatMoney(dashboard.fuelCost + dashboard.maintenanceCost)} tone="teal" />
+        </div>
+        {!dashboard.hasCostData && <p className="dashboard-mobile-cost-note"><Fuel size={14} /> لا توجد حركة تكلفة كافية لإظهار اتجاهات مقارنة بعد.</p>}
+      </section>
+    </div>
+  )
+}
+
+function MobileKpi({ icon: Icon, tone, label, value, detail }: { icon: LucideIcon; tone: string; label: string; value: string; detail: string }) {
+  return <article className={`dashboard-mobile-kpi dashboard-mobile-kpi--${tone}`}>
+    <span className="dashboard-mobile-kpi__icon"><Icon size={17} /></span>
+    <span className="dashboard-mobile-kpi__copy"><small>{label}</small><strong>{value}</strong><em>{detail}</em></span>
+  </article>
+}
+
+function MobileQuickAction({ icon: Icon, title, description, tone, badge, onClick }: { icon: LucideIcon; title: string; description: string; tone: string; badge?: number; onClick: () => void }) {
+  return <button type="button" className={`dashboard-mobile-action dashboard-mobile-action--${tone}`} onClick={onClick}>
+    <span className="dashboard-mobile-action__icon"><Icon size={18} /></span>
+    <span className="dashboard-mobile-action__copy"><strong>{title}</strong><small>{description}</small></span>
+    {badge && badge > 0 ? <b>{fmt(badge)}</b> : <ArrowLeft size={13} className="dashboard-mobile-action__arrow" />}
+  </button>
+}
+
+function MobileFocusItem({ icon: Icon, tone, label, value, onClick }: { icon: LucideIcon; tone: string; label: string; value: number; onClick: () => void }) {
+  return <button type="button" className={`dashboard-mobile-focus-item dashboard-mobile-focus-item--${tone}`} onClick={onClick}>
+    <span className="dashboard-mobile-focus-icon"><Icon size={15} /></span>
+    <span><small>{label}</small><strong>{fmt(value)}</strong></span>
+    <ArrowLeft size={12} />
+  </button>
+}
+
+function MobileCostMetric({ label, value, tone }: { label: string; value: string; tone: string }) {
+  return <div className={`dashboard-mobile-cost-metric dashboard-mobile-cost-metric--${tone}`}><small>{label}</small><strong>{value}</strong></div>
 }
 
 function KpiCard({ tone, icon: Icon, label, value, meta, helper }: { tone: string; icon: LucideIcon; label: string; value: string; meta: string; helper: string }) {
