@@ -68,10 +68,10 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
         <p>نفّذ أكثر الإجراءات تكرارًا مباشرةً بدون البحث داخل الصفحات.</p>
       </div>
       <div className="dashboard-quick-strip__grid">
-        <button type="button" onClick={() => onRoute('trips/new')}><span><Truck size={21} /></span><strong>طلب نقل</strong><small>إنشاء عملية نقل جديدة</small></button>
-        <button type="button" onClick={() => onRoute('breakdowns/new')}><span><AlertTriangle size={21} /></span><strong>تسجيل عطل</strong><small>فتح بلاغ عطل جديد</small></button>
-        <button type="button" onClick={() => onRoute('assignments/new')}><span><ClipboardCheck size={21} /></span><strong>طلب تخصيص</strong><small>تخصيص أصل لمشروع</small></button>
-        <button type="button" onClick={() => onRoute('operations/new')}><span><Gauge size={21} /></span><strong>تسجيل تشغيل</strong><small>تسجيل يوم تشغيل جديد</small></button>
+        <button type="button" onClick={() => onRoute('trips/new')}><span><Truck size={21} /></span><div><strong>طلب نقل</strong><small>إنشاء عملية نقل جديدة</small></div></button>
+        <button type="button" onClick={() => onRoute('breakdowns/new')}><span><AlertTriangle size={21} /></span><div><strong>تسجيل عطل</strong><small>فتح بلاغ عطل جديد</small></div></button>
+        <button type="button" onClick={() => onRoute('assignments/new')}><span><ClipboardCheck size={21} /></span><div><strong>طلب تخصيص</strong><small>تخصيص أصل لمشروع</small></div></button>
+        <button type="button" onClick={() => onRoute('operations/new')}><span><Gauge size={21} /></span><div><strong>تسجيل تشغيل</strong><small>تسجيل يوم تشغيل جديد</small></div></button>
       </div>
       <button type="button" className="dashboard-quick-cta" onClick={() => onRoute('operations-center')}>مركز التحكم <ArrowLeft size={17} /></button>
     </section>
