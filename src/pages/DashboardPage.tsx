@@ -55,6 +55,7 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
         dashboard={dashboard}
         period={period}
         alertTotal={alertTotal}
+        notificationUnreadCount={notificationUnreadCount}
         formatMoney={formatMoney}
         onRoute={onRoute}
       />
