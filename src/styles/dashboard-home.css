@@ -85,7 +85,9 @@
 .dot { width:7px; height:7px; border-radius:50%; display:inline-block; flex:0 0 auto; }
 .dot.blue { background:#0878d1; }.dot.green { background:#18a86e; }.dot.amber { background:#f2b21b; }.dot.purple { background:#7757cb; }.dot.red { background:#d74a48; }.dot.teal { background:#0b8c91; }
 
-.dashboard-secondary-grid { display:grid; grid-template-columns:1.15fr 1fr 1fr; gap:15px; }
+.dashboard-secondary-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:15px; align-items:stretch; }
+.dashboard-secondary-column { min-width:0; display:grid; gap:15px; align-content:start; }
+.dashboard-secondary-card { min-height:0; }
 .dashboard-watch-head { display:grid; grid-template-columns:1.1fr 1.25fr auto; gap:8px; padding:0 6px 7px; color:#9aabb0; font-size:8px; font-weight:800; }
 .dashboard-watchlist, .dashboard-projects, .dashboard-ops-list { display:flex; flex-direction:column; gap:7px; }
 .dashboard-watch-row, .dashboard-project-row, .dashboard-op-row { width:100%; min-width:0; display:flex; align-items:center; gap:8px; padding:8px; border:1px solid #e0eaed; border-radius:10px; background:#fff; cursor:pointer; text-align:right; }
@@ -101,6 +103,23 @@
 .dashboard-project-number small { color:#8a9da3; font-size:8px; font-weight:700; }
 .dashboard-project-progress { flex:1 1 48px; min-width:42px; height:6px; overflow:hidden; border-radius:999px; background:#edf3f4; }
 .dashboard-project-progress i { display:block; height:100%; border-radius:inherit; background:#68b8b5; }
+
+.dashboard-followup-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.dashboard-followup-metric { width:100%; min-width:0; display:flex; align-items:center; gap:8px; padding:10px; border:1px solid #e1eaed; border-radius:10px; background:#fff; text-align:right; cursor:pointer; transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease; }
+.dashboard-followup-metric:hover { transform:translateY(-1px); border-color:#cbdde0; box-shadow:0 6px 14px rgba(16,55,65,.06); }
+.dashboard-followup-metric__icon { width:32px; height:32px; display:grid; place-items:center; flex:0 0 auto; border-radius:9px; }
+.dashboard-followup-metric__copy { min-width:0; flex:1 1 auto; display:flex; flex-direction:column; gap:2px; }
+.dashboard-followup-metric__copy small { color:#81959b; font-size:8.5px; line-height:1.35; }
+.dashboard-followup-metric__copy strong { color:#173b45; font-size:16px; font-weight:950; line-height:1; }
+.dashboard-followup-metric__arrow { flex:0 0 auto; color:#8ea2a8; }
+.dashboard-followup-metric--purple .dashboard-followup-metric__icon { color:#7351ca; background:#f3efff; }
+.dashboard-followup-metric--red .dashboard-followup-metric__icon { color:#d74a48; background:#fff0f0; }
+.dashboard-followup-metric--amber .dashboard-followup-metric__icon { color:#ca8c15; background:#fff8e8; }
+.dashboard-followup-metric--blue .dashboard-followup-metric__icon { color:#0878d1; background:#edf6ff; }
+.dashboard-followup-footer { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid #e7edef; }
+.dashboard-followup-footer span { color:#71868d; font-size:9px; }
+.dashboard-followup-footer strong { color:#163b46; font-size:16px; font-weight:950; }
+.dashboard-followup-footer button { display:inline-flex; align-items:center; gap:4px; padding:5px 7px; border:0; background:transparent; color:#0a6f76; font:inherit; font-size:8px; font-weight:900; cursor:pointer; }
 .dashboard-op-hours { flex:0 0 auto; min-width:44px; display:flex; flex-direction:column; align-items:center; color:#173b45; font-size:13px; font-weight:950; }
 .dashboard-op-hours small { color:#8b9da3; font-size:8px; font-weight:700; }
 
@@ -140,7 +159,7 @@
 @media (max-width:980px) {
   .dashboard-main-grid,.dashboard-bottom-grid { grid-template-columns:1fr; }
   .dashboard-secondary-grid { grid-template-columns:1fr 1fr; }
-  .dashboard-secondary-grid > :first-child { grid-column:1/-1; }
+  .dashboard-secondary-column { gap:12px; }
   .dashboard-footer-actions { grid-template-columns:repeat(3,minmax(0,1fr)); }
 }
 
@@ -157,6 +176,7 @@
   .dashboard-quick-actions__grid { grid-template-columns:1fr 1fr; }
   .dashboard-live-strip { grid-template-columns:1fr 1fr; }
   .dashboard-secondary-grid { grid-template-columns:1fr; }
+  .dashboard-secondary-column { gap:12px; }
   .dashboard-secondary-grid > :first-child { grid-column:auto; }
   .dashboard-cost-summary { grid-template-columns:1fr; }
   .dashboard-health-foot { grid-template-columns:1fr 1fr; }

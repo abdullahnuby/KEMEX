@@ -149,43 +149,61 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
       </section>
 
       <section className="dashboard-secondary-grid">
-        <Card className="dashboard-panel" title="مركز المتابعة" description="عناصر تحتاج تدخلاً أو مراجعة" action={<Button variant="ghost" size="sm" onClick={() => onRoute('maintenance')}>عرض الكل</Button>}>
-          <div className="dashboard-watch-head"><span>العنصر</span><span>السبب</span><span>الحالة</span></div>
-          <div className="dashboard-watchlist">
-            {dashboard.watchlist.map(item => {
-              const Icon = item.icon
-              return (
-                <button type="button" className="dashboard-watch-row" key={item.id} onClick={() => onRoute(item.route)}>
-                  <span className={`dashboard-watch-icon tone-${item.tone}`}><Icon size={16} /></span>
-                  <span className="dashboard-watch-copy"><strong>{item.name}</strong><small>{item.code || 'بدون كود'}</small></span>
-                  <span className="dashboard-watch-reason">{item.reason}</span>
-                  <StatusBadge tone={item.tone === 'red' ? 'red' : item.tone === 'amber' ? 'amber' : 'blue'}>{item.status}</StatusBadge>
-                </button>
-              )
-            })}
-            {!dashboard.watchlist.length && <EmptyState icon={CheckCircle2} title="لا توجد بنود حرجة" description="لا توجد استحقاقات قريبة أو أوامر عمل عاجلة حاليًا." />}
-          </div>
-        </Card>
+        <div className="dashboard-secondary-column">
+          <Card className="dashboard-panel dashboard-secondary-card" title="المشروعات النشطة" description="الأصول المرتبطة بكل مشروع" action={<Button variant="ghost" size="sm" onClick={() => onRoute('projects')}>المشروعات</Button>}>
+            {dashboard.projectRows.length ? (
+              <div className="dashboard-projects">
+                {dashboard.projectRows.slice(0, 6).map(project => (
+                  <button type="button" className="dashboard-project-row" key={project.id} onClick={() => onRoute('projects')}>
+                    <span className="dashboard-project-icon"><Truck size={15} /></span>
+                    <span className="dashboard-project-copy"><strong>{project.name}</strong><small>{project.code || 'بدون رمز'} · {project.status || '—'}</small></span>
+                    <span className="dashboard-project-progress"><i style={{ width: `${Math.min(100, dashboard.totalAssets ? (project.count / dashboard.totalAssets) * 100 : 0)}%` }} /></span>
+                    <span className="dashboard-project-number">{fmt(project.count)}<small>أصل</small></span>
+                  </button>
+                ))}
+              </div>
+            ) : <EmptyState icon={Truck} title="لا توجد مشروعات مرتبطة" description="عند ربط الأصول بالمشروعات ستظهر هنا التوزيعات التشغيلية." />}
+          </Card>
 
-        <Card className="dashboard-panel" title="المشروعات النشطة" description="الأصول المرتبطة بكل مشروع" action={<Button variant="ghost" size="sm" onClick={() => onRoute('projects')}>المشروعات</Button>}>
-          {dashboard.projectRows.length ? (
-            <div className="dashboard-projects">
-              {dashboard.projectRows.slice(0, 6).map(project => (
-                <button type="button" className="dashboard-project-row" key={project.id} onClick={() => onRoute('projects')}>
-                  <span className="dashboard-project-icon"><Truck size={15} /></span>
-                  <span className="dashboard-project-copy"><strong>{project.name}</strong><small>{project.code || 'بدون رمز'} · {project.status || '—'}</small></span>
-                  <span className="dashboard-project-progress"><i style={{ width: `${Math.min(100, dashboard.totalAssets ? (project.count / dashboard.totalAssets) * 100 : 0)}%` }} /></span>
-                  <span className="dashboard-project-number">{fmt(project.count)}<small>أصل</small></span>
-                </button>
-              ))}
+          <Card className="dashboard-panel dashboard-secondary-card" title="الأصول الأكثر تشغيلًا" description={`حسب ساعات التشغيل خلال ${periodLabelShort(period)}`} action={<Button variant="ghost" size="sm" onClick={() => onRoute('operations')}>التشغيل</Button>}>
+            <AnalyticsBarChart points={dashboard.assetUsage.map(item => ({ label: item.label, value: item.hours }))} valueSuffix=" س" limit={6} />
+            {!dashboard.assetUsage.length && <EmptyState icon={Gauge} title="لا توجد سجلات تشغيل للفترة" description="سجلات التشغيل المعتمدة ستظهر هنا تلقائيًا." />}
+          </Card>
+        </div>
+
+        <div className="dashboard-secondary-column">
+          <Card className="dashboard-panel dashboard-secondary-card" title="مركز المتابعة" description="عناصر تحتاج تدخلاً أو مراجعة" action={<Button variant="ghost" size="sm" onClick={() => onRoute('maintenance')}>عرض الكل</Button>}>
+            <div className="dashboard-watch-head"><span>العنصر</span><span>السبب</span><span>الحالة</span></div>
+            <div className="dashboard-watchlist">
+              {dashboard.watchlist.map(item => {
+                const Icon = item.icon
+                return (
+                  <button type="button" className="dashboard-watch-row" key={item.id} onClick={() => onRoute(item.route)}>
+                    <span className={`dashboard-watch-icon tone-${item.tone}`}><Icon size={16} /></span>
+                    <span className="dashboard-watch-copy"><strong>{item.name}</strong><small>{item.code || 'بدون كود'}</small></span>
+                    <span className="dashboard-watch-reason">{item.reason}</span>
+                    <StatusBadge tone={item.tone === 'red' ? 'red' : item.tone === 'amber' ? 'amber' : 'blue'}>{item.status}</StatusBadge>
+                  </button>
+                )
+              })}
+              {!dashboard.watchlist.length && <EmptyState icon={CheckCircle2} title="لا توجد بنود حرجة" description="لا توجد استحقاقات قريبة أو أوامر عمل عاجلة حاليًا." />}
             </div>
-          ) : <EmptyState icon={Truck} title="لا توجد مشروعات مرتبطة" description="عند ربط الأصول بالمشروعات ستظهر هنا التوزيعات التشغيلية." />}
-        </Card>
+          </Card>
 
-        <Card className="dashboard-panel" title="الأصول الأكثر تشغيلًا" description={`حسب ساعات التشغيل خلال ${periodLabelShort(period)}`} action={<Button variant="ghost" size="sm" onClick={() => onRoute('operations')}>التشغيل</Button>}>
-          <AnalyticsBarChart points={dashboard.assetUsage.map(item => ({ label: item.label, value: item.hours }))} valueSuffix=" س" limit={6} />
-          {!dashboard.assetUsage.length && <EmptyState icon={Gauge} title="لا توجد سجلات تشغيل للفترة" description="سجلات التشغيل المعتمدة ستظهر هنا تلقائيًا." />}
-        </Card>
+          <Card className="dashboard-panel dashboard-secondary-card" title="الطلبات والاستحقاقات" description="ملخص سريع للعناصر المفتوحة حاليًا">
+            <div className="dashboard-followup-grid">
+              <FollowUpMetric icon={ClipboardCheck} label="أوامر عمل مفتوحة" value={dashboard.openWo} tone="purple" route="maintenance" onRoute={onRoute} />
+              <FollowUpMetric icon={AlertTriangle} label="أوامر عاجلة" value={dashboard.urgentWorkOrders} tone="red" route="maintenance" onRoute={onRoute} />
+              <FollowUpMetric icon={CalendarClock} label="استحقاقات خلال 30 يوم" value={dashboard.expiring} tone="amber" route="assets" onRoute={onRoute} />
+              <FollowUpMetric icon={Gauge} label="تشغيل بانتظار اعتماد" value={dashboard.pendingOps} tone="blue" route="operations" onRoute={onRoute} />
+            </div>
+            <div className="dashboard-followup-footer">
+              <span>إجمالي الأولويات الحالية</span>
+              <strong>{fmt(dashboard.priorityCount)}</strong>
+              <button type="button" onClick={() => onRoute(dashboard.priorityCount ? 'maintenance' : 'operations')}>فتح المتابعة <ArrowLeft size={13} /></button>
+            </div>
+          </Card>
+        </div>
       </section>
 
       <section className="dashboard-bottom-grid">
@@ -246,6 +264,16 @@ function KpiCard({ tone, icon: Icon, label, value, meta, helper }: { tone: strin
       </div>
       <em>{helper}</em>
     </article>
+  )
+}
+
+function FollowUpMetric({ icon: Icon, label, value, tone, route, onRoute }: { icon: LucideIcon; label: string; value: number; tone: string; route: string; onRoute: (route: string) => void }) {
+  return (
+    <button type="button" className={`dashboard-followup-metric dashboard-followup-metric--${tone}`} onClick={() => onRoute(route)}>
+      <span className="dashboard-followup-metric__icon"><Icon size={16} /></span>
+      <span className="dashboard-followup-metric__copy"><small>{label}</small><strong>{fmt(value)}</strong></span>
+      <ArrowLeft size={13} className="dashboard-followup-metric__arrow" />
+    </button>
   )
 }
 
