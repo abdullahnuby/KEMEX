@@ -21,7 +21,6 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Asset, FuelOperation, Operation, Project, WorkOrder } from '../types/tfms'
-import type { AppNotification } from '../features/notifications/types'
 import { Button, Card, ChartShell, AnalyticsBarChart, AnalyticsDonut, AnalyticsLineChart, StatusBadge } from '../components/ui'
 import { sameReference } from '../utils/referenceLabels'
 import { useCurrency } from '../features/settings'
@@ -36,12 +35,12 @@ type Props = {
   workOrders: WorkOrder[]
   fuelOps: FuelOperation[]
   operations: Operation[]
-  notifications?: AppNotification[]
+  notifications?: unknown[]
   notificationUnreadCount?: number
   onRoute: (route: string) => void
 }
 
-export function DashboardPage({ assets, projects, workOrders, fuelOps, operations, onRoute }: Props) {
+export function DashboardPage({ assets, projects, workOrders, fuelOps, operations, notificationUnreadCount = 0, onRoute }: Props) {
   const { formatMoney } = useCurrency()
   const [period, setPeriod] = useState<DashboardPeriod>(30)
 
@@ -50,13 +49,23 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
     [assets, fuelOps, workOrders, operations, projects, period],
   )
 
+  const alertTotal = dashboard.priorityCount + Math.max(0, Number(notificationUnreadCount || 0))
+
   return (
     <div className="dashboard-page dashboard-home" dir="rtl">
-      <header className="dashboard-home__header">
-        <div>
-          <div className="dashboard-home__eyebrow"><span className="dashboard-live-pill"><i /> مباشر</span> مركز القيادة التشغيلي</div>
+      <header className="dashboard-home__header dashboard-home__hero">
+        <div className="dashboard-home__hero-copy">
+          <div className="dashboard-home__eyebrow">
+            <span className="dashboard-live-pill"><i /> مباشر الآن</span>
+            <span>مركز القيادة التشغيلي</span>
+          </div>
           <h1>الرئيسية</h1>
-          <p>لوحة واحدة لمتابعة حالة الأصول والأسطول والتشغيل والصيانة والتكاليف والطلبات اليومية.</p>
+          <p>ملخص لحظي لحالة الأسطول والأصول والطلبات والتشغيل والصيانة والتكاليف، مع وصول مباشر لأكثر الإجراءات استخدامًا.</p>
+          <div className="dashboard-hero-meta">
+            <span><Radio size={13} /> {fmt(dashboard.activeCount)} أصل في التشغيل أو التخصيص</span>
+            <span><Wrench size={13} /> {fmt(dashboard.openWo)} أمر عمل مفتوح</span>
+            <span><BellRing size={13} /> {fmt(alertTotal)} تنبيه / متابعة</span>
+          </div>
         </div>
         <div className="dashboard-home__header-actions">
           <div className="dashboard-period-control" aria-label="الفترة الزمنية">
@@ -73,38 +82,52 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
 
       <section className={`dashboard-home__status ${dashboard.priorityCount > 0 ? 'is-alert' : 'is-clear'}`}>
         <div className="dashboard-status-main">
-          {dashboard.priorityCount > 0 ? <ShieldAlert size={17} /> : <CheckCircle2 size={17} />}
-          <strong>{dashboard.priorityCount > 0 ? `${fmt(dashboard.priorityCount)} بنود تحتاج متابعة` : 'الحالة التشغيلية مستقرة'}</strong>
-          <span>{dashboard.priorityCount > 0 ? 'راجع التنبيهات وأوامر العمل والاستحقاقات قبل بدء التشغيل.' : 'لا توجد استحقاقات حرجة أو أوامر عاجلة ضمن البيانات الحالية.'}</span>
+          {dashboard.priorityCount > 0 ? <ShieldAlert size={18} /> : <CheckCircle2 size={18} />}
+          <div>
+            <strong>{dashboard.priorityCount > 0 ? `${fmt(dashboard.priorityCount)} بنود تشغيلية تحتاج متابعة` : 'الحالة التشغيلية مستقرة'}</strong>
+            <span>{dashboard.priorityCount > 0 ? 'راجع الاستحقاقات وأوامر العمل والعناصر العاجلة قبل بدء دورة التشغيل التالية.' : 'لا توجد أوامر عمل عاجلة أو استحقاقات قريبة ضمن البيانات الحالية.'}</span>
+          </div>
         </div>
-        <button type="button" onClick={() => onRoute(dashboard.priorityCount > 0 ? 'maintenance' : 'operations-center')}>
-          {dashboard.priorityCount > 0 ? 'عرض ما يحتاج متابعة' : 'فتح مركز التشغيل'} <ArrowLeft size={14} />
+        <button type="button" onClick={() => onRoute(dashboard.priorityCount > 0 ? 'maintenance' : 'operations')}>
+          {dashboard.priorityCount > 0 ? 'عرض ما يحتاج متابعة' : 'فتح التشغيل'} <ArrowLeft size={14} />
         </button>
       </section>
 
-      <section className="dashboard-kpis dashboard-home__kpis" aria-label="مؤشرات سريعة">
-        <KpiCard tone="blue" icon={Truck} label="إجمالي الأصول" value={fmt(dashboard.totalAssets)} meta={`${fmt(dashboard.activeCount)} تعمل أو مخصصة`} />
-        <KpiCard tone="green" icon={Radio} label="متاحة للتشغيل" value={fmt(dashboard.available)} meta={`${fmt(dashboard.readiness)}% جاهزية`} />
-        <KpiCard tone="amber" icon={Wrench} label="تحت الصيانة" value={fmt(dashboard.maintenance)} meta={`${fmt(dashboard.urgentWorkOrders)} أوامر عاجلة`} />
-        <KpiCard tone="purple" icon={Gauge} label="ساعات التشغيل" value={fmt(dashboard.hours)} meta={`خلال ${periodLabelShort(period)}`} />
-        <KpiCard tone="teal" icon={CalendarClock} label="المشروعات النشطة" value={fmt(dashboard.activeProjects)} meta={`${fmt(dashboard.projectRows.length)} مشروعات ظاهرة`} />
-        <KpiCard tone="red" icon={BellRing} label="بنود تحتاج متابعة" value={fmt(dashboard.priorityCount)} meta={`${fmt(dashboard.pendingOps)} تشغيل بانتظار اعتماد`} />
+      <section className="dashboard-kpis dashboard-home__kpis" aria-label="مؤشرات الأداء">
+        <KpiCard tone="blue" icon={Truck} label="إجمالي الأصول" value={fmt(dashboard.totalAssets)} meta={`${fmt(dashboard.activeCount)} تعمل أو مخصصة`} helper={`${fmt(dashboard.readiness)}% جاهزية`} />
+        <KpiCard tone="green" icon={Radio} label="متاحة للتشغيل" value={fmt(dashboard.available)} meta="جاهزة للتخصيص" helper={`${fmt(dashboard.readiness)}% جاهزية`} />
+        <KpiCard tone="amber" icon={Wrench} label="تحت الصيانة" value={fmt(dashboard.maintenance)} meta={`${fmt(dashboard.urgentWorkOrders)} أمر عاجل`} helper={`${fmt(dashboard.openWo)} أمر مفتوح`} />
+        <KpiCard tone="purple" icon={Gauge} label="ساعات التشغيل" value={fmt(dashboard.hours)} meta={`خلال ${periodLabelShort(period)}`} helper={`${fmt(dashboard.downtime)} ساعة توقف`} />
+        <KpiCard tone="teal" icon={CalendarClock} label="مشروعات نشطة" value={fmt(dashboard.activeProjects)} meta="مشروع مرتبط بالأصول" helper={`${fmt(dashboard.projectRows.length)} مشروع ظاهر`} />
+        <KpiCard tone="red" icon={BellRing} label="تنبيهات ومتابعات" value={fmt(alertTotal)} meta={`${fmt(dashboard.pendingOps)} تشغيل بانتظار اعتماد`} helper={notificationUnreadCount ? `${fmt(notificationUnreadCount)} إشعار غير مقروء` : 'لا توجد إشعارات غير مقروءة'} />
       </section>
 
       <section className="dashboard-quick-actions" aria-label="العمليات السريعة">
         <div className="dashboard-section-intro">
-          <span>الوصول السريع</span>
-          <h2>العمليات التي تستخدمها باستمرار</h2>
-          <p>أنشئ الطلب أو السجل مباشرة من الرئيسية بدون المرور على قوائم الوحدات.</p>
+          <span className="dashboard-section-kicker">اختصارات التشغيل</span>
+          <h2>العمليات السريعة</h2>
+          <p>أنشئ الطلب أو السجل مباشرة من الصفحة الرئيسية بدون العودة إلى قوائم الوحدات.</p>
+          <button type="button" className="dashboard-intro-link" onClick={() => onRoute('requests')}>
+            عرض جميع الطلبات <ArrowLeft size={13} />
+          </button>
         </div>
         <div className="dashboard-quick-actions__grid">
-          <QuickAction icon={Truck} tone="blue" title="طلب نقل" description="إنشاء رحلة ونقل حمولة" onClick={() => onRoute('trips/new')} />
-          <QuickAction icon={AlertTriangle} tone="red" title="تسجيل عطل" description="فتح بلاغ عطل جديد" onClick={() => onRoute('breakdowns/new')} />
+          <QuickAction icon={Truck} tone="blue" title="طلب نقل" description="إنشاء رحلة وحمولة" onClick={() => onRoute('trips/new')} />
+          <QuickAction icon={AlertTriangle} tone="red" title="تسجيل عطل" description="فتح بلاغ عطل جديد" badge={dashboard.maintenance} onClick={() => onRoute('breakdowns/new')} />
           <QuickAction icon={ClipboardCheck} tone="amber" title="طلب تخصيص" description="تخصيص أصل لمشروع" onClick={() => onRoute('assignments/new')} />
-          <QuickAction icon={Gauge} tone="purple" title="تسجيل تشغيل" description="تسجيل ساعات وعداد" onClick={() => onRoute('operations/new')} />
+          <QuickAction icon={Gauge} tone="purple" title="تسجيل تشغيل" description="عداد وساعات تشغيل" onClick={() => onRoute('operations/new')} />
           <QuickAction icon={PackageCheck} tone="teal" title="طلب معدات" description="فتح طلب معدات جديد" onClick={() => onRoute('requests/new')} />
-          <QuickAction icon={MapPinned} tone="green" title="متابعة الأسطول" description="الموقع وحالة GPS" onClick={() => onRoute('tracking')} />
+          <QuickAction icon={MapPinned} tone="green" title="متابعة الأسطول" description="المواقع وحالة GPS" onClick={() => onRoute('tracking')} />
         </div>
+      </section>
+
+      <section className="dashboard-live-strip" aria-label="ملخص التشغيل اليوم">
+        <LiveMetric icon={Truck} label="في التشغيل / التخصيص" value={dashboard.activeCount} tone="blue" />
+        <LiveMetric icon={Radio} label="جاهزة" value={dashboard.available} tone="green" />
+        <LiveMetric icon={Wrench} label="في الصيانة" value={dashboard.maintenance} tone="amber" />
+        <LiveMetric icon={Gauge} label="ساعات تشغيل" value={dashboard.hours} tone="purple" suffix="ساعة" />
+        <LiveMetric icon={Fuel} label="حركة وقود معتمدة" value={dashboard.fuelEntries} tone="teal" />
+        <LiveMetric icon={BellRing} label="متابعات" value={alertTotal} tone="red" />
       </section>
 
       <section className="dashboard-main-grid">
@@ -115,13 +138,13 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
           action={<span className="dashboard-panel-period">{periodLabelShort(period)}</span>}
         >
           <div className="dashboard-cost-summary">
-            <div><span>الوقود</span><strong>{formatMoney(dashboard.fuelCost)}</strong><small>{fmt(dashboard.fuelEntries)} حركة معتمدة</small></div>
-            <div><span>الصيانة</span><strong>{formatMoney(dashboard.maintenanceCost)}</strong><small>{fmt(dashboard.workOrderCount)} أمر عمل ضمن الفترة</small></div>
-            <div><span>الإجمالي</span><strong>{formatMoney(dashboard.fuelCost + dashboard.maintenanceCost)}</strong><small>وقود + صيانة</small></div>
+            <CostMetric label="الوقود" value={formatMoney(dashboard.fuelCost)} caption={`${fmt(dashboard.fuelEntries)} حركة معتمدة`} tone="blue" />
+            <CostMetric label="الصيانة" value={formatMoney(dashboard.maintenanceCost)} caption={`${fmt(dashboard.workOrderCount)} أمر ضمن الفترة`} tone="amber" />
+            <CostMetric label="الإجمالي" value={formatMoney(dashboard.fuelCost + dashboard.maintenanceCost)} caption="الوقود + الصيانة" tone="teal" />
           </div>
           <AnalyticsLineChart
             points={dashboard.monthlyCost}
-            height={235}
+            height={250}
             primaryLabel="الوقود"
             secondaryLabel="الصيانة"
             valueSuffix=" جنيه"
@@ -132,7 +155,7 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
         <ChartShell
           className="dashboard-panel dashboard-panel--health"
           title="حالة الأسطول"
-          description="التوزيع الحالي للأصول"
+          description="توزيع الأصول حسب الحالة الحالية"
           action={<button type="button" className="dashboard-inline-link" onClick={() => onRoute('assets')}>كل الأصول <ArrowLeft size={13} /></button>}
         >
           <AnalyticsDonut segments={dashboard.healthSegments} centerValue={fmt(dashboard.totalAssets)} centerLabel="أصل" />
@@ -140,19 +163,22 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
             <HealthStat label="يعمل / مخصص" value={dashboard.activeCount} tone="blue" />
             <HealthStat label="متاح" value={dashboard.available} tone="green" />
             <HealthStat label="صيانة" value={dashboard.maintenance} tone="amber" />
+            <HealthStat label="أخرى" value={Math.max(0, dashboard.totalAssets - dashboard.activeCount - dashboard.available - dashboard.maintenance)} tone="purple" />
           </div>
         </ChartShell>
       </section>
 
       <section className="dashboard-secondary-grid">
-        <Card className="dashboard-panel" title="آخر التنبيهات والإجراءات" description="العناصر التي تحتاج تدخلًا أو مراجعة" action={<Button variant="ghost" size="sm" onClick={() => onRoute('maintenance')}>عرض الكل</Button>}>
+        <Card className="dashboard-panel" title="مركز المتابعة" description="عناصر تحتاج تدخلاً أو مراجعة" action={<Button variant="ghost" size="sm" onClick={() => onRoute('maintenance')}>عرض الكل</Button>}>
+          <div className="dashboard-watch-head"><span>العنصر</span><span>السبب</span><span>الحالة</span></div>
           <div className="dashboard-watchlist">
             {dashboard.watchlist.map(item => {
               const Icon = item.icon
               return (
                 <button type="button" className="dashboard-watch-row" key={item.id} onClick={() => onRoute(item.route)}>
-                  <span className={`dashboard-watch-icon tone-${item.tone}`}><Icon size={15} /></span>
-                  <span className="dashboard-watch-copy"><strong>{item.name}</strong><small>{item.code || 'بدون كود'} · {item.reason}</small></span>
+                  <span className={`dashboard-watch-icon tone-${item.tone}`}><Icon size={16} /></span>
+                  <span className="dashboard-watch-copy"><strong>{item.name}</strong><small>{item.code || 'بدون كود'}</small></span>
+                  <span className="dashboard-watch-reason">{item.reason}</span>
                   <StatusBadge tone={item.tone === 'red' ? 'red' : item.tone === 'amber' ? 'amber' : 'blue'}>{item.status}</StatusBadge>
                 </button>
               )
@@ -161,13 +187,14 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
           </div>
         </Card>
 
-        <Card className="dashboard-panel" title="المشروعات النشطة" description="توزيع الأصول المرتبطة بكل مشروع" action={<Button variant="ghost" size="sm" onClick={() => onRoute('projects')}>المشروعات</Button>}>
+        <Card className="dashboard-panel" title="المشروعات النشطة" description="الأصول المرتبطة بكل مشروع" action={<Button variant="ghost" size="sm" onClick={() => onRoute('projects')}>المشروعات</Button>}>
           {dashboard.projectRows.length ? (
             <div className="dashboard-projects">
               {dashboard.projectRows.slice(0, 6).map(project => (
                 <button type="button" className="dashboard-project-row" key={project.id} onClick={() => onRoute('projects')}>
                   <span className="dashboard-project-icon"><Truck size={15} /></span>
                   <span className="dashboard-project-copy"><strong>{project.name}</strong><small>{project.code || 'بدون رمز'} · {project.status || '—'}</small></span>
+                  <span className="dashboard-project-progress"><i style={{ width: `${Math.min(100, dashboard.totalAssets ? (project.count / dashboard.totalAssets) * 100 : 0)}%` }} /></span>
                   <span className="dashboard-project-number">{fmt(project.count)}<small>أصل</small></span>
                 </button>
               ))}
@@ -186,7 +213,7 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
           <div className="dashboard-ops-list">
             {dashboard.recentOps.map(item => (
               <button type="button" className="dashboard-op-row" key={item.id} onClick={() => onRoute('operations')}>
-                <span className="dashboard-op-icon"><Gauge size={14} /></span>
+                <span className="dashboard-op-icon"><Gauge size={15} /></span>
                 <span className="dashboard-op-copy"><strong>{item.assetName}</strong><small>{item.projectName} · {formatDate(item.date)}</small></span>
                 <span className="dashboard-op-hours">{fmt(item.hours)}<small>ساعة</small></span>
                 <StatusBadge tone={item.status === 'معتمد' ? 'emerald' : 'blue'}>{item.status || '—'}</StatusBadge>
@@ -196,17 +223,17 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
           </div>
         </Card>
 
-        <Card className="dashboard-panel dashboard-map-panel" title="خريطة التشغيل" description="نظرة سريعة على التوزيع التشغيلي" action={<Button variant="ghost" size="sm" onClick={() => onRoute('tracking')}>فتح التتبع</Button>}>
+        <Card className="dashboard-panel dashboard-map-panel" title="خريطة التشغيل" description="نظرة سريعة على توزيع الأصول" action={<Button variant="ghost" size="sm" onClick={() => onRoute('tracking')}>فتح التتبع</Button>}>
           <button type="button" className="dashboard-map-preview" onClick={() => onRoute('tracking')} aria-label="فتح صفحة تتبع المركبات">
             <div className="dashboard-map-grid" />
             <div className="dashboard-map-road dashboard-map-road--one" />
             <div className="dashboard-map-road dashboard-map-road--two" />
             <div className="dashboard-map-road dashboard-map-road--three" />
             <div className="dashboard-map-route" />
-            <MapPinDot x="25%" y="68%" tone="blue" label={fmt(dashboard.available)} />
-            <MapPinDot x="53%" y="36%" tone="green" label={fmt(dashboard.activeCount)} />
-            <MapPinDot x="74%" y="62%" tone="amber" label={fmt(dashboard.maintenance)} />
-            <div className="dashboard-map-center"><MapPinned size={20} /><strong>{fmt(dashboard.totalAssets)}</strong><span>أصل على الخريطة / GPS</span></div>
+            <MapPinDot x="22%" y="68%" tone="blue" label={fmt(dashboard.available)} />
+            <MapPinDot x="53%" y="34%" tone="green" label={fmt(dashboard.activeCount)} />
+            <MapPinDot x="77%" y="63%" tone="amber" label={fmt(dashboard.maintenance)} />
+            <div className="dashboard-map-center"><MapPinned size={20} /><strong>{fmt(dashboard.totalAssets)}</strong><span>إجمالي الأصول على الخريطة</span></div>
             <span className="dashboard-map-cta"><Radio size={13} /> فتح التتبع المباشر</span>
           </button>
           <div className="dashboard-map-stats">
@@ -217,7 +244,7 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
         </Card>
       </section>
 
-      <section className="dashboard-footer-actions">
+      <section className="dashboard-footer-actions" aria-label="الوصول إلى الوحدات">
         <button type="button" onClick={() => onRoute('assets')}><Truck size={15} /> إدارة الأصول والأسطول <ArrowLeft size={13} /></button>
         <button type="button" onClick={() => onRoute('maintenance')}><Wrench size={15} /> أوامر العمل والصيانة <ArrowLeft size={13} /></button>
         <button type="button" onClick={() => onRoute('fuel')}><Fuel size={15} /> حركة الوقود <ArrowLeft size={13} /></button>
@@ -228,23 +255,42 @@ export function DashboardPage({ assets, projects, workOrders, fuelOps, operation
   )
 }
 
-function KpiCard({ tone, icon: Icon, label, value, meta }: { tone: string; icon: LucideIcon; label: string; value: string; meta: string }) {
+function KpiCard({ tone, icon: Icon, label, value, meta, helper }: { tone: string; icon: LucideIcon; label: string; value: string; meta: string; helper: string }) {
   return (
     <article className={`dashboard-kpi dashboard-kpi--${tone}`}>
       <span className="dashboard-kpi__icon"><Icon size={19} /></span>
-      <div className="dashboard-kpi__copy"><span>{label}</span><strong>{value}</strong><small>{meta}</small></div>
+      <div className="dashboard-kpi__copy">
+        <span>{label}</span>
+        <strong>{value}</strong>
+        <small>{meta}</small>
+      </div>
+      <em>{helper}</em>
     </article>
   )
 }
 
-function QuickAction({ icon: Icon, tone, title, description, onClick }: { icon: LucideIcon; tone: string; title: string; description: string; onClick: () => void }) {
+function QuickAction({ icon: Icon, tone, title, description, badge, onClick }: { icon: LucideIcon; tone: string; title: string; description: string; badge?: number; onClick: () => void }) {
   return (
     <button type="button" className={`dashboard-quick-card dashboard-quick-card--${tone}`} onClick={onClick}>
       <span className="dashboard-quick-card__icon"><Icon size={19} /></span>
       <span className="dashboard-quick-card__copy"><strong>{title}</strong><small>{description}</small></span>
+      {typeof badge === 'number' && badge > 0 ? <span className="dashboard-quick-card__badge">{fmt(badge)}</span> : null}
       <Plus size={15} className="dashboard-quick-card__plus" />
     </button>
   )
+}
+
+function LiveMetric({ icon: Icon, label, value, tone, suffix }: { icon: LucideIcon; label: string; value: number; tone: string; suffix?: string }) {
+  return (
+    <div className={`dashboard-live-metric dashboard-live-metric--${tone}`}>
+      <span><Icon size={15} /></span>
+      <div><strong>{fmt(value)}</strong><small>{suffix ? `${label} · ${suffix}` : label}</small></div>
+    </div>
+  )
+}
+
+function CostMetric({ label, value, caption, tone }: { label: string; value: string; caption: string; tone: string }) {
+  return <div className={`dashboard-cost-metric dashboard-cost-metric--${tone}`}><span>{label}</span><strong>{value}</strong><small>{caption}</small></div>
 }
 
 function HealthStat({ label, value, tone }: { label: string; value: number; tone: string }) {
